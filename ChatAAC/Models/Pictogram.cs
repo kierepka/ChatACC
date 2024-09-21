@@ -1,27 +1,58 @@
 using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using System.IO;
+using System.Text.Json.Serialization;
 
 namespace ChatAAC.Models;
 
 public class Pictogram
 {
-    [JsonPropertyName("_id")]
-    public int Id { get; set; }
+    [JsonPropertyName("schematic")]
+    public bool Schematic { get; set; } = false;
 
-    [JsonPropertyName("keywords")] public Keyword[] Keywords { get; set; } = [];
-    
-    [JsonPropertyName("image")]
-    public string ImageUrl { get; set; } = string.Empty;
-    
-    [JsonPropertyName("category")]
-    public string Category { get; set; } = string.Empty;// Assuming category is a single string
-    
+    [JsonPropertyName("sex")]
+    public bool Sex { get; set; } = false;
+
+    [JsonPropertyName("violence")]
+    public bool Violence { get; set; } = false;
+
+    [JsonPropertyName("aac")]
+    public bool Aac { get; set; } = false;
+
+    [JsonPropertyName("aacColor")]
+    public bool AacColor { get; set; } = false;
+
+    [JsonPropertyName("skin")]
+    public bool Skin { get; set; } = false;
+
+    [JsonPropertyName("hair")]
+    public bool Hair { get; set; } = false;
+
+    [JsonPropertyName("downloads")]
+    public long Downloads { get; set; } = 0;
+
+    [JsonPropertyName("categories")]
+    public string[] Categories { get; set; } = Array.Empty<string>();
+
+    [JsonPropertyName("synsets")]
+    public string[] Synsets { get; set; } = Array.Empty<string>();
+
     [JsonPropertyName("tags")]
-    public List<string> Tags { get; set; } = new List<string>();
-    
-    // Inne właściwości według potrzeb
+    public string[] Tags { get; set; } = Array.Empty<string>();
+
+    [JsonPropertyName("_id")]
+    public long Id { get; set; } = 0;
+
+    [JsonPropertyName("created")]
+    public DateTimeOffset Created { get; set; }
+
+    [JsonPropertyName("lastUpdated")]
+    public DateTimeOffset LastUpdated { get; set; }
+
+    [JsonPropertyName("keywords")]
+    public Keyword[] Keywords { get; set; } = Array.Empty<Keyword>();
+
+    // Publiczny, bezparametrowy konstruktor
+    public Pictogram() { }
 
     [JsonIgnore]
     public string ImagePath

@@ -14,7 +14,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         // Set DataContext to MainViewModel instance
         var viewModel = new MainViewModel();
-        this.DataContext = viewModel;
+        DataContext = viewModel;
 
         // Subscribe to the ViewModel's PropertyChanged event
         if (viewModel is INotifyPropertyChanged notifyPropertyChanged)
@@ -40,12 +40,12 @@ public partial class MainWindow : Window
         if (isFullScreen)
         {
             Console.WriteLine("Entering full-screen mode.");
-            this.WindowState = WindowState.FullScreen;
+            WindowState = WindowState.FullScreen;
         }
         else
         {
             Console.WriteLine("Exiting full-screen mode.");
-            this.WindowState = WindowState.Normal;
+            WindowState = WindowState.Normal;
         }
     }
     private void InitializeComponent()

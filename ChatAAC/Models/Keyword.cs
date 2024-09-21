@@ -4,9 +4,20 @@ namespace ChatAAC.Models;
 
 public class Keyword
 {
-    [JsonPropertyName("keyword")]
-    public string Text { get; set; } = string.Empty;
-
     [JsonPropertyName("type")]
-    public int? Type { get; set; } // Zmiana typu z int na string
+    public long? Type { get; set; }
+
+    [JsonPropertyName("keyword")]
+    public string KeywordKeyword { get; set; }
+
+    [JsonPropertyName("hasLocution")]
+    public bool HasLocution { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("plural")]
+    public string Plural { get; set; }
+
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonPropertyName("meaning")]
+    public string Meaning { get; set; }
 }

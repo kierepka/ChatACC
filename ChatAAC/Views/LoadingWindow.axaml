@@ -1,0 +1,17 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ChatAAC.Views.LoadingWindow"
+        Title="Ładowanie" Width="300" Height="150"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False"
+        ShowInTaskbar="False"
+        TransparencyLevelHint="Transparent">
+    <Grid>
+        <Border Background="#AA000000" CornerRadius="10" Padding="20">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <TextBlock Text="Ładowanie danych..." FontSize="16" Foreground="White" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

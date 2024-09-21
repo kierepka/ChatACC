@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChatAAC")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ccfdbaa5e2096334ca4a73c0911f6e47b90c693d")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b1938b75198befa3f3fe9af28b939501216dc70")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChatAAC")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChatAAC")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
