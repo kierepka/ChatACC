@@ -1,23 +1,29 @@
-# ChatAAC: Accessible Augmentative and Alternative Communication (AAC) Tool
+### Opis projektu ChatAAC
 
-**ChatAAC** is an open-source, cross-platform application designed to assist individuals with communication challenges by providing an intuitive and customizable interface for building sentences and interacting with AI. It leverages the ARASAAC pictogram library and integrates powerful Text-to-Speech (TTS) and conversational AI features to enhance communication.
+ChatAAC to aplikacja wspierająca komunikację dla osób z niepełnosprawnościami, oparta na piktogramach ARASAAC (Augmentative and Alternative Communication). Dzięki niej użytkownicy mogą konstruować zdania z wybranych piktogramów i generować odpowiedzi przy użyciu modelu językowego **OLLAMA** z modelem **Gemma2**. Aplikacja umożliwia mówienie wygenerowanych zdań i odpowiedzi oraz wspiera kategorie i tagi piktogramów.
 
-## Features
+#### Wymagania systemowe:
+1. **.NET 8.0** – należy zainstalować najnowszą wersję z [oficjalnej strony .NET](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+2. **OLLAMA** – do uruchomienia aplikacji potrzebna jest instalacja OLLAMA oraz model **Gemma2**, który można pobrać z [oficjalnej strony OLLAMA](https://ollama.com/).
 
-- **ARASAAC Pictogram Library Integration**: Automatically download and store the ARASAAC pictogram library locally, providing users with access to a comprehensive range of visual aids for communication.
-- **User-Friendly Interface**: An easy-to-use, grid-based interface allows users to select and arrange pictograms into sentences.
-- **Text-to-Speech (TTS)**: Convert constructed sentences into speech using customizable TTS settings. Supports multiple languages and voice options.
-- **Conversational AI**: Integrated chatbot functionality enables users to engage in natural language conversations, powered by free AI models.
-- **Personalization**: Save frequently used pictograms, customize the interface, and create user profiles for a personalized experience.
-- **Accessibility Features**: Includes features like large icons, high-contrast mode, and support for alternative input methods like eye-tracking.
-- **Cross-Platform Support**: The application is designed to work seamlessly on both Windows and Linux platforms.
+#### Opis funkcjonalności:
+- Aplikacja pozwala na wybieranie piktogramów, filtrowanie po kategoriach i tagach, a także wyszukiwanie słów kluczowych w piktogramach.
+- Możliwość generowania zdań i odpowiedzi na podstawie wybranych piktogramów, a następnie ich odczytanie dzięki funkcji TTS (Text-to-Speech).
+- Interfejs został zaprojektowany z myślą o łatwości użycia dla osób z niepełnosprawnościami ruchowymi, dlatego przyciski i piktogramy są odpowiednio powiększone i zoptymalizowane.
 
-## Installation
+#### Wersja językowa:
+Obecnie aplikacja działa w **języku polskim** i jest testowana przez użytkowników posługujących się tym językiem. W przyszłości planowane jest rozszerzenie wsparcia na inne języki.
 
-### Prerequisites
-- [.NET 6.0 SDK](https://dotnet.microsoft.com/download/dotnet/6.0) or later.
+#### Licencja:
+W aplikacji ChatAAC wykorzystywane są piktogramy pochodzące z ARASAAC, które są dostępne na licencji **Creative Commons BY-NC-SA**. Należy pamiętać, że wszystkie materiały graficzne piktogramów są chronione prawami autorskimi i należy przestrzegać warunków licencji. Więcej informacji znajdziesz na [stronie ARASAAC](https://www.arasaac.org/).
 
-### Clone the Repository
-```bash
-git clone https://github.com/yourusername/ChatAAC.git
-cd ChatAAC
+#### Plany na przyszłość:
+- Wsparcie dla większej liczby języków.
+- Rozwój funkcjonalności związanych z rozpoznawaniem mowy i ulepszanie algorytmów interakcji użytkownika.
+
+#### Pobieranie:
+- [Linux](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-linux-x64)
+- [Windows](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-windows-x64.exe)
+- [macOS](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-macos-x64)
+
+Zapraszamy do korzystania z aplikacji oraz zgłaszania sugestii i błędów poprzez stronę GitHub projektu!
