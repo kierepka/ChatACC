@@ -1,0 +1,106 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ChatAAC.ViewModels"
+        xmlns:models="clr-namespace:ChatAAC.Models"
+        xmlns:converters="clr-namespace:ChatAAC.Converters"
+        xmlns:gbx="using:GroupBox.Avalonia.Controls"
+        x:Class="ChatAAC.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="ChatAAC" Width="1000" Height="700">
+    <!-- Ustawienie DataContext -->
+    <Window.DataContext>
+        <vm:MainViewModel/>
+    </Window.DataContext>
+
+    <!-- Zasoby -->
+    <Window.Resources>
+        <converters:StringToBitmapConverter x:Key="StringToBitmapConverter"/>
+        
+        
+    </Window.Resources>
+    <!-- Sekcja Stylów -->
+    <Window.Styles>
+        <!-- Style dla przycisków -->
+        <Style Selector="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="10,5"/>
+        </Style>
+    </Window.Styles>
+    <Grid RowDefinitions="Auto, Auto, *, Auto" ColumnDefinitions="*">
+        <!-- Górny Panel: Wyszukiwarka i Przycisk "Mów" -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
+            <TextBox Width="300" Margin="0,0,10,0" Watermark="Wyszukaj..."
+                     Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"/>
+            <Button Content="Mów" Command="{Binding SpeakCommand}" Width="100"/>
+        </StackPanel>
+        
+        <!-- Lista Zaznaczonych Piktogramów -->
+        <gbx:GroupBox Header="Wybrane Piktogramy" Grid.Row="1" Margin="10">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <ItemsControl ItemsSource="{Binding SelectedPictograms}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
+                            <Button Command="{Binding DataContext.RemovePictogramCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}" Margin="5">
+                                <StackPanel>
+                                    <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="50" Height="50"/>
+                                    <TextBlock Text="{Binding Keywords[0].Text}" HorizontalAlignment="Center" Width="50" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </gbx:GroupBox>
+
+        <!-- Główna Lista Piktogramów -->
+        <!-- Główna Lista Piktogramów -->
+        <ScrollViewer Grid.Row="2" Margin="10">
+            <ItemsControl ItemsSource="{Binding Pictograms}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
+                        <Button Command="{Binding DataContext.PictogramClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                CommandParameter="{Binding}" Margin="5">
+                            <StackPanel>
+                                <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="100" Height="100"/>
+                                <TextBlock Text="{Binding Keywords[0].Text}" HorizontalAlignment="Center" Width="100" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <!-- Dolny Panel: Wyślij do AI, Wyświetlanie Zdania i Odpowiedź AI -->
+        <StackPanel Grid.Row="3" Orientation="Vertical" Margin="10">
+            <!-- Sekcja Zdania -->
+            <gbx:GroupBox Header="Skonstruowane Zdanie" Margin="0,0,0,10">
+                <StackPanel>
+                    <TextBox Text="{Binding ConstructedSentence, Mode=OneWay}" IsReadOnly="True" Height="60" TextWrapping="Wrap" />
+                    <ProgressBar IsIndeterminate="True" IsVisible="{Binding IsLoading}" Height="20" Margin="0,5,0,0"/>
+                </StackPanel>
+            </gbx:GroupBox>
+
+            <!-- Przycisk Wyślij do AI -->
+            <Button Content="Wyślij do AI" Command="{Binding SendToAiCommand}" Width="150" HorizontalAlignment="Left" Margin="0,0,0,10"/>
+
+            <!-- Odpowiedź AI -->
+            <gbx:GroupBox Header="Odpowiedź AI">
+                <StackPanel>
+                    <TextBlock Text="{Binding AiResponse}" TextWrapping="Wrap" MaxWidth="800" Height="100" Padding="5"/>
+                    <Button Content="Odczytaj Odpowiedź AI" Command="{Binding SpeakAiResponseCommand}" Width="200" HorizontalAlignment="Left" Margin="0,10,0,0"/>
+                </StackPanel>
+            </gbx:GroupBox>
+        </StackPanel>
+    </Grid>
+</Window>
