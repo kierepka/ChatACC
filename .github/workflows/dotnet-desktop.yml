@@ -1,4 +1,4 @@
-name: Build ChatAAC
+name: Build and Release ChatAAC
 
 on:
   push:
@@ -42,3 +42,70 @@ jobs:
         with:
           name: ChatAAC-${{ matrix.os }}
           path: ./bin/Release/net8.0/${{ matrix.rid }}/publish/
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-ubuntu-latest
+        if: matrix.os == 'ubuntu-latest'
+      
+      - uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-windows-latest
+        if: matrix.os == 'windows-latest'
+      
+      - uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-macos-latest
+        if: matrix.os == 'macos-latest'
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: 'v1.0.${{ github.run_number }}'
+          release_name: 'ChatAAC v1.0.${{ github.run_number }}'
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset (Linux)
+        uses: actions/upload-release-asset@v1
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net8.0/linux-x64/publish/ChatAAC
+          asset_name: ChatAAC-linux-x64
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset (Windows)
+        uses: actions/upload-release-asset@v1
+        if: matrix.os == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net8.0/win-x64/publish/ChatAAC.exe
+          asset_name: ChatAAC-windows-x64.exe
+          asset_content_type: application/octet-stream
+
+      - name: Upload Release Asset (macOS)
+        uses: actions/upload-release-asset@v1
+        if: matrix.os == 'macos-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./bin/Release/net8.0/osx-x64/publish/ChatAAC
+          asset_name: ChatAAC-macos-x64
+          asset_content_type: application/octet-stream
