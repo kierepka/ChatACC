@@ -21,123 +21,123 @@ jobs:
             runtime: osx-x64
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '8.0.x' # Upewnij się, że wersja odpowiada Twojemu projektowi
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0.x' # Upewnij się, że wersja odpowiada Twojemu projektowi
 
-    - name: Install dependencies
-      run: dotnet restore
+      - name: Install dependencies
+        run: dotnet restore
 
-    - name: Build project
-      run: dotnet build --configuration Release --no-restore
+      - name: Build project
+        run: dotnet build --configuration Release --no-restore
 
-    - name: Publish project
-      run: dotnet publish --configuration Release --runtime ${{ matrix.runtime }} --self-contained true --no-build -o ./publish
+      - name: Publish project
+        run: dotnet publish --configuration Release --runtime ${{ matrix.runtime }} --self-contained true --no-build -o ./publish
 
-    - name: Install Inno Setup (Windows only)
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install innosetup --version=6.3.0 # Upewnij się, że wersja jest aktualna
+      - name: Install Inno Setup (Windows only)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install innosetup --version=6.3.0 # Upewnij się, że wersja jest aktualna
 
-    - name: Package Application
-      run: |
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-          # Pakietowanie dla Windows - tworzenie instalatora Inno Setup
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-        elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-          # Pakietowanie dla Linux - tworzenie tar.gz
-          cd publish
-          tar -czvf ../ChatAAC-Linux.tar.gz .
-        elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-          # Pakietowanie dla macOS - tworzenie tar.gz
-          cd publish
-          tar -czvf ../ChatAAC-macOS.tar.gz .
-        fi
+      - name: Package Application
+        run: |
+          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # Pakietowanie dla Windows - tworzenie instalatora Inno Setup
+            "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+          elif [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            # Pakietowanie dla Linux - tworzenie tar.gz
+            cd publish
+            tar -czvf ../ChatAAC-Linux.tar.gz .
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            # Pakietowanie dla macOS - tworzenie tar.gz
+            cd publish
+            tar -czvf ../ChatAAC-macOS.tar.gz .
+          fi
 
-    - name: Upload build artifact - Windows
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: ChatAAC-Windows-Installer
-        path: ./ChatAAC-Installer.exe
+      - name: Upload build artifact - Windows
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ChatAAC-Windows-Installer
+          path: ./ChatAAC-Installer.exe
 
-    - name: Upload build artifact - Linux
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: ChatAAC-Linux
-        path: ./ChatAAC-Linux.tar.gz
+      - name: Upload build artifact - Linux
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ChatAAC-Linux
+          path: ./ChatAAC-Linux.tar.gz
 
-    - name: Upload build artifact - macOS
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
-      with:
-        name: ChatAAC-macOS
-        path: ./ChatAAC-macOS.tar.gz
+      - name: Upload build artifact - macOS
+        if: matrix.os == 'macos-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: ChatAAC-macOS
+          path: ./ChatAAC-macOS.tar.gz
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-    - name: Download build artifacts - Windows
-      uses: actions/download-artifact@v3
-      with:
-        name: ChatAAC-Windows-Installer
-        path: ./artifacts/windows
+      - name: Download build artifacts - Windows
+        uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-Windows-Installer
+          path: ./artifacts/windows
 
-    - name: Download build artifacts - Linux
-      uses: actions/download-artifact@v3
-      with:
-        name: ChatAAC-Linux
-        path: ./artifacts/linux
+      - name: Download build artifacts - Linux
+        uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-Linux
+          path: ./artifacts/linux
 
-    - name: Download build artifacts - macOS
-      uses: actions/download-artifact@v3
-      with:
-        name: ChatAAC-macOS
-        path: ./artifacts/macos
+      - name: Download build artifacts - macOS
+        uses: actions/download-artifact@v3
+        with:
+          name: ChatAAC-macOS
+          path: ./artifacts/macos
 
-    - name: Create GitHub Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        tag_name: v1.0.0 # Możesz użyć dynamicznego tagowania, np. na podstawie wersji w pliku projektu
-        release_name: Release v1.0.0
-        draft: false
-        prerelease: false
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v1.0.0 # Możesz użyć dynamicznego tagowania, np. na podstawie wersji w pliku projektu
+          release_name: Release v1.0.0
+          draft: false
+          prerelease: false
 
-    - name: Upload Windows Installer to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/windows/ChatAAC-Installer.exe
-        asset_name: ChatAAC-Windows-Installer.exe
-        asset_content_type: application/octet-stream
+      - name: Upload Windows Installer to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/windows/ChatAAC-Installer.exe
+          asset_name: ChatAAC-Windows-Installer.exe
+          asset_content_type: application/octet-stream
 
-    - name: Upload Linux Installer to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/linux/ChatAAC-Linux.tar.gz
-        asset_name: ChatAAC-Linux.tar.gz
-        asset_content_type: application/gzip
+      - name: Upload Linux Installer to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/linux/ChatAAC-Linux.tar.gz
+          asset_name: ChatAAC-Linux.tar.gz
+          asset_content_type: application/gzip
 
-    - name: Upload macOS Installer to Release
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./artifacts/macos/ChatAAC-macOS.tar.gz
-        asset_name: ChatAAC-macOS.tar.gz
-        asset_content_type: application/gzip
+      - name: Upload macOS Installer to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./artifacts/macos/ChatAAC-macOS.tar.gz
+          asset_name: ChatAAC-macOS.tar.gz
+          asset_content_type: application/gzip
