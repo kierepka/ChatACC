@@ -27,12 +27,14 @@
         </Style>
     </Window.Styles>
     <Grid RowDefinitions="Auto, Auto, *, Auto" ColumnDefinitions="*">
-        <!-- Górny Panel: Wyszukiwarka i Przycisk "Mów" -->
+        <!-- Top Panel: Search Box, Speak Button, Full-Screen Toggle Button -->
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="10">
-            <TextBox Width="300" Margin="0,0,10,0" Watermark="Wyszukaj..."
+            <TextBox Width="300" Margin="0,0,10,0" Watermark="Search..."
                      Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"/>
-            <Button Content="Mów" Command="{Binding SpeakCommand}" Width="100"/>
+            <Button Content="Speak" Command="{Binding SpeakCommand}" Width="100" Margin="0,0,10,0"/>
+            <Button Content="Toggle Full Screen" Command="{Binding ToggleFullScreenCommand}" Width="150"/>
         </StackPanel>
+
         
         <!-- Lista Zaznaczonych Piktogramów -->
         <gbx:GroupBox Header="Wybrane Piktogramy" Grid.Row="1" Margin="10">

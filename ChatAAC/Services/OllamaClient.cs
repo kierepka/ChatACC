@@ -41,7 +41,7 @@ public class OllamaClient
     public Task<IAsyncEnumerable<string>> ChatAsync(ChatRequest request)
     {
         Console.WriteLine("Żądanie do Ollama:");
-        var prompt = $"z wybranych przez niepełnosprawnego słów [{request.Prompt}] utwórz z tego jedno pełne zdanie jako odpowiedź.";
+        var prompt = $"z wybranych przez niepełnosprawnego słów [{request.Prompt}] utwórz z tego jedno pełne zdanie jako odpowiedź. Nie dodawaj własnych komentarzy dodatkowych.";
         Console.WriteLine(prompt);
         
 

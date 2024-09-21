@@ -46,6 +46,7 @@ public class MainViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleFullScreenCommand { get; } // New command
 
     private string _aiResponse = string.Empty;
     public string AiResponse
@@ -61,8 +62,15 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isLoading, value);
     }
 
+    private bool _isFullScreen = false; // New property
+    public bool IsFullScreen
+    {
+        get => _isFullScreen;
+        set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
+    }
     private List<Pictogram>? _allPictograms = [];
 
+    
     public MainViewModel()
     {
         _pictogramService = new PictogramService();
@@ -93,7 +101,8 @@ public class MainViewModel : ViewModelBase
         // Tworzenie poleceń ReactiveCommand z ustawionym schedulerem
         SendToAiCommand = ReactiveCommand.CreateFromTask(OnSendToAiAsync, outputScheduler: RxApp.MainThreadScheduler);
         SpeakAiResponseCommand = ReactiveCommand.CreateFromTask(OnSpeakAiResponseAsync, outputScheduler: RxApp.MainThreadScheduler);
-
+        
+        ToggleFullScreenCommand = ReactiveCommand.Create(ToggleFullScreen);
         // Subskrypcje na zmiany w SelectedPictograms
         SelectedPictograms.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
@@ -161,21 +170,17 @@ public class MainViewModel : ViewModelBase
     private void OnPictogramClicked(Pictogram pictogram)
     {
         Console.WriteLine($"OnPictogramClicked executing on thread {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        if (!SelectedPictograms.Contains(pictogram))
-        {
-            SelectedPictograms.Add(pictogram);
-            Console.WriteLine($"Dodano piktogram: {pictogram.Id}");
-        }
+        if (SelectedPictograms.Contains(pictogram)) return;
+        SelectedPictograms.Add(pictogram);
+        Console.WriteLine($"Dodano piktogram: {pictogram.Id}");
     }
 
     private void OnRemovePictogram(Pictogram pictogram)
     {
         Console.WriteLine($"OnRemovePictogram executing on thread {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        if (SelectedPictograms.Contains(pictogram))
-        {
-            SelectedPictograms.Remove(pictogram);
-            Console.WriteLine($"Usunięto piktogram: {pictogram.Id}");
-        }
+        if (!SelectedPictograms.Contains(pictogram)) return;
+        SelectedPictograms.Remove(pictogram);
+        Console.WriteLine($"Usunięto piktogram: {pictogram.Id}");
     }
 
     private void UpdateConstructedSentence()
@@ -267,5 +272,10 @@ public class MainViewModel : ViewModelBase
                 Console.WriteLine($"Błąd podczas odczytywania odpowiedzi AI: {ex.Message}");
             }
         }
+    }
+    
+    private void ToggleFullScreen()
+    {
+        IsFullScreen = !IsFullScreen;
     }
 }
