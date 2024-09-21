@@ -26,14 +26,12 @@ public partial class MainWindow : Window
 #endif
     }
     
-    private void ViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(MainViewModel.IsFullScreen))
+        if (e.PropertyName != nameof(MainViewModel.IsFullScreen)) return;
+        if (sender is MainViewModel vm)
         {
-            if (sender is MainViewModel vm)
-            {
-                SetWindowFullScreen(vm.IsFullScreen);
-            }
+            SetWindowFullScreen(vm.IsFullScreen);
         }
     }
 

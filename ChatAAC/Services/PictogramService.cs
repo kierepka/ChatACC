@@ -4,136 +4,173 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Text.Json;
 using System.IO;
+using System.Linq;
 using ChatAAC.Models;
 
-namespace ChatAAC.Services;
-
-public class PictogramService
+namespace ChatAAC.Services
 {
-    private static readonly HttpClient _httpClient = new HttpClient();
-    private readonly string _cacheDirectory;
-
-    public PictogramService()
+    public class PictogramService
     {
-        // Ścieżka do katalogu bufora
-        _cacheDirectory = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "ChatAAC",
-            "Cache",
-            "Pictograms");
-        Directory.CreateDirectory(_cacheDirectory);
-    }
+        private static readonly HttpClient HttpClient = new HttpClient();
+        private readonly string _cacheDirectory;
 
-    public async Task<List<Pictogram>?> GetAllPictogramsAsync()
-    {
-        var cacheFile = Path.Combine(_cacheDirectory, "pictograms.json");
-
-        // Sprawdź, czy dane są już w buforze
-        if (File.Exists(cacheFile))
+        public PictogramService()
         {
+            // Ścieżka do katalogu bufora
+            _cacheDirectory = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ChatAAC",
+                "Cache",
+                "Pictograms");
+            Directory.CreateDirectory(_cacheDirectory);
+        }
+
+        public async Task<List<Pictogram>?> GetAllPictogramsAsync()
+        {
+            var cacheFile = Path.Combine(_cacheDirectory, "pictograms.json");
+
+            // Sprawdź, czy dane są już w buforze
+            if (File.Exists(cacheFile))
+            {
+                try
+                {
+                    var cachedData = await File.ReadAllTextAsync(cacheFile).ConfigureAwait(false);
+                    var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(cachedData);
+
+                    // Sprawdź, czy deserializacja zwróciła dane
+                    if (pictograms != null && pictograms.Count > 0)
+                    {
+                        Console.WriteLine("Piktogramy załadowane z cache.");
+                        return pictograms;
+                    }
+                    else
+                    {
+                        Console.WriteLine("Cache jest pusty. Pobieranie danych z API.");
+                        // Jeśli dane są puste, usuń plik cache i pobierz ponownie
+                        File.Delete(cacheFile);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Błąd podczas deserializacji pliku cache: {ex.Message}");
+                    Console.WriteLine("Usuwanie uszkodzonego pliku cache i pobieranie danych z API.");
+                    // Usuń uszkodzony plik cache
+                    File.Delete(cacheFile);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Nieoczekiwany błąd podczas odczytu pliku cache: {ex.Message}");
+                    // W zależności od potrzeb, możesz zdecydować, czy chcesz kontynuować pobieranie danych
+                    // lub przerwać działanie aplikacji
+                }
+            }
+
+            // Pobierz dane z API ARASAAC
             try
             {
-                var cachedData = await File.ReadAllTextAsync(cacheFile).ConfigureAwait(false);
-                var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(cachedData);
+                var url = "https://api.arasaac.org/v1/pictograms/all/pl";
+                var response = await HttpClient.GetAsync(url).ConfigureAwait(false);
 
-                // Sprawdź, czy deserializacja zwróciła dane
-                if (pictograms != null && pictograms.Count > 0)
+                if (response.IsSuccessStatusCode)
                 {
-                    Console.WriteLine("Piktogramy załadowane z cache.");
-                    return pictograms;
+                    var responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+
+                    // Zapisz dane do cache
+                    await File.WriteAllTextAsync(cacheFile, responseData).ConfigureAwait(false);
+                    Console.WriteLine("Piktogramy pobrane z API i zapisane do cache.");
+
+                    var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(responseData);
+
+                    // Sprawdź, czy deserializacja zwróciła dane
+                    if (pictograms != null && pictograms.Count > 0)
+                    {
+                        return pictograms;
+                    }
+                    else
+                    {
+                        throw new Exception("Pobrano puste dane z API ARASAAC.");
+                    }
                 }
                 else
                 {
-                    Console.WriteLine("Cache jest pusty. Pobieranie danych z API.");
-                    // Jeśli dane są puste, usuń plik cache i pobierz ponownie
-                    File.Delete(cacheFile);
+                    throw new Exception(
+                        $"Niepowodzenie pobierania danych z ARASAAC API. Status Code: {response.StatusCode}");
                 }
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine($"Błąd podczas deserializacji pliku cache: {ex.Message}");
-                Console.WriteLine("Usuwanie uszkodzonego pliku cache i pobieranie danych z API.");
-                // Usuń uszkodzony plik cache
-                File.Delete(cacheFile);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Nieoczekiwany błąd podczas odczytu pliku cache: {ex.Message}");
-                // W zależności od potrzeb, możesz zdecydować, czy chcesz kontynuować pobieranie danych
-                // lub przerwać działanie aplikacji
+                Console.WriteLine($"Błąd podczas pobierania piktogramów z API: {ex.Message}");
+                // Możesz zdecydować, jak obsłużyć ten błąd, np. zwrócić pustą listę lub ponownie wyrzucić wyjątek
+                return new List<Pictogram>();
             }
         }
 
-        // Pobierz dane z API ARASAAC
-        try
+        public async Task DownloadPictogramImageAsync(string pictogramId)
         {
-            var url = "https://api.arasaac.org/v1/pictograms/all/pl";
-            var response = await _httpClient.GetAsync(url).ConfigureAwait(false);
+            var imageUrl = $"https://static.arasaac.org/pictograms/{pictogramId}/{pictogramId}_500.png";
+            var imagePath = Path.Combine(_cacheDirectory, $"{pictogramId}.png");
 
-            if (response.IsSuccessStatusCode)
+            if (!File.Exists(imagePath))
             {
-                var responseData = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
-                // Zapisz dane do cache
-                await File.WriteAllTextAsync(cacheFile, responseData).ConfigureAwait(false);
-                Console.WriteLine("Piktogramy pobrane z API i zapisane do cache.");
-
-                var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(responseData);
-
-                // Sprawdź, czy deserializacja zwróciła dane
-                if (pictograms != null && pictograms.Count > 0)
+                try
                 {
-                    return pictograms;
+                    var response = await HttpClient.GetAsync(imageUrl).ConfigureAwait(false);
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        var imageData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                        await File.WriteAllBytesAsync(imagePath, imageData).ConfigureAwait(false);
+                        Console.WriteLine($"Piktogram {pictogramId} pobrany i zapisany.");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Nie udało się pobrać obrazu piktogramu o ID {pictogramId}. Status Code: {response.StatusCode}");
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw new Exception("Pobrano puste dane z API ARASAAC.");
+                    Console.WriteLine($"Błąd podczas pobierania obrazu piktogramu {pictogramId}: {ex.Message}");
                 }
             }
             else
             {
-                throw new Exception(
-                    $"Niepowodzenie pobierania danych z ARASAAC API. Status Code: {response.StatusCode}");
+                Console.WriteLine($"Obraz piktogramu {pictogramId} już istnieje w cache.");
             }
         }
-        catch (Exception ex)
+
+        /// <summary>
+        /// Wyodrębnia unikalne kategorie z listy piktogramów
+        /// </summary>
+        /// <param name="pictograms">Lista piktogramów</param>
+        /// <returns>Lista unikalnych kategorii</returns>
+        public List<Category> ExtractCategories(List<Pictogram> pictograms)
         {
-            Console.WriteLine($"Błąd podczas pobierania piktogramów z API: {ex.Message}");
-            // Możesz zdecydować, jak obsłużyć ten błąd, np. zwrócić pustą listę lub ponownie wyrzucić wyjątek
-            return new List<Pictogram>();
-        }
-    }
-
-    public async Task DownloadPictogramImageAsync(int pictogramId)
-    {
-        var imageUrl = $"https://static.arasaac.org/pictograms/{pictogramId}/{pictogramId}_500.png";
-        var imagePath = Path.Combine(_cacheDirectory, $"{pictogramId}.png");
-
-        if (!File.Exists(imagePath))
-        {
-            try
-            {
-                var response = await _httpClient.GetAsync(imageUrl).ConfigureAwait(false);
-
-                if (response.IsSuccessStatusCode)
+            return pictograms
+                .Where(p => !string.IsNullOrWhiteSpace(p.Category))
+                .GroupBy(p => p.Category)
+                .Select(g => new Category
                 {
-                    var imageData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
-                    await File.WriteAllBytesAsync(imagePath, imageData).ConfigureAwait(false);
-                    Console.WriteLine($"Piktogram {pictogramId} pobrany i zapisany.");
-                }
-                else
-                {
-                    Console.WriteLine($"Nie udało się pobrać obrazu piktogramu o ID {pictogramId}. Status Code: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Błąd podczas pobierania obrazu piktogramu {pictogramId}: {ex.Message}");
-            }
+                    Id = g.Key, // Zakładam, że nazwa kategorii jest unikalnym ID
+                    Name = g.Key
+                })
+                .OrderBy(c => c.Name)
+                .ToList();
         }
-        else
+
+        /// <summary>
+        /// Wyodrębnia unikalne tagi z listy piktogramów
+        /// </summary>
+        /// <param name="pictograms">Lista piktogramów</param>
+        /// <returns>Lista unikalnych tagów</returns>
+        public List<Tag> ExtractTags(List<Pictogram> pictograms)
         {
-            Console.WriteLine($"Obraz piktogramu {pictogramId} już istnieje w cache.");
+            return pictograms
+                .Where(p => p.Tags.Count > 0)
+                .SelectMany(p => p.Tags)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Select(t => new Tag { Name = t })
+                .OrderBy(t => t.Name)
+                .ToList();
         }
     }
 }

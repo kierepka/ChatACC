@@ -11,10 +11,7 @@ namespace ChatAAC.Services;
 
 public class OllamaClient
 {
-    OllamaApiClient? ollama;
-    Chat chat;
-    private bool _connected = false;
-    private readonly string _apiUrl;
+    readonly Chat _chat;
 
     public OllamaClient(string apiUrl)
     {
@@ -27,15 +24,14 @@ public class OllamaClient
         if (apiUrl.IndexOf(':', 5) < 0)
             apiUrl += ":11434";
 
-        var uri = new Uri(apiUrl);
 
-        Console.WriteLine($"Connecting to {uri} ...");
+        Console.WriteLine($"Connecting to {apiUrl} ...");
 
-        ollama = new OllamaApiClient(apiUrl)
+        var ollama = new OllamaApiClient(apiUrl)
         {
             SelectedModel = "gemma2"
         };
-        chat = new Chat(ollama);
+        _chat = new Chat(ollama);
     }
 
     public Task<IAsyncEnumerable<string>> ChatAsync(ChatRequest request)
@@ -45,6 +41,6 @@ public class OllamaClient
         Console.WriteLine(prompt);
         
 
-        return Task.FromResult(chat.Send(prompt));
+        return Task.FromResult(_chat.Send(prompt));
     }
 }

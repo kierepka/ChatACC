@@ -23,7 +23,6 @@ public class StringToBitmapConverter : IValueConverter
             // Możesz zwrócić domyślny obraz lub null
             return null;
         }
-        return null;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

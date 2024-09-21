@@ -4,10 +4,5 @@ namespace ChatAAC.Models;
 
 public class ChatResponse
 {
-    public List<Choice> Choices { get; set; }
-}
-
-public class Choice
-{
-    public string Text { get; set; }
+    public List<Choice> Choices { get; set; } = new List<Choice>();
 }

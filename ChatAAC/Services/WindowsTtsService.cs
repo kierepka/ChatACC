@@ -1,9 +1,11 @@
 using System;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
+using System.Runtime.Versioning;
 
 namespace ChatAAC.Services;
 
+[SupportedOSPlatform("windows")]
 public class WindowsTtsService : ITtsService
 {
     private readonly SpeechSynthesizer _synthesizer = new();
