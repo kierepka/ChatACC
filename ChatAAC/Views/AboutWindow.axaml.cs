@@ -22,8 +22,9 @@ public partial class AboutWindow : Window
         DataContextChanged += AboutWindow_DataContextChanged;
     }
 
-    private void AboutWindow_DataContextChanged(object sender, EventArgs e)
+    private void AboutWindow_DataContextChanged(object? sender, EventArgs e)
     {
+        if (sender == null) return;
         var newDataContext = ((Control)sender).DataContext;
 
         if (newDataContext is AboutViewModel viewModel)
@@ -31,7 +32,7 @@ public partial class AboutWindow : Window
             viewModel.CloseInteraction.RegisterHandler(async interaction =>
             {
                 interaction.SetOutput(Unit.Default);
-                await Dispatcher.UIThread.InvokeAsync(() => this.Close());
+                await Dispatcher.UIThread.InvokeAsync(Close);
             });
         }
     }

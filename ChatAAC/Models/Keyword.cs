@@ -8,16 +8,16 @@ public class Keyword
     public long? Type { get; set; }
 
     [JsonPropertyName("keyword")]
-    public string KeywordKeyword { get; set; }
+    public string KeywordKeyword { get; set; } = string.Empty;
 
     [JsonPropertyName("hasLocution")]
     public bool HasLocution { get; set; }
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("plural")]
-    public string Plural { get; set; }
+    public string Plural { get; set; } = string.Empty;
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     [JsonPropertyName("meaning")]
-    public string Meaning { get; set; }
+    public string Meaning { get; set; } = string.Empty;
 }

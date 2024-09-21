@@ -268,6 +268,9 @@ public class MainViewModel : ViewModelBase
         // Ograniczenie liczby piktogramów do wyświetlenia
         //filtered = filtered.Take(1000);
         
+        // **Nowy filtr: Usunięcie piktogramów z pustym polem Text**
+        filtered = filtered.Where(p => !string.IsNullOrWhiteSpace(p.Text));
+        
         // Sortowanie po KeywordKeyword
         filtered = filtered
             .OrderBy(p => p.Categories.FirstOrDefault())
