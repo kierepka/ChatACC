@@ -1,9 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Data.Core;
-using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
-using ChatAAC.ViewModels;
 using ChatAAC.Views;
 using ReactiveUI;
 using Avalonia.ReactiveUI;

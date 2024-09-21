@@ -176,6 +176,12 @@ public class MainViewModel : ViewModelBase
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     Categories.Clear();
+                    // Dodanie pustej kategorii na początku
+                    Categories.Add(new Category()
+                    {
+                        Id = string.Empty, Name = "Wszystkie"
+                    }); // Możesz również użyć innego symbolu, np. "Wszystkie"
+
                     foreach (var category in categories)
                     {
                         Categories.Add(category);
@@ -224,14 +230,20 @@ public class MainViewModel : ViewModelBase
     private void FilterPictograms()
     {
         Pictograms.Clear();
-
+        
+        if (SelectedCategory == null)
+            return;
+        
         var filtered = _allPictograms?.AsEnumerable() ?? Enumerable.Empty<Pictogram>();
 
         // Filtrowanie po wybranej kategorii
         if (SelectedCategory != null)
         {
-            filtered = filtered.Where(p =>
-                p.Categories.Contains(SelectedCategory.Name, StringComparer.OrdinalIgnoreCase));
+            if (!string.IsNullOrWhiteSpace(SelectedCategory.Id))
+            {
+                filtered = filtered.Where(p =>
+                    p.Categories.Contains(SelectedCategory.Name, StringComparer.OrdinalIgnoreCase));
+            }
         }
 
         // Filtrowanie po tagach
@@ -252,10 +264,16 @@ public class MainViewModel : ViewModelBase
             filtered = filtered.Where(p =>
                 p.Keywords.Any(k => k.KeywordKeyword.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
         }
-
+        
         // Ograniczenie liczby piktogramów do wyświetlenia
-        filtered = filtered.Take(100);
-
+        //filtered = filtered.Take(1000);
+        
+        // Sortowanie po KeywordKeyword
+        filtered = filtered
+            .OrderBy(p => p.Categories.FirstOrDefault())
+            .ThenBy(p => p.Tags.FirstOrDefault())
+            .ThenBy(p => p.Keywords.FirstOrDefault()?.KeywordKeyword);
+        
         foreach (var pictogram in filtered)
         {
             Pictograms.Add(pictogram);

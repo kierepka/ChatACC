@@ -59,7 +59,7 @@
                                         CommandParameter="{Binding}" Margin="5" Width="180" Height="200">
                                     <StackPanel>
                                         <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="140" Height="140"/>
-                                        <TextBlock Text="{Binding Keywords[0].KeywordKeyword}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
+                                        <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>
@@ -69,24 +69,22 @@
             </gbx:GroupBox>
             <!-- Main Pictograms List -->
             <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding Pictograms}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal"/>
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
+                <ItemsRepeater ItemsSource="{Binding Pictograms}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout Orientation="Horizontal" />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
                         <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
                             <Button Command="{Binding DataContext.PictogramClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}" Margin="10" Width="180" Height="200">
                                 <StackPanel>
                                     <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="140" Height="140"/>
-                                    <TextBlock Text="{Binding Keywords[0].KeywordKeyword}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
+                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
                                 </StackPanel>
                             </Button>
                         </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
             </ScrollViewer>
         </Grid>
         

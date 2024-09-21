@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json.Serialization;
 
 namespace ChatAAC.Models;
@@ -51,6 +52,24 @@ public class Pictogram
     [JsonPropertyName("keywords")]
     public Keyword[] Keywords { get; set; } = Array.Empty<Keyword>();
 
+    [JsonIgnore]
+    public string Text
+    {
+        get
+        {
+            var text = Keywords.FirstOrDefault()?.KeywordKeyword;
+            
+            if (string.IsNullOrEmpty(text))
+                text = Tags.FirstOrDefault();
+            
+            if (string.IsNullOrEmpty(text))
+                text = Categories.FirstOrDefault();
+            
+            if (string.IsNullOrEmpty(text)) text = string.Empty;
+            
+            return text;
+        }
+    }
     // Publiczny, bezparametrowy konstruktor
     public Pictogram() { }
 
