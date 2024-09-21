@@ -22,8 +22,8 @@ W aplikacji ChatAAC wykorzystywane są piktogramy pochodzące z ARASAAC, które 
 - Rozwój funkcjonalności związanych z rozpoznawaniem mowy i ulepszanie algorytmów interakcji użytkownika.
 
 #### Pobieranie:
-- [Linux](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-linux-x64)
-- [Windows](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-windows-x64.exe)
- - [macOS](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-macos-x64)
+- [Linux](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-linux-x64)
+- [Windows](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-windows-x64.exe)
+- [macOS](https://github.com/{repo-owner}/{repo-name}/releases/download/v1.0/ChatAAC-macos-x64)
 
 Zapraszamy do korzystania z aplikacji oraz zgłaszania sugestii i błędów poprzez stronę GitHub projektu!
