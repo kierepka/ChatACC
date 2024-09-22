@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: ChatAAC-${{ matrix.os }}
-          path: ./bin/Release/net8.0/${{ matrix.rid }}/publish/
+          path: bin/Release/net8.0/${{ matrix.rid }}/publish/
 
   release:
     needs: build
@@ -50,21 +50,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Download build artifacts
+      - name: Download all artifacts
         uses: actions/download-artifact@v3
-        with:
-          name: ChatAAC-ubuntu-latest
-        if: matrix.os == 'ubuntu-latest'
-      
-      - uses: actions/download-artifact@v3
-        with:
-          name: ChatAAC-windows-latest
-        if: matrix.os == 'windows-latest'
-      
-      - uses: actions/download-artifact@v3
-        with:
-          name: ChatAAC-macos-latest
-        if: matrix.os == 'macos-latest'
+
+      - name: Display structure of downloaded files
+        run: ls -R
 
       - name: Create Release
         id: create_release
@@ -72,46 +62,43 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: 'v1.0'
-          release_name: 'ChatAAC v1.0'
+          tag_name: v1.0.${{ github.run_number }}
+          release_name: ChatAAC v1.0.${{ github.run_number }}
           body: |
             # ChatAAC v1.0.${{ github.run_number }}
             Download the application for your platform:
-            - [Linux](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-linux-x64)
-            - [Windows](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-windows-x64.exe)
-            - [macOS](https://github.com/${{ github.repository }}/releases/download/v1.0/ChatAAC-macos-x64)
+            - [Linux](https://github.com/${{ github.repository }}/releases/download/v1.0.${{ github.run_number }}/ChatAAC-linux-x64)
+            - [Windows](https://github.com/${{ github.repository }}/releases/download/v1.0.${{ github.run_number }}/ChatAAC-windows-x64.exe)
+            - [macOS](https://github.com/${{ github.repository }}/releases/download/v1.0.${{ github.run_number }}/ChatAAC-macos-x64)
           draft: false
           prerelease: false
 
       - name: Upload Release Asset (Linux)
         uses: actions/upload-release-asset@v1
-        if: matrix.os == 'ubuntu-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./bin/Release/net8.0/linux-x64/publish/ChatAAC
+          asset_path: ./ChatAAC-ubuntu-latest/ChatAAC
           asset_name: ChatAAC-linux-x64
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset (Windows)
         uses: actions/upload-release-asset@v1
-        if: matrix.os == 'windows-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./bin/Release/net8.0/win-x64/publish/ChatAAC.exe
+          asset_path: ./ChatAAC-windows-latest/ChatAAC.exe
           asset_name: ChatAAC-windows-x64.exe
           asset_content_type: application/octet-stream
 
       - name: Upload Release Asset (macOS)
         uses: actions/upload-release-asset@v1
-        if: matrix.os == 'macos-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./bin/Release/net8.0/osx-x64/publish/ChatAAC
+          asset_path: ./ChatAAC-macos-latest/ChatAAC
           asset_name: ChatAAC-macos-x64
           asset_content_type: application/octet-stream

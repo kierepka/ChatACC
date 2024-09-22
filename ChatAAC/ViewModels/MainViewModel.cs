@@ -136,7 +136,7 @@ public class MainViewModel : ViewModelBase
         }
 
         OpenAboutCommand = ReactiveCommand.Create(OpenAboutWindow);
-        PictogramClickedCommand = ReactiveCommand.Create<Pictogram>(OnPictogramClicked);
+        PictogramClickedCommand = ReactiveCommand.CreateFromTask<Pictogram>(OnPictogramClickedAsync);
         RemovePictogramCommand = ReactiveCommand.Create<Pictogram>(OnRemovePictogram);
         SpeakCommand = ReactiveCommand.Create(OnSpeak);
 
@@ -177,10 +177,17 @@ public class MainViewModel : ViewModelBase
                 {
                     Categories.Clear();
                     // Dodanie pustej kategorii na początku
+
+                    Categories.Add(new Category()
+                    {
+                        Id = "core", Name = "Główne"
+                    });
+
                     Categories.Add(new Category()
                     {
                         Id = string.Empty, Name = "Wszystkie"
-                    }); // Możesz również użyć innego symbolu, np. "Wszystkie"
+                    });
+
 
                     foreach (var category in categories)
                     {
@@ -230,19 +237,28 @@ public class MainViewModel : ViewModelBase
     private void FilterPictograms()
     {
         Pictograms.Clear();
-        
+
         if (SelectedCategory == null)
             return;
-        
+
         var filtered = _allPictograms?.AsEnumerable() ?? Enumerable.Empty<Pictogram>();
 
         // Filtrowanie po wybranej kategorii
-        if (SelectedCategory != null)
+        if (SelectedCategory != null && !string.IsNullOrWhiteSpace(SelectedCategory.Id))
         {
-            if (!string.IsNullOrWhiteSpace(SelectedCategory.Id))
+            if (SelectedCategory.Id == "core")
             {
                 filtered = filtered.Where(p =>
-                    p.Categories.Contains(SelectedCategory.Name, StringComparer.OrdinalIgnoreCase));
+                    p.Categories.Any(c => c.IndexOf("core", StringComparison.OrdinalIgnoreCase) >= 0));
+            }
+            else if (SelectedCategory.Id == string.Empty)
+            {
+                // Pokazuj wszystkie piktogramy
+            }
+            else
+            {
+                filtered = filtered.Where(p =>
+                    p.Categories.Any(c => c.Equals(SelectedCategory.Name, StringComparison.OrdinalIgnoreCase)));
             }
         }
 
@@ -264,19 +280,16 @@ public class MainViewModel : ViewModelBase
             filtered = filtered.Where(p =>
                 p.Keywords.Any(k => k.KeywordKeyword.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
         }
-        
-        // Ograniczenie liczby piktogramów do wyświetlenia
-        //filtered = filtered.Take(1000);
-        
+
         // **Nowy filtr: Usunięcie piktogramów z pustym polem Text**
         filtered = filtered.Where(p => !string.IsNullOrWhiteSpace(p.Text));
-        
+
         // Sortowanie po KeywordKeyword
         filtered = filtered
             .OrderBy(p => p.Categories.FirstOrDefault())
             .ThenBy(p => p.Tags.FirstOrDefault())
             .ThenBy(p => p.Keywords.FirstOrDefault()?.KeywordKeyword);
-        
+
         foreach (var pictogram in filtered)
         {
             Pictograms.Add(pictogram);
@@ -285,13 +298,25 @@ public class MainViewModel : ViewModelBase
         Console.WriteLine($"Filtracja zakończona. Liczba piktogramów: {Pictograms.Count}");
     }
 
-    private void OnPictogramClicked(Pictogram pictogram)
+    private async Task OnPictogramClickedAsync(Pictogram pictogram)
     {
         Console.WriteLine(
             $"OnPictogramClicked wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         if (SelectedPictograms.Contains(pictogram)) return;
         SelectedPictograms.Add(pictogram);
         Console.WriteLine($"Dodano piktogram: {pictogram.Id}");
+
+        // Aktualizacja zdania
+        UpdateConstructedSentence();
+
+        // Uruchomienie AI
+        await OnSendToAiAsync();
+
+        // Jeśli odpowiedź AI została wygenerowana, odczytaj ją
+        if (!string.IsNullOrWhiteSpace(AiResponse))
+        {
+            await OnSpeakAiResponseAsync();
+        }
     }
 
     private void OnRemovePictogram(Pictogram pictogram)

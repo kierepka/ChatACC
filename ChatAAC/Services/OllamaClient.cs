@@ -34,7 +34,24 @@ public class OllamaClient
     public Task<IAsyncEnumerable<string>> ChatAsync(ChatRequest request)
     {
         Console.WriteLine("Żądanie do Ollama:");
-        var prompt = $"z wybranych przez niepełnosprawnego słów [{request.Prompt}] utwórz z tego jedno pełne zdanie jako odpowiedź. Nie dodawaj własnych komentarzy dodatkowych.";
+        
+        
+        string prompt = $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w pełne, gramatycznie poprawne zdanie lub krótką wypowiedź.
+
+            Kontekst: Osoba niepełnosprawna wybrała następujące słowa kluczowe: [{request.Prompt}]
+
+            Twoje zadanie:
+            1. Przeanalizuj podane słowa kluczowe.
+            2. Stwórz z nich jedno pełne, sensowne zdanie lub krótką wypowiedź.
+            3. Upewnij się, że zdanie jest gramatycznie poprawne i zachowuje intencję komunikacyjną użytkownika.
+            4. Jeśli to konieczne, dodaj odpowiednie słowa łączące lub kontekstowe, aby zdanie brzmiało naturalnie.
+            5. Nie zmieniaj znaczenia ani nie dodawaj nowych informacji, których nie ma w oryginalnych słowach kluczowych.
+            6. Jeśli słowa kluczowe sugerują pytanie, sformułuj je jako pytanie.
+            7. Zachowaj prostotę wypowiedzi, unikając zbyt skomplikowanych konstrukcji.
+
+            Odpowiedź:
+            Podaj tylko wygenerowane zdanie lub krótką wypowiedź, bez żadnych dodatkowych komentarzy czy wyjaśnień.";
+
         Console.WriteLine(prompt);
         
 

@@ -107,7 +107,7 @@
                 <Grid RowDefinitions="*,Auto" ColumnDefinitions="*,Auto">
                     <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding AiResponse}" TextWrapping="Wrap" Height="150" FontSize="18"/>
                     <Button Grid.Row="1" Grid.Column="0" Content="Odczytaj Odpowiedź AI" Command="{Binding SpeakAiResponseCommand}" Width="220" Height="50" FontSize="18" Margin="0,10,10,0" HorizontalAlignment="Left"/>
-                    <Button Grid.Row="1" Grid.Column="1" Content="Kopiuj Tekst" Command="{Binding CopyAiResponseCommand}" Width="150" Height="50" FontSize="18" Margin="0,10,0,0"/>
+                    <Button Grid.Row="1" Grid.Column="1" Content="Kopiuj Tekst AI" Command="{Binding CopyAiResponseCommand}" Width="150" Height="50" FontSize="18" Margin="0,10,0,0"/>
                 </Grid>
             </gbx:GroupBox>
         </StackPanel>
