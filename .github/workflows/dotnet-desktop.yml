@@ -30,6 +30,8 @@ jobs:
         run: dotnet restore
       - name: Build self-contained app
         run: dotnet publish --configuration Release -r ${{ matrix.rid }} --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true
+      - name: List files in publish directory
+        run: ls -R bin/Release/net8.0/${{ matrix.rid }}/publish/
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
