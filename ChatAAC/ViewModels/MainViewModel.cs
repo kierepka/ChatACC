@@ -5,11 +5,13 @@ using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Text;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using System.Text.Json;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -20,11 +22,11 @@ namespace ChatAAC.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    public ObservableCollection<Pictogram> Pictograms { get; set; } = new ObservableCollection<Pictogram>();
-    public ObservableCollection<Pictogram> SelectedPictograms { get; set; } = new ObservableCollection<Pictogram>();
+    public ObservableCollection<Pictogram> Pictograms { get; set; } = [];
+    public ObservableCollection<Pictogram> SelectedPictograms { get; set; } = [];
 
-    public ObservableCollection<Category> Categories { get; set; } = new ObservableCollection<Category>();
-    public ObservableCollection<Tag> Tags { get; set; } = new ObservableCollection<Tag>();
+    public ObservableCollection<Category> Categories { get; set; } = [];
+    public ObservableCollection<Tag> Tags { get; set; } = [];
 
     private readonly PictogramService _pictogramService;
     private readonly OllamaClient _ollamaClient; // Klient OllamaSharp
@@ -32,6 +34,9 @@ public class MainViewModel : ViewModelBase
     private LoadingWindow? _loadingWindow;
 
     private string _searchQuery = string.Empty;
+
+// Nowa kolekcja do przechowywania historii AI
+    public ObservableCollection<AiResponse> AiResponseHistory { get; }
 
     public string SearchQuery
     {
@@ -84,6 +89,8 @@ public class MainViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> ToggleFullScreenCommand { get; }
     public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenAboutCommand { get; }
+    public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
+    public ReactiveCommand<Unit, Unit> ClearHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> CopyAiResponseCommand { get; }
 
     private string _aiResponse = string.Empty;
@@ -110,10 +117,13 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
     }
 
-    private List<Pictogram>? _allPictograms = new List<Pictogram>();
+    private List<Pictogram>? _allPictograms = [];
 
     public MainViewModel()
     {
+        AiResponseHistory = [];
+        LoadHistory();
+
         _pictogramService = new PictogramService();
         _ollamaClient = new OllamaClient("http://localhost:11434"); // Upewnij się, że adres jest poprawny
 
@@ -142,12 +152,19 @@ public class MainViewModel : ViewModelBase
 
         // Tworzenie poleceń ReactiveCommand z ustawionym schedulerem
         SendToAiCommand = ReactiveCommand.CreateFromTask(OnSendToAiAsync, outputScheduler: RxApp.MainThreadScheduler);
+
         SpeakAiResponseCommand =
             ReactiveCommand.CreateFromTask(OnSpeakAiResponseAsync, outputScheduler: RxApp.MainThreadScheduler);
 
         ToggleFullScreenCommand = ReactiveCommand.Create(ToggleFullScreen);
         CopySentenceCommand = ReactiveCommand.Create(OnCopySentence);
+        CopyHistoryItemCommand = ReactiveCommand.Create<string>(CopyToClipboard);
 
+        ClearHistoryCommand = ReactiveCommand.Create(() =>
+        {
+            AiResponseHistory.Clear();
+            SaveHistory();
+        });
         CopyAiResponseCommand = ReactiveCommand.Create(OnCopyAiResponse);
 
 
@@ -241,7 +258,7 @@ public class MainViewModel : ViewModelBase
         if (SelectedCategory == null)
             return;
 
-        var filtered = _allPictograms?.AsEnumerable() ?? Enumerable.Empty<Pictogram>();
+        var filtered = _allPictograms?.AsEnumerable() ?? [];
 
         // Filtrowanie po wybranej kategorii
         if (SelectedCategory != null && !string.IsNullOrWhiteSpace(SelectedCategory.Id))
@@ -274,6 +291,7 @@ public class MainViewModel : ViewModelBase
                     current.Where(p => p.Tags.Any(pt => pt.Contains(tag, StringComparison.OrdinalIgnoreCase))));
         }
 
+
         // Filtrowanie po zapytaniu wyszukiwania
         if (!string.IsNullOrWhiteSpace(SearchQuery))
         {
@@ -296,6 +314,66 @@ public class MainViewModel : ViewModelBase
         }
 
         Console.WriteLine($"Filtracja zakończona. Liczba piktogramów: {Pictograms.Count}");
+    }
+
+    // Metoda do dodawania odpowiedzi AI do historii
+    public void AddAiResponseToHistory(string response)
+    {
+        if (!string.IsNullOrWhiteSpace(response))
+        {
+            AiResponseHistory.Add(new AiResponse(response));
+            SaveHistory();
+        }
+    }
+
+    // Ścieżka do pliku z historią
+    private readonly string _historyFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ChatAAC",
+        "ai_response_history.json");
+
+    // Metoda do zapisywania historii do pliku
+    private void SaveHistory()
+    {
+        try
+        {
+            var directory = Path.GetDirectoryName(_historyFilePath);
+            if (!Directory.Exists(directory))
+            {
+                if (directory != null) Directory.CreateDirectory(directory);
+            }
+
+            // Serializacja z użyciem JsonSerializerOptions, aby obsłużyć daty
+            var options = new JsonSerializerOptions { WriteIndented = true };
+            var json = JsonSerializer.Serialize(AiResponseHistory, options);
+            File.WriteAllText(_historyFilePath, json);
+        }
+        catch (Exception ex)
+        {
+            // Logowanie błędu lub obsługa wyjątków
+            Console.WriteLine($"Błąd podczas zapisywania historii: {ex.Message}");
+        }
+    }
+
+    // Metoda do ładowania historii z pliku
+    private void LoadHistory()
+    {
+        try
+        {
+            if (!File.Exists(_historyFilePath)) return;
+            var json = File.ReadAllText(_historyFilePath);
+            var history = JsonSerializer.Deserialize<ObservableCollection<AiResponse>>(json);
+            if (history == null) return;
+            foreach (var response in history)
+            {
+                AiResponseHistory.Add(response);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Logowanie błędu lub obsługa wyjątków
+            Console.WriteLine($"Błąd podczas ładowania historii: {ex.Message}");
+        }
     }
 
     private async Task OnPictogramClickedAsync(Pictogram pictogram)
@@ -390,6 +468,7 @@ public class MainViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
+            AddAiResponseToHistory(AiResponse);
         }
     }
 
@@ -426,6 +505,15 @@ public class MainViewModel : ViewModelBase
         IsFullScreen = !IsFullScreen;
         Console.WriteLine($"ToggleFullScreen wykonane. IsFullScreen: {IsFullScreen}");
     }
+
+    private void OnCopyHistory()
+    {
+        if (!string.IsNullOrEmpty(AiResponse))
+        {
+            CopyToClipboard(AiResponse);
+        }
+    }
+
 
     private void OnCopyAiResponse()
     {

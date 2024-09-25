@@ -3,113 +3,207 @@
         xmlns:vm="clr-namespace:ChatAAC.ViewModels"
         xmlns:models="clr-namespace:ChatAAC.Models"
         xmlns:converters="clr-namespace:ChatAAC.Converters"
-        xmlns:gbx="using:GroupBox.Avalonia.Controls"
         x:Class="ChatAAC.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         Title="ChatAAC" Width="1280" Height="960">
-    <!-- Resources -->
-    <Window.Resources>
-        <converters:StringToBitmapConverter x:Key="StringToBitmapConverter"/>
-    </Window.Resources>
 
+    <Window.Resources>
+        <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
+    </Window.Resources>
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="20">
         <!-- Top Panel -->
-        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto" Margin="0,0,0,20">
-            <TextBox Grid.Column="0" Width="250" Watermark="Szukaj słów kluczowych..."
-                                    Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-                                    FontSize="18" VerticalContentAlignment="Center" Margin="0,0,10,0"/>
-            
-            <!-- Category Search -->
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="0,0,10,0">
-                <TextBlock Text="Kategoria:" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Margin="0,0,5,0"/>
-                <ComboBox Width="250" ItemsSource="{Binding Categories}" SelectedItem="{Binding SelectedCategory}" FontSize="18">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate x:DataType="models:Category">
-                            <TextBlock Text="{Binding Name}" FontSize="18"/>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+        <Border Grid.Row="0" CornerRadius="10" Padding="15" Margin="0,0,0,20"
+                BoxShadow="0 2 10 0 DarkGray">
+            <StackPanel Orientation="Horizontal" Spacing="15">
+                <TextBox Width="300" Watermark="Szukaj słów kluczowych..."
+                         Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                         FontSize="18" VerticalContentAlignment="Center"
+                         Classes="search"
+                         AutomationProperties.Name="Pole wyszukiwania słów kluczowych" />
+
+                <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0" Text="Kategoria:" VerticalAlignment="Center"
+                               FontSize="18" FontWeight="SemiBold" Margin="0,0,10,0" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}"
+                              SelectedItem="{Binding SelectedCategory}"
+                              FontSize="18" HorizontalAlignment="Stretch"
+                              AutomationProperties.Name="Wybór kategorii">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate x:DataType="models:Category">
+                                <TextBlock Text="{Binding Name}" FontSize="18" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </Grid>
+
+                <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
+                    <TextBlock Grid.Column="0" Text="Tagi:" VerticalAlignment="Center"
+                               FontSize="18" FontWeight="SemiBold" Margin="0,0,10,0" />
+                    <TextBox Grid.Column="1" Watermark="np. czerwony, zwierzę, jedzenie"
+                             Text="{Binding TagSearch, UpdateSourceTrigger=PropertyChanged}"
+                             FontSize="18" HorizontalAlignment="Stretch"
+                             AutomationProperties.Name="Pole wyszukiwania tagów" />
+                </Grid>
             </StackPanel>
-            <!-- Tag Search -->
-            <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,10,0">
-                <TextBlock Text="Tagi:" VerticalAlignment="Center" FontSize="18" FontWeight="Bold" Margin="0,0,5,0"/>
-                <TextBox Width="300" Watermark="np. czerwony, zwierzę, jedzenie"
-                         Text="{Binding TagSearch, UpdateSourceTrigger=PropertyChanged}" FontSize="18"/>
-            </StackPanel>
-            
-            <Button Grid.Column="4" Content="Pełny Ekran" Command="{Binding ToggleFullScreenCommand}" Width="140" Height="50" FontSize="18" Margin="0,0,10,0" AutomationProperties.Name="Przycisk Pełny Ekran"/>
-            <Button Grid.Column="5" Content="O Programie" Command="{Binding OpenAboutCommand}" Width="140" Height="50" FontSize="18" AutomationProperties.Name="Przycisk O Programie" ToolTip.Tip="Kliknij, aby zobaczyć informacje o programie"/>
-        </Grid>
+        </Border>
 
         <!-- Main Content Area -->
-        <Grid Grid.Row="1" ColumnDefinitions="2*,4*">
+        <Grid Grid.Row="1" ColumnDefinitions="*,2*" Margin="0,0,0,20">
             <!-- Selected Pictograms List -->
-            <gbx:GroupBox Header="Wybrane Piktogramy" Grid.Column="0" Margin="0,0,10,0">
-                <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding SelectedPictograms}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
+            <Border Grid.Column="0" CornerRadius="10" Margin="0,0,10,0"
+                    BoxShadow="0 2 10 0 DarkGray">
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="Wybrane Piktogramy" FontSize="20"
+                               FontWeight="Bold" Margin="15,15,15,5" />
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding SelectedPictograms}" Margin="10">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
+                                    <Button
+                                        Command="{Binding DataContext.RemovePictogramCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                        CommandParameter="{Binding}" Margin="5" Width="130" Height="150"
+                                        Classes="pictogram"
+                                        AutomationProperties.Name="{Binding Text, StringFormat='Usuń piktogram {0}'}">
+                                        <StackPanel>
+                                            <Image
+                                                Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}"
+                                                Width="100" Height="100" />
+                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
+                                                       TextWrapping="Wrap" FontSize="16" Margin="0,5,0,0" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </Border>
+
+            <!-- Main Pictograms List -->
+            <Border Grid.Column="1" CornerRadius="10"
+                    BoxShadow="0 2 10 0 DarkGray">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Auto" Padding="15">
+                    <ItemsRepeater ItemsSource="{Binding Pictograms}">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout Orientation="Horizontal" MinItemWidth="130" MinItemHeight="150" />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
                             <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
-                                <Button Command="{Binding DataContext.RemovePictogramCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}" Margin="5" Width="180" Height="200">
+                                <Button
+                                    Command="{Binding DataContext.PictogramClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                    CommandParameter="{Binding}" Margin="5" Width="130" Height="150"
+                                    Classes="pictogram"
+                                    AutomationProperties.Name="{Binding Text, StringFormat='Wybierz piktogram {0}'}">
                                     <StackPanel>
-                                        <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="140" Height="140"/>
-                                        <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
+                                        <Image
+                                            Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}"
+                                            Width="100" Height="100" />
+                                        <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
+                                                   TextWrapping="Wrap"
+                                                   FontSize="16" Margin="0,5,0,0" />
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
                 </ScrollViewer>
-            </gbx:GroupBox>
-            <!-- Main Pictograms List -->
-            <ScrollViewer Grid.Column="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-                <ItemsRepeater ItemsSource="{Binding Pictograms}">
-                    <ItemsRepeater.Layout>
-                        <UniformGridLayout Orientation="Horizontal" />
-                    </ItemsRepeater.Layout>
-                    <ItemsRepeater.ItemTemplate>
-                        <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
-                            <Button Command="{Binding DataContext.PictogramClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding}" Margin="10" Width="180" Height="200">
-                                <StackPanel>
-                                    <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="140" Height="140"/>
-                                    <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" TextWrapping="Wrap" FontSize="18" Margin="0,5,0,0"/>
-                                </StackPanel>
-                            </Button>
-                        </DataTemplate>
-                    </ItemsRepeater.ItemTemplate>
-                </ItemsRepeater>
-            </ScrollViewer>
+            </Border>
         </Grid>
-        
 
         <!-- Bottom Panel -->
-        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="0,20,0,0">
-            <!-- Constructed Sentence Section -->
-            <gbx:GroupBox Header="Skonstruowane Zdanie">
-                <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,Auto,Auto">
-                    <TextBox Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ConstructedSentence, Mode=OneWay}" IsReadOnly="True" Height="80" TextWrapping="Wrap" FontSize="20" Margin="0,0,0,10"/>
-                    <ProgressBar Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" IsIndeterminate="True" Height="20" IsVisible="{Binding IsLoading}"/>
-                    <Button Grid.Row="2" Grid.Column="0" Content="Mów" Command="{Binding SpeakCommand}" Width="120" Height="50" FontSize="18" AutomationProperties.Name="Przycisk Mów"/> 
-                    <Button Grid.Row="2" Grid.Column="1" Content="Wyślij do AI" Command="{Binding SendToAiCommand}" Width="150" Height="50" FontSize="18" Margin="0,0,10,0" />
-                    <Button Grid.Row="2" Grid.Column="2" Content="Kopiuj Tekst" Command="{Binding CopySentenceCommand}" Width="150" Height="50" FontSize="18"/>
-                </Grid>
-            </gbx:GroupBox>
+        <Border Grid.Row="2" CornerRadius="10" Padding="15"
+                BoxShadow="0 2 10 0 DarkGray">
+            <StackPanel Orientation="Vertical" Spacing="15">
+                <!-- Constructed Sentence Section -->
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="Skonstruowane Zdanie" FontSize="20"
+                               FontWeight="Bold" Margin="0,0,0,10" />
+                    <Grid ColumnDefinitions="*,Auto,Auto">
+                        <TextBox Grid.Column="0" Text="{Binding ConstructedSentence, Mode=TwoWay}"
+                                 TextWrapping="Wrap" FontSize="18" Margin="0,0,10,0"
+                                 AutomationProperties.Name="Pole skonstruowanego zdania" />
+                        <Button Grid.Column="1" Content="Mów" Command="{Binding SpeakCommand}"
+                                Width="100" Height="40" FontSize="16" Margin="0,0,10,0"
+                                Classes="accent"
+                                AutomationProperties.Name="Przycisk Mów - odczytaj skonstruowane zdanie" />
+                        <Button Grid.Column="2" Content="Wyślij do AI" Command="{Binding SendToAiCommand}"
+                                Width="120" Height="40" FontSize="16"
+                                Classes="accent"
+                                AutomationProperties.Name="Przycisk Wyślij do AI - przetwórz skonstruowane zdanie" />
+                    </Grid>
+                </DockPanel>
 
-            <!-- AI Response Section -->
-            <gbx:GroupBox Header="Odpowiedź AI" Margin="0,20,0,0">
-                <Grid RowDefinitions="*,Auto" ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{Binding AiResponse}" TextWrapping="Wrap" Height="150" FontSize="18"/>
-                    <Button Grid.Row="1" Grid.Column="0" Content="Odczytaj Odpowiedź AI" Command="{Binding SpeakAiResponseCommand}" Width="220" Height="50" FontSize="18" Margin="0,10,10,0" HorizontalAlignment="Left"/>
-                    <Button Grid.Row="1" Grid.Column="1" Content="Kopiuj Tekst AI" Command="{Binding CopyAiResponseCommand}" Width="150" Height="50" FontSize="18" Margin="0,10,0,0"/>
-                </Grid>
-            </gbx:GroupBox>
-        </StackPanel>
+                <!-- AI Response Section -->
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="Odpowiedź AI" FontSize="20"
+                               FontWeight="Bold" Margin="0,0,0,10" />
+                    <Grid ColumnDefinitions="*,Auto">
+                        <TextBlock Grid.Column="0" Text="{Binding AiResponse}" TextWrapping="Wrap"
+                                   FontSize="18" Margin="0,0,10,0"
+                                   AutomationProperties.Name="Pole odpowiedzi AI" />
+                        <Button Grid.Column="1" Content="Odczytaj Odpowiedź AI"
+                                Command="{Binding SpeakAiResponseCommand}"
+                                Width="200" Height="40" FontSize="16"
+                                Classes="accent"
+                                AutomationProperties.Name="Przycisk Odczytaj Odpowiedź AI" />
+                    </Grid>
+                </DockPanel>
+
+                <!-- AI Response History -->
+                <DockPanel LastChildFill="True">
+                    <TextBlock DockPanel.Dock="Top" Text="Historia Odpowiedzi AI" FontSize="20"
+                               FontWeight="Bold" Margin="0,0,0,10" />
+                    <ScrollViewer MaxHeight="150" HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding AiResponseHistory}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:AiResponse">
+                                    <Button
+                                        Command="{Binding CopyHistoryItemCommand, RelativeSource={RelativeSource AncestorType={x:Type vm:MainViewModel}}}"
+                                        CommandParameter="{Binding ResponseText}"
+                                        Margin="0,0,0,10" Padding="10"
+                                        Classes="historyItem"
+                                        AutomationProperties.Name="{Binding ResponseText, StringFormat='Kopiuj odpowiedź AI: {0}'}">
+                                        <StackPanel Orientation="Vertical">
+                                            <TextBlock
+                                                Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
+                                                FontSize="14" Foreground="Gray" />
+                                            <TextBlock Text="{Binding ResponseText}" TextWrapping="Wrap" FontSize="16" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
+            </StackPanel>
+        </Border>
     </Grid>
+
+    <Window.Styles>
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="#007AFF" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="CornerRadius" Value="5" />
+        </Style>
+        <Style Selector="Button.pictogram">
+            <Setter Property="CornerRadius" Value="5" />
+        </Style>
+        <Style Selector="Button.historyItem">
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="TextBox.search">
+            <Setter Property="CornerRadius" Value="20" />
+            <Setter Property="Padding" Value="10,5" />
+        </Style>
+    </Window.Styles>
 </Window>

@@ -36,7 +36,7 @@ public class OllamaClient
         Console.WriteLine("Żądanie do Ollama:");
         
         
-        string prompt = $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w pełne, gramatycznie poprawne zdanie lub krótką wypowiedź.
+        var prompt = $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w pełne, gramatycznie poprawne zdanie lub krótką wypowiedź.
 
             Kontekst: Osoba niepełnosprawna wybrała następujące słowa kluczowe: [{request.Prompt}]
 

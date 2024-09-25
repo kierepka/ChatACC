@@ -32,13 +32,13 @@ public class Pictogram
     public long Downloads { get; set; } = 0;
 
     [JsonPropertyName("categories")]
-    public string[] Categories { get; set; } = Array.Empty<string>();
+    public string[] Categories { get; set; } = [];
 
     [JsonPropertyName("synsets")]
-    public string[] Synsets { get; set; } = Array.Empty<string>();
+    public string[] Synsets { get; set; } = [];
 
     [JsonPropertyName("tags")]
-    public string[] Tags { get; set; } = Array.Empty<string>();
+    public string[] Tags { get; set; } = [];
 
     [JsonPropertyName("_id")]
     public long Id { get; set; } = 0;
@@ -50,7 +50,7 @@ public class Pictogram
     public DateTimeOffset LastUpdated { get; set; }
 
     [JsonPropertyName("keywords")]
-    public Keyword[] Keywords { get; set; } = Array.Empty<Keyword>();
+    public Keyword[] Keywords { get; set; } = [];
 
     [JsonIgnore]
     public string Text
