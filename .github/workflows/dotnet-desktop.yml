@@ -22,22 +22,16 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: List repository contents
-        run: ls -R
       - name: Setup .NET
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
-      - name: Check .NET version
-        run: dotnet --version
       - name: Restore dependencies
         run: dotnet restore
-      - name: Build project
-        run: dotnet build --configuration Release
       - name: Build self-contained app
-        run: dotnet publish --configuration Release -r ${{ matrix.rid }} --self-contained || (echo "Publish failed"; exit 1)
-      - name: List contents of Release directory
-        run: ls -R bin/Release/net8.0/
+        run: dotnet publish --configuration Release -r ${{ matrix.rid }} --self-contained -p:PublishSingleFile=true -p:PublishTrimmed=true
+      - name: List files in publish directory
+        run: ls -R bin/Release/net8.0/${{ matrix.rid }}/publish/
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -94,4 +88,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./bin/Release​⬤
+          asset_path: ./bin/Release/net8.0/osx-x64/publish/ChatAAC
+          asset_name: ChatAAC-macos-x64
+          asset_content_type: application/octet-stream
