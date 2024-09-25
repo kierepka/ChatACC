@@ -28,12 +28,12 @@ jobs:
           dotnet-version: '8.0.x'
       - name: Restore dependencies
         run: dotnet restore
-      - name: List files before publish
-        run: ls -R .
+      - name: Build project
+        run: dotnet build --configuration Release
       - name: Build self-contained app
         run: dotnet publish --configuration Release -r ${{ matrix.rid }} --self-contained
-      - name: List files in publish directory
-        run: ls -R bin/Release/net8.0/${{ matrix.rid }}/publish/
+      - name: List contents of Release directory
+        run: ls -R bin/Release/net8.0/
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
