@@ -44,12 +44,13 @@ jobs:
         run: dotnet publish --configuration Release -r ${{ matrix.rid }} --self-contained -o ./publish
 
       - name: List contents of publish directory
+        shell: pwsh
         run: |
-          if [ "${{ runner.os }}" == "Windows" ]; then
-            dir publish
-          else
+          if ($IsWindows) {
+            Get-ChildItem -Path publish -Recurse
+          } else {
             ls -R publish
-          fi
+          }
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
