@@ -27,16 +27,14 @@ public class MainViewModel : ViewModelBase
 
     public ObservableCollection<Category> Categories { get; set; } = [];
     public ObservableCollection<Tag> Tags { get; set; } = [];
-    public ReactiveCommand<Unit, Unit> ExitCommand { get; }
 
     private readonly PictogramService _pictogramService;
-    private readonly OllamaClient _ollamaClient; // Klient OllamaSharp
+    private readonly OllamaClient _ollamaClient = new(ConfigViewModel.Instance.OllamaAddress); // Klient OllamaSharp
     private readonly ITtsService _ttsService; // Interfejs TTS
     private LoadingWindow? _loadingWindow;
 
     private string _searchQuery = string.Empty;
-
-// Nowa kolekcja do przechowywania historii AI
+    
     public ObservableCollection<AiResponse> AiResponseHistory { get; }
 
     public string SearchQuery
@@ -93,7 +91,6 @@ public class MainViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
     public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
-    public ReactiveCommand<Unit, Unit> ToggleFullScreenCommand { get; }
     public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
     public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearHistoryCommand { get; }
@@ -124,16 +121,15 @@ public class MainViewModel : ViewModelBase
     }
 
     private List<Pictogram>? _allPictograms = [];
-
+    public IEnumerable<IGrouping<string, Pictogram>> GroupedPictograms =>
+        Pictograms.GroupBy(p => p.Categories.FirstOrDefault() ?? "Inne");
     public MainViewModel()
     {
         AiResponseHistory = [];
         LoadHistory();
 
         _pictogramService = new PictogramService();
-        _ollamaClient = new OllamaClient("http://localhost:11434"); // Upewnij się, że adres jest poprawny
-
-        ExitCommand = ReactiveCommand.Create(ExitApplication);
+        ReactiveCommand.Create(ExitApplication);
 
         // Inicjalizacja TTS w zależności od platformy
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
@@ -164,7 +160,7 @@ public class MainViewModel : ViewModelBase
         SpeakAiResponseCommand =
             ReactiveCommand.CreateFromTask(OnSpeakAiResponseAsync, outputScheduler: RxApp.MainThreadScheduler);
 
-        ToggleFullScreenCommand = ReactiveCommand.Create(ToggleFullScreen);
+        ReactiveCommand.Create(ToggleFullScreen);
         CopySentenceCommand = ReactiveCommand.Create(OnCopySentence);
         CopyHistoryItemCommand = ReactiveCommand.Create<string>(CopyToClipboard);
 
@@ -277,12 +273,12 @@ public class MainViewModel : ViewModelBase
         if (!config.ShowViolence)
             filtered = filtered.Where(p => !p.Violence);
 
-        if (config.ShowAac)
-            filtered = filtered.Where(p => p.Aac);
+        /*   if (!config.ShowAac)
+               filtered = filtered.Where(p => !p.Aac);
 
-        if (config.ShowSchematic)
-            filtered = filtered.Where(p => p.Schematic);
-
+           if (!config.ShowSchematic)
+               filtered = filtered.Where(p => !p.Schematic);
+   */
         // Dodatkowe filtrowanie dla AacColor, Skin i Hair
         // Zakładam, że te pola powinny być zawsze pokazywane, chyba że zostaną dodane do konfiguracji
         // filtered = filtered.Where(p => p.AacColor);
@@ -345,13 +341,11 @@ public class MainViewModel : ViewModelBase
     }
 
     // Metoda do dodawania odpowiedzi AI do historii
-    public void AddAiResponseToHistory(string response)
+    private void AddAiResponseToHistory(string response)
     {
-        if (!string.IsNullOrWhiteSpace(response))
-        {
-            AiResponseHistory.Add(new AiResponse(response));
-            SaveHistory();
-        }
+        if (string.IsNullOrWhiteSpace(response)) return;
+        AiResponseHistory.Add(new AiResponse(response));
+        SaveHistory();
     }
 
     // Ścieżka do pliku z historią
@@ -497,6 +491,7 @@ public class MainViewModel : ViewModelBase
         {
             IsLoading = false;
             AddAiResponseToHistory(AiResponse);
+            OnCopyAiResponse();
         }
     }
 
@@ -533,15 +528,6 @@ public class MainViewModel : ViewModelBase
         IsFullScreen = !IsFullScreen;
         Console.WriteLine($"ToggleFullScreen wykonane. IsFullScreen: {IsFullScreen}");
     }
-
-    private void OnCopyHistory()
-    {
-        if (!string.IsNullOrEmpty(AiResponse))
-        {
-            CopyToClipboard(AiResponse);
-        }
-    }
-
 
     private void OnCopyAiResponse()
     {

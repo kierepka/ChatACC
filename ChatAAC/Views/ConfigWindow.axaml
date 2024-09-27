@@ -9,21 +9,29 @@
         x:DataType="viewModels:ConfigViewModel"
         Title="Ustawienia" Width="400" Height="600">
     <StackPanel Margin="20">
-        <TextBlock Text="Adres Ollama:" FontSize="18" Margin="0,0,0,5"/>
-        <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20"/>
+        <TextBlock Text="Adres Ollama:" FontSize="18" Margin="0,0,0,5" />
+        <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20" />
 
-        <TextBlock Text="Wybór modelu:" FontSize="18" Margin="0,0,0,5"/>
-        <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}" FontSize="16" Margin="0,0,0,20"/>
+        <TextBlock Text="Wybór modelu:" FontSize="18" Margin="0,0,0,5" />
+        <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}" FontSize="16" Margin="0,0,0,20" />
 
-        <TextBlock Text="Widok piktogramów:" FontSize="18" Margin="0,0,0,5"/>
-        <CheckBox Content="Sex" IsChecked="{Binding ShowSex}" Margin="0,0,0,5"/>
-        <CheckBox Content="Violence" IsChecked="{Binding ShowViolence}" Margin="0,0,0,5"/>
-        <CheckBox Content="AAC" IsChecked="{Binding ShowAac}" Margin="0,0,0,5"/>
-        <CheckBox Content="Schematic" IsChecked="{Binding ShowSchematic}" Margin="0,0,0,20"/>
+        <TextBlock Text="Widok piktogramów:" FontSize="18" Margin="0,0,0,5" />
+        <CheckBox Content="Sex" IsChecked="{Binding ShowSex}" Margin="0,0,0,5" />
+        <CheckBox Content="Violence" IsChecked="{Binding ShowViolence}" Margin="0,0,0,5" />
+        <!--
+        <CheckBox Content="AAC" IsChecked="{Binding ShowAac}" Margin="0,0,0,5" />
+        <CheckBox Content="Schematic" IsChecked="{Binding ShowSchematic}" Margin="0,0,0,20" />
+        -->
+        
+        <TextBlock Text="Język programu:" FontSize="18" Margin="0,0,0,5" />
+        <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" FontSize="16"
+                  Margin="0,0,0,20" />
 
-        <TextBlock Text="Język programu:" FontSize="18" Margin="0,0,0,5"/>
-        <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" FontSize="16" Margin="0,0,0,20"/>
 
-        <Button Content="Zapisz" Command="{Binding SaveCommand}" Width="100" Height="40" HorizontalAlignment="Right"/>
+        <Button Content="Zapisz" Command="{Binding SaveCommand}"
+                Width="100" Height="40" FontSize="16" Margin="0,0,10,0"
+                Classes="accent" HorizontalAlignment="Right"
+                AutomationProperties.Name="Przycisk Zapisz - zapisz konfigurację" />
+
     </StackPanel>
 </Window>
