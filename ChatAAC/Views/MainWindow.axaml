@@ -7,9 +7,11 @@
         x:DataType="vm:MainViewModel"
         Title="ChatAAC" Width="1280" Height="960">
 
+
     <Window.Resources>
         <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
     </Window.Resources>
+    
 
     <Grid RowDefinitions="Auto,*,Auto" Margin="20">
         <!-- Top Panel -->

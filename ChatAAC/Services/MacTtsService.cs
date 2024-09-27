@@ -12,7 +12,7 @@ public class MacTtsService : ITtsService
         if (string.IsNullOrWhiteSpace(text))
             throw new ArgumentException("Tekst do odczytania nie może być pusty.", nameof(text));
 
-        if (!IsMacOS())
+        if (!IsMacOs())
             throw new PlatformNotSupportedException("TTS za pomocą 'say' jest wspierane tylko na macOS.");
 
         var processStartInfo = new ProcessStartInfo
@@ -51,7 +51,7 @@ public class MacTtsService : ITtsService
         }
     }
 
-    private bool IsMacOS()
+    private bool IsMacOs()
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
     }

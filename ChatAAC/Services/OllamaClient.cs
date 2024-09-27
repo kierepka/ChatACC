@@ -2,6 +2,7 @@ using ChatAAC.Models;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using ChatAAC.ViewModels;
 using OllamaSharp;
 
 namespace ChatAAC.Services;
@@ -12,19 +13,10 @@ public class OllamaClient
 
     public OllamaClient(string apiUrl)
     {
-        if (string.IsNullOrWhiteSpace(apiUrl))
-            apiUrl = "http://localhost:11434";
+        
+        Console.WriteLine($"Connecting to {ConfigViewModel.Instance.OllamaAddress} ...");
 
-        if (!apiUrl.StartsWith("http"))
-            apiUrl = "http://" + apiUrl;
-
-        if (apiUrl.IndexOf(':', 5) < 0)
-            apiUrl += ":11434";
-
-
-        Console.WriteLine($"Connecting to {apiUrl} ...");
-
-        var ollama = new OllamaApiClient(apiUrl)
+        var ollama = new OllamaApiClient(ConfigViewModel.Instance.OllamaAddress)
         {
             SelectedModel = "gemma2"
         };

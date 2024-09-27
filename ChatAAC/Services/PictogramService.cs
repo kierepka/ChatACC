@@ -69,7 +69,7 @@ public class PictogramService
         // Pobierz dane z API ARASAAC
         try
         {
-            var url = "https://api.arasaac.org/v1/pictograms/all/pl";
+            const string url = "https://api.arasaac.org/v1/pictograms/all/pl";
             var response = await HttpClient.GetAsync(url).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -83,21 +83,14 @@ public class PictogramService
                 var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(responseData);
 
                 // Sprawdź, czy deserializacja zwróciła dane
-                if (pictograms is { Count: > 0 })
-                {
-                    await CheckAndDownloadMissingImages(pictograms);
-                    return pictograms;
-                }
-                else
-                {
-                    throw new Exception("Pobrano puste dane z API ARASAAC.");
-                }
+                if (pictograms is not { Count: > 0 }) throw new Exception("Pobrano puste dane z API ARASAAC.");
+                await CheckAndDownloadMissingImages(pictograms);
+                
+                return pictograms;
             }
-            else
-            {
-                throw new Exception(
-                    $"Niepowodzenie pobierania danych z ARASAAC API. Status Code: {response.StatusCode}");
-            }
+
+            throw new Exception(
+                $"Niepowodzenie pobierania danych z ARASAAC API. Status Code: {response.StatusCode}");
         }
         catch (Exception ex)
         {
@@ -109,13 +102,12 @@ public class PictogramService
 
     private async Task CheckAndDownloadMissingImages(List<Pictogram> pictograms)
     {
-        foreach (var pictogram in pictograms)
+        foreach (var pictogram in from pictogram in pictograms
+                 let imagePath = Path.Combine(_cacheDirectory, $"{pictogram.Id}.png")
+                 where !File.Exists(imagePath)
+                 select pictogram)
         {
-            var imagePath = Path.Combine(_cacheDirectory, $"{pictogram.Id}.png");
-            if (!File.Exists(imagePath))
-            {
-                await DownloadPictogramImageAsync(pictogram.Id.ToString());
-            }
+            await DownloadPictogramImageAsync(pictogram.Id.ToString());
         }
     }
 

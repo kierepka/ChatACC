@@ -27,6 +27,7 @@ public class MainViewModel : ViewModelBase
 
     public ObservableCollection<Category> Categories { get; set; } = [];
     public ObservableCollection<Tag> Tags { get; set; } = [];
+    public ReactiveCommand<Unit, Unit> ExitCommand { get; }
 
     private readonly PictogramService _pictogramService;
     private readonly OllamaClient _ollamaClient; // Klient OllamaSharp
@@ -46,6 +47,13 @@ public class MainViewModel : ViewModelBase
             this.RaiseAndSetIfChanged(ref _searchQuery, value);
             FilterPictograms();
         }
+    }
+
+
+    private void ExitApplication()
+    {
+        // Logic to exit the application
+        Environment.Exit(0);
     }
 
     private string _tagSearch = string.Empty;
@@ -83,12 +91,10 @@ public class MainViewModel : ViewModelBase
     public ReactiveCommand<Pictogram, Unit> PictogramClickedCommand { get; }
     public ReactiveCommand<Pictogram, Unit> RemovePictogramCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
-
     public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleFullScreenCommand { get; }
     public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenAboutCommand { get; }
     public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> CopyAiResponseCommand { get; }
@@ -127,6 +133,8 @@ public class MainViewModel : ViewModelBase
         _pictogramService = new PictogramService();
         _ollamaClient = new OllamaClient("http://localhost:11434"); // Upewnij się, że adres jest poprawny
 
+        ExitCommand = ReactiveCommand.Create(ExitApplication);
+
         // Inicjalizacja TTS w zależności od platformy
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
@@ -145,7 +153,7 @@ public class MainViewModel : ViewModelBase
             throw new PlatformNotSupportedException("Platforma nie jest wspierana przez TTS.");
         }
 
-        OpenAboutCommand = ReactiveCommand.Create(OpenAboutWindow);
+
         PictogramClickedCommand = ReactiveCommand.CreateFromTask<Pictogram>(OnPictogramClickedAsync);
         RemovePictogramCommand = ReactiveCommand.Create<Pictogram>(OnRemovePictogram);
         SpeakCommand = ReactiveCommand.Create(OnSpeak);
@@ -260,22 +268,43 @@ public class MainViewModel : ViewModelBase
 
         var filtered = _allPictograms?.AsEnumerable() ?? [];
 
+        // Filtrowanie na podstawie konfiguracji
+        var config = ConfigViewModel.Instance;
+
+        if (!config.ShowSex)
+            filtered = filtered.Where(p => !p.Sex);
+
+        if (!config.ShowViolence)
+            filtered = filtered.Where(p => !p.Violence);
+
+        if (config.ShowAac)
+            filtered = filtered.Where(p => p.Aac);
+
+        if (config.ShowSchematic)
+            filtered = filtered.Where(p => p.Schematic);
+
+        // Dodatkowe filtrowanie dla AacColor, Skin i Hair
+        // Zakładam, że te pola powinny być zawsze pokazywane, chyba że zostaną dodane do konfiguracji
+        // filtered = filtered.Where(p => p.AacColor);
+        // filtered = filtered.Where(p => p.Skin);
+        // filtered = filtered.Where(p => p.Hair);
+
         // Filtrowanie po wybranej kategorii
         if (SelectedCategory != null && !string.IsNullOrWhiteSpace(SelectedCategory.Id))
         {
-            if (SelectedCategory.Id == "core")
+            switch (SelectedCategory.Id)
             {
-                filtered = filtered.Where(p =>
-                    p.Categories.Any(c => c.IndexOf("core", StringComparison.OrdinalIgnoreCase) >= 0));
-            }
-            else if (SelectedCategory.Id == string.Empty)
-            {
-                // Pokazuj wszystkie piktogramy
-            }
-            else
-            {
-                filtered = filtered.Where(p =>
-                    p.Categories.Any(c => c.Equals(SelectedCategory.Name, StringComparison.OrdinalIgnoreCase)));
+                case "core":
+                    filtered = filtered.Where(p =>
+                        p.Categories.Any(c => c.IndexOf("core", StringComparison.OrdinalIgnoreCase) >= 0));
+                    break;
+                case "":
+                    // Pokazuj wszystkie piktogramy
+                    break;
+                default:
+                    filtered = filtered.Where(p =>
+                        p.Categories.Any(c => c.Equals(SelectedCategory.Name, StringComparison.OrdinalIgnoreCase)));
+                    break;
             }
         }
 
@@ -291,7 +320,6 @@ public class MainViewModel : ViewModelBase
                     current.Where(p => p.Tags.Any(pt => pt.Contains(tag, StringComparison.OrdinalIgnoreCase))));
         }
 
-
         // Filtrowanie po zapytaniu wyszukiwania
         if (!string.IsNullOrWhiteSpace(SearchQuery))
         {
@@ -299,7 +327,7 @@ public class MainViewModel : ViewModelBase
                 p.Keywords.Any(k => k.KeywordKeyword.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
         }
 
-        // **Nowy filtr: Usunięcie piktogramów z pustym polem Text**
+        // Usunięcie piktogramów z pustym polem Text
         filtered = filtered.Where(p => !string.IsNullOrWhiteSpace(p.Text));
 
         // Sortowanie po KeywordKeyword
@@ -531,17 +559,6 @@ public class MainViewModel : ViewModelBase
         }
     }
 
-    private void OpenAboutWindow()
-    {
-        var aboutWindow = new AboutWindow
-        {
-            DataContext = new AboutViewModel()
-        };
-        var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-            ?.MainWindow;
-        if (mainWindow != null)
-            aboutWindow.ShowDialog(mainWindow);
-    }
 
     private void CopyToClipboard(string textToClipboard)
     {

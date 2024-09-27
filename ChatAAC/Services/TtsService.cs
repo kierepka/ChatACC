@@ -17,7 +17,7 @@ public class TtsService
         if (string.IsNullOrWhiteSpace(text))
             throw new ArgumentException("Tekst do odczytania nie może być pusty.", nameof(text));
 
-        if (!IsMacOS())
+        if (!IsMacOs())
             throw new PlatformNotSupportedException("TTS za pomocą 'say' jest wspierane tylko na macOS.");
 
         // Przygotowanie procesu
@@ -62,7 +62,7 @@ public class TtsService
     /// Sprawdza, czy aplikacja działa na macOS.
     /// </summary>
     /// <returns>Prawda, jeśli system operacyjny to macOS; w przeciwnym razie fałsz.</returns>
-    private bool IsMacOS()
+    private bool IsMacOs()
     {
         return RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
     }

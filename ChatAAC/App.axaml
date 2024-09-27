@@ -2,10 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="ChatAAC.App"
              xmlns:local="using:ChatAAC"
-             RequestedThemeVariant="Default">
-             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
-  
+             RequestedThemeVariant="Default"
+             Name="Chat AAC"
+             x:DataType="local:App">
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
+             
+    <!-- Add Native Menu -->
+    <NativeMenu.Menu>
+        <NativeMenu>
+            <NativeMenuItem Header="_About" Click="OnAboutClick"/>
+            <NativeMenuItem Header="_Settings" Click="OnSettingsClick"/>
+        </NativeMenu>
+    </NativeMenu.Menu>
 </Application>
