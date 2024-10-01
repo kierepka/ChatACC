@@ -11,14 +11,14 @@ public class OllamaClient
 {
     readonly Chat _chat;
 
-    public OllamaClient(string apiUrl)
+    public OllamaClient()
     {
         
         Console.WriteLine($"Connecting to {ConfigViewModel.Instance.OllamaAddress} ...");
 
         var ollama = new OllamaApiClient(ConfigViewModel.Instance.OllamaAddress)
         {
-            SelectedModel = "gemma2"
+            SelectedModel = ConfigViewModel.Instance.SelectedModel ?? "gemma2"
         };
         _chat = new Chat(ollama);
     }
@@ -34,12 +34,15 @@ public class OllamaClient
 
             Twoje zadanie:
             1. Przeanalizuj podane słowa kluczowe.
-            2. Stwórz z nich jedno pełne, sensowne zdanie lub krótką wypowiedź.
+            2. Stwórz z nich jedno pełne, sensowne zdanie lub krótką wypowiedź generowaną do jednej osoby.
             3. Upewnij się, że zdanie jest gramatycznie poprawne i zachowuje intencję komunikacyjną użytkownika.
             4. Jeśli to konieczne, dodaj odpowiednie słowa łączące lub kontekstowe, aby zdanie brzmiało naturalnie.
             5. Nie zmieniaj znaczenia ani nie dodawaj nowych informacji, których nie ma w oryginalnych słowach kluczowych.
             6. Jeśli słowa kluczowe sugerują pytanie, sformułuj je jako pytanie.
             7. Zachowaj prostotę wypowiedzi, unikając zbyt skomplikowanych konstrukcji.
+            8. Przyjmij czasowniki dla czasu: {request.Tense}.
+            9. Tryb formy zdania jako: {request.Form}.
+            10. Przyjmij, że tam, gdzie jest ilość to jest to: {request.Quantity}.
 
             Odpowiedź:
             Podaj tylko wygenerowane zdanie lub krótką wypowiedź, bez żadnych dodatkowych komentarzy czy wyjaśnień.";

@@ -17,7 +17,7 @@ public class ConfigViewModel : ReactiveObject
     private static readonly object Lock = new object();
 
     private string _ollamaAddress = "http://localhost:11434";
-    private string? _selectedModel;
+    private string _selectedModel;
     private bool _showSex;
     private bool _showViolence;
     private bool _showAac;
@@ -41,7 +41,7 @@ public class ConfigViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _ollamaAddress, value);
     }
 
-    public string? SelectedModel
+    public string SelectedModel
     {
         get => _selectedModel;
         set => this.RaiseAndSetIfChanged(ref _selectedModel, value);
@@ -103,10 +103,14 @@ public class ConfigViewModel : ReactiveObject
 
     public ConfigViewModel()
     {
+        
         LoadConfiguration();
         NormalizeOllamaAddress();
         SaveCommand = ReactiveCommand.Create(SaveConfiguration);
         InitializeData();
+        
+        if (string.IsNullOrEmpty( _selectedModel)) 
+            _selectedModel = "gemma2";
     }
 
     private void NormalizeOllamaAddress()
@@ -156,17 +160,15 @@ public class ConfigViewModel : ReactiveObject
                 PropertyNameCaseInsensitive = true
             };
             var config = JsonSerializer.Deserialize<ConfigData>(json, options);
-            if (config != null)
-            {
-                OllamaAddress = config.OllamaAddress;
-                SelectedModel = config.SelectedModel;
-                ShowSex = config.ShowSex;
-                ShowViolence = config.ShowViolence;
-                ShowAac = config.ShowAac;
-                ShowSchematic = config.ShowSchematic;
-                SelectedLanguage = config.SelectedLanguage;
-                LoadedIconsCount = config.LoadedIconsCount;
-            }
+            if (config == null) return;
+            OllamaAddress = config.OllamaAddress;
+            SelectedModel = config.SelectedModel;
+            ShowSex = config.ShowSex;
+            ShowViolence = config.ShowViolence;
+            ShowAac = config.ShowAac;
+            ShowSchematic = config.ShowSchematic;
+            SelectedLanguage = config.SelectedLanguage;
+            LoadedIconsCount = config.LoadedIconsCount;
         }
     }
 
@@ -201,8 +203,8 @@ public class ConfigViewModel : ReactiveObject
 
 public class ConfigData
 {
-    public string OllamaAddress { get; set; } = "";
-    public string? SelectedModel { get; set; }
+    public string OllamaAddress { get; set; } = string.Empty;
+    public string SelectedModel { get; set; } = string.Empty;
     public bool ShowSex { get; set; }
     public bool ShowViolence { get; set; }
     public bool ShowAac { get; set; }

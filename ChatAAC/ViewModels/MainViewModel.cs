@@ -27,9 +27,44 @@ public class MainViewModel : ViewModelBase
 
     public ObservableCollection<Category> Categories { get; set; } = [];
     public ObservableCollection<Tag> Tags { get; set; } = [];
+    // Nowe właściwości dla formy wypowiedzi
+    private string _selectedTense = "Teraźniejszy";
+    public string SelectedTense
+    {
+        get => _selectedTense;
+        set => this.RaiseAndSetIfChanged(ref _selectedTense, value);
+    }
 
+    private string _selectedForm = "Oznajmująca";
+    public string SelectedForm
+    {
+        get => _selectedForm;
+        set => this.RaiseAndSetIfChanged(ref _selectedForm, value);
+    }
+
+    private int _quantity = 1;
+    public int Quantity
+    {
+        get => _quantity;
+        set => this.RaiseAndSetIfChanged(ref _quantity, value);
+    }
+
+    // Właściwość dla ukrytego paska konfiguracji
+    private bool _isConfigBarVisible = false;
+    public bool IsConfigBarVisible
+    {
+        get => _isConfigBarVisible;
+        set => this.RaiseAndSetIfChanged(ref _isConfigBarVisible, value);
+    }
+
+    // Nowe komendy
+    public ReactiveCommand<Unit, Unit> GenerateAiTextCommand { get; }
+    public ReactiveCommand<Unit, Unit> ReturnToCategoriesCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
+    public ReactiveCommand<Unit, Unit> ManageCategoriesCommand { get; }
+    public ReactiveCommand<Unit, Unit> ImportExportCommand { get; }
     private readonly PictogramService _pictogramService;
-    private readonly OllamaClient _ollamaClient = new(ConfigViewModel.Instance.OllamaAddress); // Klient OllamaSharp
+    private readonly OllamaClient _ollamaClient = new(); // Klient OllamaSharp
     private readonly ITtsService _ttsService; // Interfejs TTS
     private LoadingWindow? _loadingWindow;
 
@@ -119,7 +154,7 @@ public class MainViewModel : ViewModelBase
         get => _isFullScreen;
         set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
     }
-
+    public ReactiveCommand<Category, Unit> SelectCategoryCommand { get; }
     private List<Pictogram>? _allPictograms = [];
     public IEnumerable<IGrouping<string, Pictogram>> GroupedPictograms =>
         Pictograms.GroupBy(p => p.Categories.FirstOrDefault() ?? "Inne");
@@ -153,7 +188,11 @@ public class MainViewModel : ViewModelBase
         PictogramClickedCommand = ReactiveCommand.CreateFromTask<Pictogram>(OnPictogramClickedAsync);
         RemovePictogramCommand = ReactiveCommand.Create<Pictogram>(OnRemovePictogram);
         SpeakCommand = ReactiveCommand.Create(OnSpeak);
-
+        GenerateAiTextCommand = ReactiveCommand.CreateFromTask(OnGenerateAiTextAsync);
+        ReturnToCategoriesCommand = ReactiveCommand.Create(OnReturnToCategories);
+        OpenSettingsCommand = ReactiveCommand.Create(OnOpenSettings);
+        ManageCategoriesCommand = ReactiveCommand.Create(OnManageCategories);
+        ImportExportCommand = ReactiveCommand.Create(OnImportExport);
         // Tworzenie poleceń ReactiveCommand z ustawionym schedulerem
         SendToAiCommand = ReactiveCommand.CreateFromTask(OnSendToAiAsync, outputScheduler: RxApp.MainThreadScheduler);
 
@@ -175,9 +214,62 @@ public class MainViewModel : ViewModelBase
         // Subskrypcje na zmiany w SelectedPictograms
         SelectedPictograms.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
+        
+        SelectCategoryCommand = ReactiveCommand.Create<Category>(category =>
+        {
+            SelectedCategory = category;
+            FilterPictograms();
+        });
+        
         LoadPictogramsAsync();
     }
+    
+    private void OnOpenSettings()
+    {
+        var configWindow = new ConfigWindow
+        {
+            DataContext = new ConfigViewModel()
+        };
+        var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+            ?.MainWindow;
+        if (mainWindow != null)
+            configWindow.ShowDialog(mainWindow);
+        else
+            configWindow.Show();
+    }
 
+    private void OnManageCategories()
+    {
+        // Logika zarządzania kategoriami
+        // Przykład: new CategoryManagementWindow().Show();
+    }
+
+    private void OnImportExport()
+    {
+        // Logika importu/eksportu danych
+        // Przykład: new ImportExportWindow().Show();
+    }
+    private async Task OnGenerateAiTextAsync()
+    {
+        // Implementacja generowania tekstu z AI na podstawie wybranych ikon
+        // Możesz wykorzystać istniejącą logikę OnSendToAiAsync
+ 
+        
+        // Uruchomienie AI
+        await OnSendToAiAsync();
+
+        // Jeśli odpowiedź AI została wygenerowana, odczytaj ją
+        if (!string.IsNullOrWhiteSpace(AiResponse))
+        {
+            await OnSpeakAiResponseAsync();
+        }
+    }
+    private void OnReturnToCategories()
+    {
+        // Logika powrotu do głównych kategorii
+        SelectedCategory = Categories.FirstOrDefault(c => c.Id == "core");
+        FilterPictograms();
+    }
     private async void LoadPictogramsAsync()
     {
         try
@@ -185,7 +277,7 @@ public class MainViewModel : ViewModelBase
             IsLoading = true;
             Console.WriteLine("Rozpoczynanie pobierania piktogramów...");
             _allPictograms = await _pictogramService.GetAllPictogramsAsync().ConfigureAwait(false);
-            if (_allPictograms != null && _allPictograms.Count > 0)
+            if (_allPictograms is { Count: > 0 })
             {
                 Console.WriteLine($"Pobrano {_allPictograms.Count} piktogramów.");
 
@@ -398,25 +490,17 @@ public class MainViewModel : ViewModelBase
         }
     }
 
-    private async Task OnPictogramClickedAsync(Pictogram pictogram)
+    private Task OnPictogramClickedAsync(Pictogram pictogram)
     {
         Console.WriteLine(
             $"OnPictogramClicked wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        if (SelectedPictograms.Contains(pictogram)) return;
+        if (SelectedPictograms.Contains(pictogram)) return Task.CompletedTask;
         SelectedPictograms.Add(pictogram);
         Console.WriteLine($"Dodano piktogram: {pictogram.Id}");
 
         // Aktualizacja zdania
         UpdateConstructedSentence();
-
-        // Uruchomienie AI
-        await OnSendToAiAsync();
-
-        // Jeśli odpowiedź AI została wygenerowana, odczytaj ją
-        if (!string.IsNullOrWhiteSpace(AiResponse))
-        {
-            await OnSpeakAiResponseAsync();
-        }
+        return Task.CompletedTask;
     }
 
     private void OnRemovePictogram(Pictogram pictogram)
@@ -470,8 +554,11 @@ public class MainViewModel : ViewModelBase
             // Tworzenie zapytania do Ollama
             var chatRequest = new ChatRequest
             {
-                Model = "llava-phi3",
-                Prompt = ConstructedSentence
+                Model = ConfigViewModel.Instance.SelectedModel,
+                Prompt = ConstructedSentence,
+                Form = SelectedForm,
+                Tense = SelectedTense,
+                Quantity = Quantity
             };
 
             var response = await _ollamaClient.ChatAsync(chatRequest).ConfigureAwait(false);

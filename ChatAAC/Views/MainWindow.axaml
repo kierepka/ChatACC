@@ -1,211 +1,198 @@
-    <Window xmlns="https://github.com/avaloniaui"
-            xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-            xmlns:vm="clr-namespace:ChatAAC.ViewModels"
-            xmlns:models="clr-namespace:ChatAAC.Models"
-            xmlns:converters="clr-namespace:ChatAAC.Converters"
-            x:Class="ChatAAC.Views.MainWindow"
-            x:DataType="vm:MainViewModel"
-            Title="ChatAAC" Width="1280" Height="960">
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ChatAAC.ViewModels"
+        xmlns:models="clr-namespace:ChatAAC.Models"
+        xmlns:converters="clr-namespace:ChatAAC.Converters"
+        x:Class="ChatAAC.Views.MainWindow"
+        x:DataType="vm:MainViewModel"
+        x:Name="MWindow"
+        Title="ChatAAC" Width="1280" Height="960">
+    
+    <Window.DataContext>
+        <vm:MainViewModel />
+    </Window.DataContext>
+    
+    <Window.Resources>
+        <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
+        <converters:EqualityConverter x:Key="EqualityConverter" />
+    </Window.Resources>
 
-
-        <Window.Resources>
-            <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
-        </Window.Resources>
-        
-
-        <Grid RowDefinitions="Auto,*,Auto" Margin="20">
-            <!-- Top Panel -->
-            <Border Grid.Row="0" CornerRadius="10" Padding="15" Margin="0,0,0,20"
+    <Grid RowDefinitions="*,Auto" Margin="20">
+        <!-- Main Content -->
+        <Grid Grid.Row="0" ColumnDefinitions="1*,2*" Margin="0,0,0,20">
+            <!-- Left Column with Selected Icons and Tense Settings -->
+            <Border Grid.Column="0" CornerRadius="10" Margin="0,0,10,0"
                     BoxShadow="0 2 10 0 DarkGray">
-                <StackPanel Orientation="Horizontal" Spacing="15">
-                    <TextBox Width="300" Watermark="Szukaj słów kluczowych..."
-                             Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                             FontSize="18" VerticalContentAlignment="Center"
-                             Classes="search"
-                             AutomationProperties.Name="Pole wyszukiwania słów kluczowych" />
+                <DockPanel LastChildFill="True">
+                    <!-- Tense Settings Moved Here -->
+                    <Border DockPanel.Dock="Top" CornerRadius="10" Padding="15" Margin="0,0,0,20"
+                            BoxShadow="0 2 10 0 DarkGray">
+                        <StackPanel Orientation="Vertical" Spacing="15">
+                            <TextBlock Text="Forma Wypowiedzi" FontSize="20"
+                                       FontWeight="Bold" Margin="0,0,0,10" />
+                            <StackPanel Orientation="Vertical" Spacing="10">
+                                <!-- Tense Selection -->
+                                <StackPanel>
+                                    <TextBlock Text="Czas:" FontSize="16" />
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <RadioButton Content="Teraźniejszy" GroupName="Tenses"
+                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Teraźniejszy}" />
+                                        <RadioButton Content="Przeszły" GroupName="Tenses"
+                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przeszły}" />
+                                        <RadioButton Content="Przyszły" GroupName="Tenses"
+                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przyszły}" />
+                                    </StackPanel>
+                                </StackPanel>
 
-                    <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
-                        <TextBlock Grid.Column="0" Text="Kategoria:" VerticalAlignment="Center"
-                                   FontSize="18" FontWeight="SemiBold" Margin="0,0,10,0" />
-                        <ComboBox Grid.Column="1" ItemsSource="{Binding Categories}"
-                                  SelectedItem="{Binding SelectedCategory}"
-                                  FontSize="18" HorizontalAlignment="Stretch"
-                                  AutomationProperties.Name="Wybór kategorii">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate x:DataType="models:Category">
-                                    <TextBlock Text="{Binding Name}" FontSize="18" />
+                                <!-- Form Selection -->
+                                <StackPanel>
+                                    <TextBlock Text="Forma:" FontSize="16" />
+                                    <StackPanel Orientation="Horizontal" Spacing="5">
+                                        <RadioButton Content="Oznajmująca" GroupName="Forms"
+                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Oznajmująca}" />
+                                        <RadioButton Content="Pytająca" GroupName="Forms"
+                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Pytająca}" />
+                                        <RadioButton Content="Rozkazująca" GroupName="Forms"
+                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Rozkazująca}" />
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <!-- Quantity Selection -->
+                                <StackPanel>
+                                    <TextBlock Text="Ilość:" FontSize="16" />
+                                    <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="10" Width="100" FontSize="16"
+                                                   AutomationProperties.Name="Wybór ilości" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Selected Icons -->
+                    <TextBlock DockPanel.Dock="Top" Text="Wybrane Ikony" FontSize="20"
+                               FontWeight="Bold" Margin="15,0,15,5" />
+                    <Button DockPanel.Dock="Bottom" Content="Generuj Tekst z AI" 
+                            Command="{Binding GenerateAiTextCommand}"
+                            HorizontalAlignment="Stretch" Height="40" Margin="15"
+                            Classes="accent"
+                            AutomationProperties.Name="Przycisk generowania tekstu z AI" />
+                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                                  VerticalScrollBarVisibility="Auto" Margin="15">
+                        <ItemsControl ItemsSource="{Binding SelectedPictograms}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="5">
+                                        <StackPanel>
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="100" Height="100" />
+                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" Margin="5"/>
+                                        </StackPanel>
+                                    </Border>
                                 </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
-                    </Grid>
-
-                    <Grid ColumnDefinitions="Auto,*" VerticalAlignment="Center">
-                        <TextBlock Grid.Column="0" Text="Tagi:" VerticalAlignment="Center"
-                                   FontSize="18" FontWeight="SemiBold" Margin="0,0,10,0" />
-                        <TextBox Grid.Column="1" Watermark="np. czerwony, zwierzę, jedzenie"
-                                 Text="{Binding TagSearch, UpdateSourceTrigger=PropertyChanged}"
-                                 FontSize="18" HorizontalAlignment="Stretch"
-                                 AutomationProperties.Name="Pole wyszukiwania tagów" />
-                    </Grid>
-                </StackPanel>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </DockPanel>
             </Border>
 
-            <!-- Main Content Area -->
-            <Grid Grid.Row="1" ColumnDefinitions="*,2*" Margin="0,0,0,20">
-                <!-- Selected Pictograms List -->
-                <Border Grid.Column="0" CornerRadius="10" Margin="0,0,10,0"
-                        BoxShadow="0 2 10 0 DarkGray">
-                    <DockPanel LastChildFill="True">
-                        <TextBlock DockPanel.Dock="Top" Text="Wybrane Piktogramy" FontSize="20"
-                                   FontWeight="Bold" Margin="15,15,15,5" />
-                        <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                      VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding SelectedPictograms}" Margin="10">
+            <!-- Right Column with All Icons and Categories -->
+            <Border Grid.Column="1" CornerRadius="10"
+                    BoxShadow="0 2 10 0 DarkGray">
+                <DockPanel>
+                    <!-- Top Bar with Category Selection -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="15">
+                        <Button Content="Powrót" Command="{Binding ReturnToCategoriesCommand}"
+                                Margin="0,0,10,0" Classes="accent"
+                                AutomationProperties.Name="Powrót do kategorii głównych" />
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                            <ItemsControl ItemsSource="{Binding Categories}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <WrapPanel Orientation="Horizontal" />
+                                        <StackPanel Orientation="Horizontal" />
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
-                                        <Button
-                                            Command="{Binding DataContext.RemovePictogramCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                            CommandParameter="{Binding}" Margin="5" Width="130" Height="150"
-                                            Classes="pictogram"
-                                            AutomationProperties.Name="{Binding Text, StringFormat='Usuń piktogram {0}'}">
-                                            <StackPanel>
-                                                <Image
-                                                    Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}"
-                                                    Width="100" Height="100" />
-                                                <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
-                                                           TextWrapping="Wrap" FontSize="16" Margin="0,5,0,0" />
-                                            </StackPanel>
-                                        </Button>
+                                    <DataTemplate>
+                                        <Button Content="{Binding Name}" Margin="5" x:CompileBindings="False"
+                                                Command="{Binding DataContext.SelectCategoryCommand, ElementName=MWindow}"
+                                                CommandParameter="{Binding}"
+                                                Classes="category"
+                                                AutomationProperties.Name="{Binding Name, StringFormat='Wybierz kategorię {0}'}" />
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </ScrollViewer>
-                    </DockPanel>
-                </Border>
+                    </StackPanel>
 
-                <!-- Main Pictograms List -->
-                <Border Grid.Column="1" CornerRadius="10"
-                        BoxShadow="0 2 10 0 DarkGray">
+                    <!-- List of All Icons -->
                     <ScrollViewer HorizontalScrollBarVisibility="Disabled"
                                   VerticalScrollBarVisibility="Auto" Padding="15">
-                        <ItemsRepeater ItemsSource="{Binding Pictograms}">
-                            <ItemsRepeater.Layout>
-                                <UniformGridLayout Orientation="Horizontal" MinItemWidth="130" MinItemHeight="150" />
-                            </ItemsRepeater.Layout>
-                            <ItemsRepeater.ItemTemplate>
-                                <DataTemplate x:DataType="models:Pictogram" x:CompileBindings="False">
-                                    <Button
-                                        Command="{Binding DataContext.PictogramClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                        CommandParameter="{Binding}" Margin="5" Width="130" Height="150"
-                                        Classes="pictogram"
-                                        AutomationProperties.Name="{Binding Text, StringFormat='Wybierz piktogram {0}'}">
+                        <ItemsControl ItemsSource="{Binding Pictograms}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button x:CompileBindings="False" 
+                                            Command="{Binding DataContext.PictogramClickedCommand, ElementName=MWindow}"
+                                            CommandParameter="{Binding}"
+                                            Margin="5">
                                         <StackPanel>
-                                            <Image
-                                                Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}"
-                                                Width="100" Height="100" />
-                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"
-                                                       TextWrapping="Wrap"
-                                                       FontSize="16" Margin="0,5,0,0" />
+                                            <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="100" Height="100" />
+                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" Margin="5"/>
                                         </StackPanel>
                                     </Button>
                                 </DataTemplate>
-                            </ItemsRepeater.ItemTemplate>
-                        </ItemsRepeater>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </ScrollViewer>
-                </Border>
-            </Grid>
-
-            <!-- Bottom Panel -->
-            <Border Grid.Row="2" CornerRadius="10" Padding="15"
-                    BoxShadow="0 2 10 0 DarkGray">
-                <StackPanel Orientation="Vertical" Spacing="15">
-                    <!-- Constructed Sentence Section -->
-                    <DockPanel LastChildFill="True">
-                        <TextBlock DockPanel.Dock="Top" Text="Skonstruowane Zdanie" FontSize="20"
-                                   FontWeight="Bold" Margin="0,0,0,10" />
-                        <Grid ColumnDefinitions="*,Auto,Auto">
-                            <TextBox Grid.Column="0" Text="{Binding ConstructedSentence, Mode=TwoWay}"
-                                     TextWrapping="Wrap" FontSize="18" Margin="0,0,10,0"
-                                     AutomationProperties.Name="Pole skonstruowanego zdania" />
-                            <Button Grid.Column="1" Content="Mów" Command="{Binding SpeakCommand}"
-                                    Width="100" Height="40" FontSize="16" Margin="0,0,10,0"
-                                    Classes="accent"
-                                    AutomationProperties.Name="Przycisk Mów - odczytaj skonstruowane zdanie" />
-                            <Button Grid.Column="2" Content="Wyślij do AI" Command="{Binding SendToAiCommand}"
-                                    Width="120" Height="40" FontSize="16"
-                                    Classes="accent"
-                                    AutomationProperties.Name="Przycisk Wyślij do AI - przetwórz skonstruowane zdanie" />
-                        </Grid>
-                    </DockPanel>
-
-                    <!-- AI Response Section -->
-                    <DockPanel LastChildFill="True">
-                        <TextBlock DockPanel.Dock="Top" Text="Odpowiedź AI" FontSize="20"
-                                   FontWeight="Bold" Margin="0,0,0,10" />
-                        <Grid ColumnDefinitions="*,Auto">
-                            <TextBlock Grid.Column="0" Text="{Binding AiResponse}" TextWrapping="Wrap"
-                                       FontSize="18" Margin="0,0,10,0"
-                                       AutomationProperties.Name="Pole odpowiedzi AI" />
-                            <Button Grid.Column="1" Content="Odczytaj Odpowiedź AI"
-                                    Command="{Binding SpeakAiResponseCommand}"
-                                    Width="200" Height="40" FontSize="16"
-                                    Classes="accent"
-                                    AutomationProperties.Name="Przycisk Odczytaj Odpowiedź AI" />
-                        </Grid>
-                    </DockPanel>
-
-                    <!-- AI Response History -->
-                    <DockPanel LastChildFill="True">
-                        <TextBlock DockPanel.Dock="Top" Text="Historia Odpowiedzi AI" FontSize="20"
-                                   FontWeight="Bold" Margin="0,0,0,10" />
-                        <ScrollViewer MaxHeight="150" HorizontalScrollBarVisibility="Disabled"
-                                      VerticalScrollBarVisibility="Auto">
-                            <ItemsControl ItemsSource="{Binding AiResponseHistory}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:AiResponse">
-                                        <Button
-                                            Command="{Binding CopyHistoryItemCommand, RelativeSource={RelativeSource AncestorType={x:Type vm:MainViewModel}}}"
-                                            CommandParameter="{Binding ResponseText}"
-                                            Margin="0,0,0,10" Padding="10"
-                                            Classes="historyItem"
-                                            AutomationProperties.Name="{Binding ResponseText, StringFormat='Kopiuj odpowiedź AI: {0}'}">
-                                            <StackPanel Orientation="Vertical">
-                                                <TextBlock
-                                                    Text="{Binding Timestamp, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}"
-                                                    FontSize="14" Foreground="Gray" />
-                                                <TextBlock Text="{Binding ResponseText}" TextWrapping="Wrap" FontSize="16" />
-                                            </StackPanel>
-                                        </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </DockPanel>
-                </StackPanel>
+                </DockPanel>
             </Border>
         </Grid>
 
-        <Window.Styles>
-            <Style Selector="Button.accent">
-                <Setter Property="Background" Value="#007AFF" />
-                <Setter Property="Foreground" Value="White" />
-                <Setter Property="CornerRadius" Value="5" />
-            </Style>
-            <Style Selector="Button.pictogram">
-                <Setter Property="CornerRadius" Value="5" />
-            </Style>
-            <Style Selector="Button.historyItem">
-                <Setter Property="CornerRadius" Value="5" />
-                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            </Style>
-            <Style Selector="TextBox.search">
-                <Setter Property="CornerRadius" Value="20" />
-                <Setter Property="Padding" Value="10,5" />
-            </Style>
-        </Window.Styles>
-    </Window>
+        <!-- Bottom Panel with Configuration Icons -->
+        <Border Grid.Row="1" CornerRadius="10" Padding="15"
+                BoxShadow="0 2 10 0 DarkGray">
+            <Grid>
+                <TextBlock Text="Najedź myszą, aby wyświetlić opcje konfiguracji" 
+                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                           FontSize="18" Opacity="0.5" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
+                            Spacing="15">
+                    <Button Content="Ustawienia" Command="{Binding OpenSettingsCommand}"
+                            Width="120" Height="40" Classes="config"
+                            AutomationProperties.Name="Otwórz ustawienia aplikacji" />
+                    <Button Content="Zarządzaj Kategoriami" Command="{Binding ManageCategoriesCommand}"
+                            Width="180" Height="40" Classes="config"
+                            AutomationProperties.Name="Zarządzaj kategoriami ikon" />
+                    <Button Content="Importuj/Eksportuj" Command="{Binding ImportExportCommand}"
+                            Width="160" Height="40" Classes="config"
+                            AutomationProperties.Name="Importuj lub eksportuj dane" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+
+    <Window.Styles>
+        <Style Selector="Button.accent">
+            <Setter Property="Background" Value="#007AFF"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+        <Style Selector="Button.config">
+            <Setter Property="Background" Value="#4CAF50"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+        <Style Selector="Button.category">
+            <Setter Property="Background" Value="#FFA500"/>
+            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="CornerRadius" Value="5"/>
+        </Style>
+    </Window.Styles>
+</Window>
