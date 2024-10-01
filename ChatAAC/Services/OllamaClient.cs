@@ -28,24 +28,25 @@ public class OllamaClient
         Console.WriteLine("Żądanie do Ollama:");
         
         
-        var prompt = $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w pełne, gramatycznie poprawne zdanie lub krótką wypowiedź.
+        var prompt = $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w jedno pełne, gramatycznie poprawne zdanie.
 
-            Kontekst: Osoba niepełnosprawna wybrała następujące słowa kluczowe: [{request.Prompt}]
+			Kontekst: Osoba niepełnosprawna wybrała następujące słowa kluczowe: [{request.Prompt}]
 
-            Twoje zadanie:
-            1. Przeanalizuj podane słowa kluczowe.
-            2. Stwórz z nich jedno pełne, sensowne zdanie lub krótką wypowiedź generowaną do jednej osoby.
-            3. Upewnij się, że zdanie jest gramatycznie poprawne i zachowuje intencję komunikacyjną użytkownika.
-            4. Jeśli to konieczne, dodaj odpowiednie słowa łączące lub kontekstowe, aby zdanie brzmiało naturalnie.
-            5. Nie zmieniaj znaczenia ani nie dodawaj nowych informacji, których nie ma w oryginalnych słowach kluczowych.
-            6. Jeśli słowa kluczowe sugerują pytanie, sformułuj je jako pytanie.
-            7. Zachowaj prostotę wypowiedzi, unikając zbyt skomplikowanych konstrukcji.
-            8. Przyjmij czasowniki dla czasu: {request.Tense}.
-            9. Tryb formy zdania jako: {request.Form}.
-            10. Przyjmij, że tam, gdzie jest ilość to jest to: {request.Quantity}.
+			Twoje zadanie:
 
-            Odpowiedź:
-            Podaj tylko wygenerowane zdanie lub krótką wypowiedź, bez żadnych dodatkowych komentarzy czy wyjaśnień.";
+			1.	Przeanalizuj podane słowa kluczowe.
+			2.	Używając tych słów, stwórz jedno sensowne zdanie skierowane do jednej osoby.
+			3.	Upewnij się, że zdanie jest gramatycznie poprawne i oddaje intencję komunikacyjną użytkownika.
+			4.	Dodaj niezbędne słowa łączące lub kontekstowe, aby zdanie brzmiało naturalnie.
+			5.	Nie zmieniaj znaczenia ani nie wprowadzaj informacji spoza podanych słów kluczowych.
+			6.	Sformułuj zdanie w trybie {request.Form}.
+			7.	Użyj czasu {request.Tense}.
+			8.	Przyjmij, że jeśli występuje liczba, jest to: {request.Quantity}.
+			9.	Zachowaj prostotę i klarowność wypowiedzi.
+
+			Odpowiedź:
+
+			Podaj tylko jedno wygenerowane zdanie, bez żadnych dodatkowych komentarzy czy wyjaśnień.";
 
         Console.WriteLine(prompt);
         
