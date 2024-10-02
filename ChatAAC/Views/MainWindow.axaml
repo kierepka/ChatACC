@@ -1,198 +1,149 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ChatAAC.ViewModels"
-        xmlns:models="clr-namespace:ChatAAC.Models"
-        xmlns:converters="clr-namespace:ChatAAC.Converters"
         x:Class="ChatAAC.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        x:Name="MWindow"
         Title="ChatAAC" Width="1280" Height="960">
-    
-    <Window.DataContext>
-        <vm:MainViewModel />
-    </Window.DataContext>
-    
-    <Window.Resources>
-        <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
-        <converters:EqualityConverter x:Key="EqualityConverter" />
-    </Window.Resources>
-
-    <Grid RowDefinitions="*,Auto" Margin="20">
-        <!-- Main Content -->
-        <Grid Grid.Row="0" ColumnDefinitions="1*,2*" Margin="0,0,0,20">
-            <!-- Left Column with Selected Icons and Tense Settings -->
-            <Border Grid.Column="0" CornerRadius="10" Margin="0,0,10,0"
-                    BoxShadow="0 2 10 0 DarkGray">
-                <DockPanel LastChildFill="True">
-                    <!-- Tense Settings Moved Here -->
-                    <Border DockPanel.Dock="Top" CornerRadius="10" Padding="15" Margin="0,0,0,20"
-                            BoxShadow="0 2 10 0 DarkGray">
-                        <StackPanel Orientation="Vertical" Spacing="15">
-                            <TextBlock Text="Forma Wypowiedzi" FontSize="20"
-                                       FontWeight="Bold" Margin="0,0,0,10" />
-                            <StackPanel Orientation="Vertical" Spacing="10">
-                                <!-- Tense Selection -->
-                                <StackPanel>
-                                    <TextBlock Text="Czas:" FontSize="16" />
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <RadioButton Content="Teraźniejszy" GroupName="Tenses"
-                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Teraźniejszy}" />
-                                        <RadioButton Content="Przeszły" GroupName="Tenses"
-                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przeszły}" />
-                                        <RadioButton Content="Przyszły" GroupName="Tenses"
-                                                     IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przyszły}" />
-                                    </StackPanel>
-                                </StackPanel>
-
-                                <!-- Form Selection -->
-                                <StackPanel>
-                                    <TextBlock Text="Forma:" FontSize="16" />
-                                    <StackPanel Orientation="Horizontal" Spacing="5">
-                                        <RadioButton Content="Oznajmująca" GroupName="Forms"
-                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Oznajmująca}" />
-                                        <RadioButton Content="Pytająca" GroupName="Forms"
-                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Pytająca}" />
-                                        <RadioButton Content="Rozkazująca" GroupName="Forms"
-                                                     IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Rozkazująca}" />
-                                    </StackPanel>
-                                </StackPanel>
-
-                                <!-- Quantity Selection -->
-                                <StackPanel>
-                                    <TextBlock Text="Ilość:" FontSize="16" />
-                                    <NumericUpDown Value="{Binding Quantity}" Minimum="1" Maximum="10" Width="100" FontSize="16"
-                                                   AutomationProperties.Name="Wybór ilości" />
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Selected Icons -->
-                    <TextBlock DockPanel.Dock="Top" Text="Wybrane Ikony" FontSize="20"
-                               FontWeight="Bold" Margin="15,0,15,5" />
-                    <Button DockPanel.Dock="Bottom" Content="Generuj Tekst z AI" 
-                            Command="{Binding GenerateAiTextCommand}"
-                            HorizontalAlignment="Stretch" Height="40" Margin="15"
-                            Classes="accent"
-                            AutomationProperties.Name="Przycisk generowania tekstu z AI" />
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto" Margin="15">
-                        <ItemsControl ItemsSource="{Binding SelectedPictograms}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="5" Margin="5">
-                                        <StackPanel>
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="100" Height="100" />
-                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" Margin="5"/>
-                                        </StackPanel>
-                                    </Border>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
-
-            <!-- Right Column with All Icons and Categories -->
-            <Border Grid.Column="1" CornerRadius="10"
-                    BoxShadow="0 2 10 0 DarkGray">
-                <DockPanel>
-                    <!-- Top Bar with Category Selection -->
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="15">
-                        <Button Content="Powrót" Command="{Binding ReturnToCategoriesCommand}"
-                                Margin="0,0,10,0" Classes="accent"
-                                AutomationProperties.Name="Powrót do kategorii głównych" />
-                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
-                            <ItemsControl ItemsSource="{Binding Categories}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <StackPanel Orientation="Horizontal" />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Button Content="{Binding Name}" Margin="5" x:CompileBindings="False"
-                                                Command="{Binding DataContext.SelectCategoryCommand, ElementName=MWindow}"
-                                                CommandParameter="{Binding}"
-                                                Classes="category"
-                                                AutomationProperties.Name="{Binding Name, StringFormat='Wybierz kategorię {0}'}" />
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
-                    </StackPanel>
-
-                    <!-- List of All Icons -->
-                    <ScrollViewer HorizontalScrollBarVisibility="Disabled"
-                                  VerticalScrollBarVisibility="Auto" Padding="15">
-                        <ItemsControl ItemsSource="{Binding Pictograms}">
-                            <ItemsControl.ItemsPanel>
-                                <ItemsPanelTemplate>
-                                    <WrapPanel />
-                                </ItemsPanelTemplate>
-                            </ItemsControl.ItemsPanel>
-                            <ItemsControl.ItemTemplate>
-                                <DataTemplate>
-                                    <Button x:CompileBindings="False" 
-                                            Command="{Binding DataContext.PictogramClickedCommand, ElementName=MWindow}"
-                                            CommandParameter="{Binding}"
-                                            Margin="5">
-                                        <StackPanel>
-                                            <Image Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}" Width="100" Height="100" />
-                                            <TextBlock Text="{Binding Text}" HorizontalAlignment="Center" Margin="5"/>
-                                        </StackPanel>
-                                    </Button>
-                                </DataTemplate>
-                            </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                    </ScrollViewer>
-                </DockPanel>
-            </Border>
-        </Grid>
-
-        <!-- Bottom Panel with Configuration Icons -->
-        <Border Grid.Row="1" CornerRadius="10" Padding="15"
-                BoxShadow="0 2 10 0 DarkGray">
-            <Grid>
-                <TextBlock Text="Najedź myszą, aby wyświetlić opcje konfiguracji" 
-                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                           FontSize="18" Opacity="0.5" />
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"
-                            Spacing="15">
-                    <Button Content="Ustawienia" Command="{Binding OpenSettingsCommand}"
-                            Width="120" Height="40" Classes="config"
-                            AutomationProperties.Name="Otwórz ustawienia aplikacji" />
-                    <Button Content="Zarządzaj Kategoriami" Command="{Binding ManageCategoriesCommand}"
-                            Width="180" Height="40" Classes="config"
-                            AutomationProperties.Name="Zarządzaj kategoriami ikon" />
-                    <Button Content="Importuj/Eksportuj" Command="{Binding ImportExportCommand}"
-                            Width="160" Height="40" Classes="config"
-                            AutomationProperties.Name="Importuj lub eksportuj dane" />
-                </StackPanel>
-            </Grid>
-        </Border>
-    </Grid>
 
     <Window.Styles>
-        <Style Selector="Button.accent">
-            <Setter Property="Background" Value="#007AFF"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="CornerRadius" Value="5"/>
-        </Style>
-        <Style Selector="Button.config">
-            <Setter Property="Background" Value="#4CAF50"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="CornerRadius" Value="5"/>
-        </Style>
         <Style Selector="Button.category">
-            <Setter Property="Background" Value="#FFA500"/>
-            <Setter Property="Foreground" Value="Black"/>
+            <Setter Property="Width" Value="150"/>
+            <Setter Property="Height" Value="100"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style Selector="Button.symbol">
+            <Setter Property="Width" Value="120"/>
+            <Setter Property="Height" Value="120"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="5"/>
+        </Style>
+        <Style Selector="Button.control">
+            <Setter Property="Height" Value="40"/>
             <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Foreground" Value="White"/>
         </Style>
     </Window.Styles>
+
+    <Grid RowDefinitions="Auto,Auto,*" Margin="20">
+        <!-- Message Display Area -->
+        <Border Grid.Row="0" Height="100" Margin="0,0,0,20"
+                BorderBrush="Gray" BorderThickness="1" CornerRadius="10">
+            <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                <ItemsControl ItemsSource="{Binding SelectedPictograms}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <StackPanel Orientation="Horizontal"/>
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Image Source="{Binding ImagePath}" Width="80" Height="80" Margin="5"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Categories -->
+        <UniformGrid Grid.Row="1" Rows="1" Margin="0,0,0,20">
+            <Button Classes="category" Background="#FFE5CC">
+                <StackPanel>
+                    <TextBlock Text="Pronoun" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#FFD699">
+                <StackPanel>
+                    <TextBlock Text="People" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#C6E2C6">
+                <StackPanel>
+                    <TextBlock Text="Actions" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#B3D9FF">
+                <StackPanel>
+                    <TextBlock Text="Describing" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#FFCCCC">
+                <StackPanel>
+                    <TextBlock Text="Short Words" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#E5CCE5">
+                <StackPanel>
+                    <TextBlock Text="Places" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+            <Button Classes="category" Background="#E5E5E5">
+                <StackPanel>
+                    <TextBlock Text="Time" HorizontalAlignment="Center" FontWeight="Bold"/>
+                    <Image Source="/Assets/avalonia-logo.ico" Width="60" Height="60"/>
+                </StackPanel>
+            </Button>
+        </UniformGrid>
+
+        <!-- Main Content Grid -->
+        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
+            <!-- Symbols Grid -->
+            <ItemsControl Grid.Column="0" ItemsSource="{Binding Pictograms}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Classes="symbol" Background="White">
+                            <StackPanel>
+                                <Image Source="{Binding ImagePath}" Width="80" Height="80"/>
+                                <TextBlock Text="{Binding Text}" HorizontalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <!-- Side Panel -->
+            <StackPanel Grid.Column="1" Width="200" Margin="20,0,0,0" Spacing="10">
+                <!-- Grammar Controls -->
+                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="10" Padding="10">
+                    <StackPanel Spacing="10">
+                        <TextBlock Text="Grammar Settings" FontWeight="Bold"/>
+                        
+                        <StackPanel>
+                            <TextBlock Text="Tense:"/>
+                            <StackPanel Orientation="Vertical">
+                                <RadioButton Content="Present" IsChecked="True"/>
+                                <RadioButton Content="Past"/>
+                                <RadioButton Content="Future"/>
+                            </StackPanel>
+                        </StackPanel>
+                        
+                        <StackPanel>
+                            <TextBlock Text="Form:"/>
+                            <StackPanel Orientation="Vertical">
+                                <RadioButton Content="Statement" IsChecked="True"/>
+                                <RadioButton Content="Question"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Control Buttons -->
+                <Button Content="Back" Classes="control" Background="#2196F3"/>
+                <Button Content="Clear" Classes="control" Background="#4CAF50"/>
+                <Button Content="Settings" Classes="control" Background="#9C27B0"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
 </Window>

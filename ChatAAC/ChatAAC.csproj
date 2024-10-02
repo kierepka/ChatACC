@@ -35,4 +35,8 @@
         <PackageReference Include="System.Net.Http.Json" Version="8.0.0" />
         <PackageReference Include="System.Speech" Version="8.0.0" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\Categories\" />
+    </ItemGroup>
 </Project>

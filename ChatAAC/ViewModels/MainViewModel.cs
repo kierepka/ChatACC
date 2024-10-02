@@ -16,6 +16,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
+using ChatAAC.Models.Obf;
 using ChatAAC.Views;
 
 namespace ChatAAC.ViewModels;
@@ -158,6 +159,25 @@ public class MainViewModel : ViewModelBase
     private List<Pictogram>? _allPictograms = [];
     public IEnumerable<IGrouping<string, Pictogram>> GroupedPictograms =>
         Pictograms.GroupBy(p => p.Categories.FirstOrDefault() ?? "Inne");
+    
+    
+    // Nowe właściwości dla plików OBF
+    private ObfFile? _obfData;
+    public ObfFile? ObfData
+    {
+        get => _obfData;
+        set => this.RaiseAndSetIfChanged(ref _obfData, value);
+    }
+
+    // Komendy do wczytywania plików
+    public ReactiveCommand<Unit, Unit> LoadPictogramsCommand { get; }
+    public ReactiveCommand<string, Unit> LoadObfFileCommand { get; }
+
+    // Ścieżka do pliku OBF (możesz dostosować)
+    private readonly string _obfFilePath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ChatAAC",
+        "data.obf");
     public MainViewModel()
     {
         AiResponseHistory = [];
@@ -183,7 +203,9 @@ public class MainViewModel : ViewModelBase
         {
             throw new PlatformNotSupportedException("Platforma nie jest wspierana przez TTS.");
         }
-
+        
+        LoadPictogramsCommand = ReactiveCommand.CreateFromTask(LoadPictogramsAsync);
+        LoadObfFileCommand = ReactiveCommand.CreateFromTask<string>(LoadObfFileAsync);
 
         PictogramClickedCommand = ReactiveCommand.CreateFromTask<Pictogram>(OnPictogramClickedAsync);
         RemovePictogramCommand = ReactiveCommand.Create<Pictogram>(OnRemovePictogram);
@@ -221,9 +243,38 @@ public class MainViewModel : ViewModelBase
             FilterPictograms();
         });
         
-        LoadPictogramsAsync();
+        
+        // Wczytanie początkowych danych
+        LoadPictogramsCommand.Execute().Subscribe();
+        LoadObfFileCommand.Execute(_obfFilePath).Subscribe();
     }
-    
+    private async Task LoadObfFileAsync(string filePath)
+    {
+        try
+        {
+            IsLoading = true;
+            Console.WriteLine($"Rozpoczynanie wczytywania pliku OBF: {filePath}");
+            ObfData = ObfLoader.LoadObf(filePath);
+
+            if (ObfData != null)
+            {
+                Console.WriteLine("Plik OBF został pomyślnie wczytany.");
+                // Możesz tutaj dodać dodatkową logikę przetwarzania danych OBF
+            }
+            else
+            {
+                Console.WriteLine("Plik OBF jest pusty lub niepoprawny.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Błąd podczas wczytywania pliku OBF: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
     private void OnOpenSettings()
     {
         var configWindow = new ConfigWindow
@@ -270,7 +321,7 @@ public class MainViewModel : ViewModelBase
         SelectedCategory = Categories.FirstOrDefault(c => c.Id == "core");
         FilterPictograms();
     }
-    private async void LoadPictogramsAsync()
+    private async Task LoadPictogramsAsync()
     {
         try
         {
