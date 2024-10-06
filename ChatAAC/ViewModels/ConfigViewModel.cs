@@ -87,15 +87,10 @@ public class ConfigViewModel : ReactiveObject
     {
         get
         {
-            if (_instance == null)
+            if (_instance != null) return _instance;
+            lock (Lock)
             {
-                lock (Lock)
-                {
-                    if (_instance == null)
-                    {
-                        _instance = new ConfigViewModel();
-                    }
-                }
+                _instance ??= new ConfigViewModel();
             }
             return _instance;
         }
@@ -126,6 +121,11 @@ public class ConfigViewModel : ReactiveObject
     {
         Languages.Add("Polski");
         Languages.Add("English");
+
+        if (string.IsNullOrEmpty(DefaultBoardPath))
+        {
+            DefaultBoardPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "communikate-20.obz");
+        }
         
         Task.Run(InitializeModelsAsync);
     }
@@ -152,24 +152,23 @@ public class ConfigViewModel : ReactiveObject
 
     private void LoadConfiguration()
     {
-        if (File.Exists(ConfigFilePath))
+        if (!File.Exists(ConfigFilePath)) return;
+        var json = File.ReadAllText(ConfigFilePath);
+        var options = new JsonSerializerOptions
         {
-            var json = File.ReadAllText(ConfigFilePath);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-            var config = JsonSerializer.Deserialize<ConfigData>(json, options);
-            if (config == null) return;
-            OllamaAddress = config.OllamaAddress;
-            SelectedModel = config.SelectedModel;
-            ShowSex = config.ShowSex;
-            ShowViolence = config.ShowViolence;
-            ShowAac = config.ShowAac;
-            ShowSchematic = config.ShowSchematic;
-            SelectedLanguage = config.SelectedLanguage;
-            LoadedIconsCount = config.LoadedIconsCount;
-        }
+            PropertyNameCaseInsensitive = true
+        };
+        var config = JsonSerializer.Deserialize<ConfigData>(json, options);
+        if (config == null) return;
+        OllamaAddress = config.OllamaAddress;
+        SelectedModel = config.SelectedModel;
+        ShowSex = config.ShowSex;
+        ShowViolence = config.ShowViolence;
+        ShowAac = config.ShowAac;
+        ShowSchematic = config.ShowSchematic;
+        SelectedLanguage = config.SelectedLanguage;
+        LoadedIconsCount = config.LoadedIconsCount;
+        DefaultBoardPath = config.DefaultBoardPath;
     }
 
     private void SaveConfiguration()
@@ -183,7 +182,8 @@ public class ConfigViewModel : ReactiveObject
             ShowAac = ShowAac,
             ShowSchematic = ShowSchematic,
             SelectedLanguage = SelectedLanguage,
-            LoadedIconsCount = LoadedIconsCount
+            LoadedIconsCount = LoadedIconsCount,
+            DefaultBoardPath = DefaultBoardPath
         };
 
         var options = new JsonSerializerOptions
@@ -193,6 +193,8 @@ public class ConfigViewModel : ReactiveObject
         var json = JsonSerializer.Serialize(configData, options);
         File.WriteAllText(ConfigFilePath, json);
     }
+
+    public string DefaultBoardPath { get; set; } = string.Empty;
 
     public void UpdateLoadedIconsCount(int count)
     {
@@ -211,4 +213,6 @@ public class ConfigData
     public bool ShowSchematic { get; set; }
     public string? SelectedLanguage { get; set; }
     public int LoadedIconsCount { get; set; }
+
+    public string DefaultBoardPath { get; set; } = string.Empty;
 }

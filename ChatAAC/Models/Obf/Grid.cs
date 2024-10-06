@@ -9,5 +9,5 @@ public class Grid
 
     [JsonPropertyName("columns")] public int Columns { get; set; }
 
-    [JsonPropertyName("order")] public List<List<string>> Order { get; set; } = new();
+    [JsonPropertyName("order")] public List<List<int?>> Order { get; set; } = new();
 }

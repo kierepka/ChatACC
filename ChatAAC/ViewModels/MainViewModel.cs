@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reactive;
 using System.Text;
@@ -18,18 +19,18 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.VisualTree;
 using ChatAAC.Models.Obf;
 using ChatAAC.Views;
+using Button = ChatAAC.Models.Obf.Button;
 
 namespace ChatAAC.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    public ObservableCollection<Pictogram> Pictograms { get; set; } = [];
-    public ObservableCollection<Pictogram> SelectedPictograms { get; set; } = [];
+    public ObservableCollection<Button> Buttons { get; set; } = [];
+    public ObservableCollection<Button> SelectedButtons { get; set; } = [];
 
-    public ObservableCollection<Category> Categories { get; set; } = [];
-    public ObservableCollection<Tag> Tags { get; set; } = [];
     // Nowe właściwości dla formy wypowiedzi
     private string _selectedTense = "Teraźniejszy";
+
     public string SelectedTense
     {
         get => _selectedTense;
@@ -37,6 +38,7 @@ public class MainViewModel : ViewModelBase
     }
 
     private string _selectedForm = "Oznajmująca";
+
     public string SelectedForm
     {
         get => _selectedForm;
@@ -44,6 +46,7 @@ public class MainViewModel : ViewModelBase
     }
 
     private int _quantity = 1;
+
     public int Quantity
     {
         get => _quantity;
@@ -51,7 +54,8 @@ public class MainViewModel : ViewModelBase
     }
 
     // Właściwość dla ukrytego paska konfiguracji
-    private bool _isConfigBarVisible = false;
+    private bool _isConfigBarVisible;
+
     public bool IsConfigBarVisible
     {
         get => _isConfigBarVisible;
@@ -59,29 +63,15 @@ public class MainViewModel : ViewModelBase
     }
 
     // Nowe komendy
-    public ReactiveCommand<Unit, Unit> GenerateAiTextCommand { get; }
-    public ReactiveCommand<Unit, Unit> ReturnToCategoriesCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
-    public ReactiveCommand<Unit, Unit> ManageCategoriesCommand { get; }
-    public ReactiveCommand<Unit, Unit> ImportExportCommand { get; }
-    private readonly PictogramService _pictogramService;
+
+
     private readonly OllamaClient _ollamaClient = new(); // Klient OllamaSharp
     private readonly ITtsService _ttsService; // Interfejs TTS
     private LoadingWindow? _loadingWindow;
 
-    private string _searchQuery = string.Empty;
-    
-    public ObservableCollection<AiResponse> AiResponseHistory { get; }
 
-    public string SearchQuery
-    {
-        get => _searchQuery;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _searchQuery, value);
-            FilterPictograms();
-        }
-    }
+    public ObservableCollection<AiResponse> AiResponseHistory { get; }
 
 
     private void ExitApplication()
@@ -90,29 +80,6 @@ public class MainViewModel : ViewModelBase
         Environment.Exit(0);
     }
 
-    private string _tagSearch = string.Empty;
-
-    public string TagSearch
-    {
-        get => _tagSearch;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _tagSearch, value);
-            FilterPictograms();
-        }
-    }
-
-    private Category? _selectedCategory;
-
-    public Category? SelectedCategory
-    {
-        get => _selectedCategory;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _selectedCategory, value);
-            FilterPictograms();
-        }
-    }
 
     private string _constructedSentence = string.Empty;
 
@@ -122,8 +89,8 @@ public class MainViewModel : ViewModelBase
         private set => this.RaiseAndSetIfChanged(ref _constructedSentence, value);
     }
 
-    public ReactiveCommand<Pictogram, Unit> PictogramClickedCommand { get; }
-    public ReactiveCommand<Pictogram, Unit> RemovePictogramCommand { get; }
+    public ReactiveCommand<Button, Unit> ButtonClickedCommand { get; }
+    public ReactiveCommand<Button, Unit> RemoveButtonCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
     public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
     public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
@@ -155,14 +122,11 @@ public class MainViewModel : ViewModelBase
         get => _isFullScreen;
         set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
     }
-    public ReactiveCommand<Category, Unit> SelectCategoryCommand { get; }
-    private List<Pictogram>? _allPictograms = [];
-    public IEnumerable<IGrouping<string, Pictogram>> GroupedPictograms =>
-        Pictograms.GroupBy(p => p.Categories.FirstOrDefault() ?? "Inne");
-    
-    
+
+
     // Nowe właściwości dla plików OBF
     private ObfFile? _obfData;
+
     public ObfFile? ObfData
     {
         get => _obfData;
@@ -170,7 +134,6 @@ public class MainViewModel : ViewModelBase
     }
 
     // Komendy do wczytywania plików
-    public ReactiveCommand<Unit, Unit> LoadPictogramsCommand { get; }
     public ReactiveCommand<string, Unit> LoadObfFileCommand { get; }
 
     // Ścieżka do pliku OBF (możesz dostosować)
@@ -178,12 +141,16 @@ public class MainViewModel : ViewModelBase
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "ChatAAC",
         "data.obf");
+    private bool _isInitialized;
+    
     public MainViewModel()
     {
+        Buttons = [];
+        SelectedButtons = [];
+
         AiResponseHistory = [];
         LoadHistory();
 
-        _pictogramService = new PictogramService();
         ReactiveCommand.Create(ExitApplication);
 
         // Inicjalizacja TTS w zależności od platformy
@@ -203,18 +170,16 @@ public class MainViewModel : ViewModelBase
         {
             throw new PlatformNotSupportedException("Platforma nie jest wspierana przez TTS.");
         }
-        
-        LoadPictogramsCommand = ReactiveCommand.CreateFromTask(LoadPictogramsAsync);
-        LoadObfFileCommand = ReactiveCommand.CreateFromTask<string>(LoadObfFileAsync);
 
-        PictogramClickedCommand = ReactiveCommand.CreateFromTask<Pictogram>(OnPictogramClickedAsync);
-        RemovePictogramCommand = ReactiveCommand.Create<Pictogram>(OnRemovePictogram);
+        LoadObfFileCommand = ReactiveCommand.CreateFromTask<string>(LoadObfFileAsync);
+        ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
+        ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
+        RemoveButtonCommand = ReactiveCommand.Create<Button>(OnRemoveButton);
         SpeakCommand = ReactiveCommand.Create(OnSpeak);
-        GenerateAiTextCommand = ReactiveCommand.CreateFromTask(OnGenerateAiTextAsync);
-        ReturnToCategoriesCommand = ReactiveCommand.Create(OnReturnToCategories);
+
         OpenSettingsCommand = ReactiveCommand.Create(OnOpenSettings);
-        ManageCategoriesCommand = ReactiveCommand.Create(OnManageCategories);
-        ImportExportCommand = ReactiveCommand.Create(OnImportExport);
+
+
         // Tworzenie poleceń ReactiveCommand z ustawionym schedulerem
         SendToAiCommand = ReactiveCommand.CreateFromTask(OnSendToAiAsync, outputScheduler: RxApp.MainThreadScheduler);
 
@@ -233,33 +198,85 @@ public class MainViewModel : ViewModelBase
         CopyAiResponseCommand = ReactiveCommand.Create(OnCopyAiResponse);
 
 
-        // Subskrypcje na zmiany w SelectedPictograms
-        SelectedPictograms.CollectionChanged += (_, _) => UpdateConstructedSentence();
+        // Subskrypcje na zmiany w SelectedButtons
+        SelectedButtons.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
-        
-        SelectCategoryCommand = ReactiveCommand.Create<Category>(category =>
-        {
-            SelectedCategory = category;
-            FilterPictograms();
-        });
-        
-        
+
         // Wczytanie początkowych danych
-        LoadPictogramsCommand.Execute().Subscribe();
-        LoadObfFileCommand.Execute(_obfFilePath).Subscribe();
+        LoadInitialFile();
+
+        LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadInitialFile);
+    
     }
+
+    public ReactiveCommand<Unit, Unit> LoadMainBoardCommand { get; set; }
+
+    public ReactiveCommand<Unit, Unit> ClearSelectedCommand { get; set; }
+
+    private void ClearSelected()
+    {
+        SelectedButtons.Clear();
+    }
+
+    private async Task LoadInitialFile()
+    {
+        if (_isInitialized || string.IsNullOrEmpty(ConfigViewModel.Instance.DefaultBoardPath))
+        {
+            return;
+        }
+
+        IsLoading = true;
+        try
+        {
+            await LoadObfOrObzFileAsync(ConfigViewModel.Instance.DefaultBoardPath);
+            _isInitialized = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading initial file: {ex.Message}");
+            // Możesz tutaj dodać obsługę błędów, np. wyświetlenie komunikatu użytkownikowi
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private async Task LoadObfOrObzFileAsync(string filePath)
+    {
+        if (filePath.EndsWith(".obz"))
+        {
+            await LoadObzFileAsync(filePath);
+        }
+        else if (filePath.EndsWith(".obf"))
+        {
+            await LoadObfFileAsync(filePath);
+        }
+        else
+        {
+            Console.WriteLine("Unsupported file type. Please provide a .obf or .obz file.");
+        }
+    }
+
     private async Task LoadObfFileAsync(string filePath)
     {
         try
         {
             IsLoading = true;
             Console.WriteLine($"Rozpoczynanie wczytywania pliku OBF: {filePath}");
-            ObfData = ObfLoader.LoadObf(filePath);
+            ObfData = await ObfLoader.LoadObfAsync(filePath);
 
             if (ObfData != null)
             {
                 Console.WriteLine("Plik OBF został pomyślnie wczytany.");
-                // Możesz tutaj dodać dodatkową logikę przetwarzania danych OBF
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    Buttons.Clear(); // Clear existing buttons
+                    foreach (var button in ObfData.Buttons)
+                    {
+                        Buttons.Add(button);
+                    }
+                });
             }
             else
             {
@@ -275,6 +292,74 @@ public class MainViewModel : ViewModelBase
             IsLoading = false;
         }
     }
+
+
+    private async Task LoadObzFileAsync(string filePath)
+    {
+        IsLoading = true;
+        var tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+
+        try
+        {
+            Directory.CreateDirectory(tempDirectory);
+            ZipFile.ExtractToDirectory(filePath, tempDirectory);
+
+            var manifestPath = Path.Combine(tempDirectory, "manifest.json");
+            if (File.Exists(manifestPath))
+            {
+                var manifestJson = await File.ReadAllTextAsync(manifestPath);
+                var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
+
+                // Assume root is directly provided or identifiable
+                var rootObfPath = Path.Combine(tempDirectory, manifest?.Root ?? "root.obf");
+                if (File.Exists(rootObfPath))
+                {
+                    ObfData = await ObfLoader.LoadObfAsync(rootObfPath);
+                    Console.WriteLine(ObfData != null
+                        ? $"Root OBF file loaded successfully: {rootObfPath}"
+                        // Process buttons and other data as needed
+                        : "Root OBF file is empty or invalid.");
+                    if (ObfData is not null)
+                    {
+                        await Dispatcher.UIThread.InvokeAsync(() =>
+                        {
+                            Buttons.Clear(); // Clear existing buttons
+                            foreach (var button in ObfData.Buttons)
+                            {
+                                Buttons.Add(button);
+                            }
+                        });
+                    }
+                }
+
+                // Load only images for other board files
+                if (manifest?.Paths.Boards.Values != null)
+                {
+                    var tasks = manifest.Paths.Boards.Values
+                        .Where(boardPath => Path.Combine(tempDirectory, boardPath) != rootObfPath)
+                        .Select(boardPath => ObfLoader.LoadObfAsync(Path.Combine(tempDirectory, boardPath)));
+
+                    await Task.WhenAll(tasks);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Manifest file not found in the .obz package.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading OBZ file: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+            // Optionally, delete temp directory to clean up
+            Directory.Delete(tempDirectory, true);
+        }
+    }
+
+
     private void OnOpenSettings()
     {
         var configWindow = new ConfigWindow
@@ -289,23 +374,13 @@ public class MainViewModel : ViewModelBase
             configWindow.Show();
     }
 
-    private void OnManageCategories()
-    {
-        // Logika zarządzania kategoriami
-        // Przykład: new CategoryManagementWindow().Show();
-    }
 
-    private void OnImportExport()
-    {
-        // Logika importu/eksportu danych
-        // Przykład: new ImportExportWindow().Show();
-    }
     private async Task OnGenerateAiTextAsync()
     {
         // Implementacja generowania tekstu z AI na podstawie wybranych ikon
         // Możesz wykorzystać istniejącą logikę OnSendToAiAsync
- 
-        
+
+
         // Uruchomienie AI
         await OnSendToAiAsync();
 
@@ -315,173 +390,7 @@ public class MainViewModel : ViewModelBase
             await OnSpeakAiResponseAsync();
         }
     }
-    private void OnReturnToCategories()
-    {
-        // Logika powrotu do głównych kategorii
-        SelectedCategory = Categories.FirstOrDefault(c => c.Id == "core");
-        FilterPictograms();
-    }
-    private async Task LoadPictogramsAsync()
-    {
-        try
-        {
-            IsLoading = true;
-            Console.WriteLine("Rozpoczynanie pobierania piktogramów...");
-            _allPictograms = await _pictogramService.GetAllPictogramsAsync().ConfigureAwait(false);
-            if (_allPictograms is { Count: > 0 })
-            {
-                Console.WriteLine($"Pobrano {_allPictograms.Count} piktogramów.");
 
-                // Wyodrębnij kategorie i tagi
-                var categories = _pictogramService.ExtractCategories(_allPictograms);
-                var tags = _pictogramService.ExtractTags(_allPictograms);
-
-                // Dodaj kategorie i tagi do ObservableCollection na głównym wątku UI
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    Categories.Clear();
-                    // Dodanie pustej kategorii na początku
-
-                    Categories.Add(new Category()
-                    {
-                        Id = "core", Name = "Główne"
-                    });
-
-                    Categories.Add(new Category()
-                    {
-                        Id = string.Empty, Name = "Wszystkie"
-                    });
-
-
-                    foreach (var category in categories)
-                    {
-                        Categories.Add(category);
-                    }
-
-                    Tags.Clear();
-                    foreach (var tag in tags)
-                    {
-                        Tags.Add(tag);
-                    }
-                });
-
-                // Ustaw domyślną kategorię, jeśli istnieje
-                if (Categories.Any())
-                {
-                    SelectedCategory = Categories.First();
-                }
-
-                // Filtruj piktogramy na podstawie wybranej kategorii i tagów
-                FilterPictograms();
-            }
-            else
-            {
-                Console.WriteLine("Piktogramy nie zostały pobrane poprawnie.");
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Błąd w LoadPictogramsAsync: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-            // Zamknięcie LoadingWindow
-            if (_loadingWindow != null)
-            {
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    _loadingWindow.Close();
-                    _loadingWindow = null;
-                });
-            }
-        }
-    }
-
-    private void FilterPictograms()
-    {
-        Pictograms.Clear();
-
-        if (SelectedCategory == null)
-            return;
-
-        var filtered = _allPictograms?.AsEnumerable() ?? [];
-
-        // Filtrowanie na podstawie konfiguracji
-        var config = ConfigViewModel.Instance;
-
-        if (!config.ShowSex)
-            filtered = filtered.Where(p => !p.Sex);
-
-        if (!config.ShowViolence)
-            filtered = filtered.Where(p => !p.Violence);
-
-        /*   if (!config.ShowAac)
-               filtered = filtered.Where(p => !p.Aac);
-
-           if (!config.ShowSchematic)
-               filtered = filtered.Where(p => !p.Schematic);
-   */
-        // Dodatkowe filtrowanie dla AacColor, Skin i Hair
-        // Zakładam, że te pola powinny być zawsze pokazywane, chyba że zostaną dodane do konfiguracji
-        // filtered = filtered.Where(p => p.AacColor);
-        // filtered = filtered.Where(p => p.Skin);
-        // filtered = filtered.Where(p => p.Hair);
-
-        // Filtrowanie po wybranej kategorii
-        if (SelectedCategory != null && !string.IsNullOrWhiteSpace(SelectedCategory.Id))
-        {
-            switch (SelectedCategory.Id)
-            {
-                case "core":
-                    filtered = filtered.Where(p =>
-                        p.Categories.Any(c => c.IndexOf("core", StringComparison.OrdinalIgnoreCase) >= 0));
-                    break;
-                case "":
-                    // Pokazuj wszystkie piktogramy
-                    break;
-                default:
-                    filtered = filtered.Where(p =>
-                        p.Categories.Any(c => c.Equals(SelectedCategory.Name, StringComparison.OrdinalIgnoreCase)));
-                    break;
-            }
-        }
-
-        // Filtrowanie po tagach
-        if (!string.IsNullOrWhiteSpace(TagSearch))
-        {
-            var tags = TagSearch.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(t => t.Trim())
-                .ToList();
-
-            filtered = tags.Aggregate(filtered,
-                (current, tag) =>
-                    current.Where(p => p.Tags.Any(pt => pt.Contains(tag, StringComparison.OrdinalIgnoreCase))));
-        }
-
-        // Filtrowanie po zapytaniu wyszukiwania
-        if (!string.IsNullOrWhiteSpace(SearchQuery))
-        {
-            filtered = filtered.Where(p =>
-                p.Keywords.Any(k => k.KeywordKeyword.Contains(SearchQuery, StringComparison.OrdinalIgnoreCase)));
-        }
-
-        // Usunięcie piktogramów z pustym polem Text
-        filtered = filtered.Where(p => !string.IsNullOrWhiteSpace(p.Text));
-
-        // Sortowanie po KeywordKeyword
-        filtered = filtered
-            .OrderBy(p => p.Categories.FirstOrDefault())
-            .ThenBy(p => p.Tags.FirstOrDefault())
-            .ThenBy(p => p.Keywords.FirstOrDefault()?.KeywordKeyword);
-
-        foreach (var pictogram in filtered)
-        {
-            Pictograms.Add(pictogram);
-        }
-
-        Console.WriteLine($"Filtracja zakończona. Liczba piktogramów: {Pictograms.Count}");
-    }
 
     // Metoda do dodawania odpowiedzi AI do historii
     private void AddAiResponseToHistory(string response)
@@ -541,33 +450,42 @@ public class MainViewModel : ViewModelBase
         }
     }
 
-    private Task OnPictogramClickedAsync(Pictogram pictogram)
+    private Task OnButtonClickedAsync(Button button)
     {
         Console.WriteLine(
-            $"OnPictogramClicked wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        if (SelectedPictograms.Contains(pictogram)) return Task.CompletedTask;
-        SelectedPictograms.Add(pictogram);
-        Console.WriteLine($"Dodano piktogram: {pictogram.Id}");
+            $"OnButtonClicked wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
 
-        // Aktualizacja zdania
-        UpdateConstructedSentence();
+        if (button.LoadBoard is not null)
+        {
+            _ = LoadObfOrObzFileAsync(button.LoadBoard.Url);
+        }
+        else
+        {
+            if (SelectedButtons.Contains(button)) return Task.CompletedTask;
+            SelectedButtons.Add(button);
+            Console.WriteLine($"Dodano piktogram: {button.Id}");
+
+            // Aktualizacja zdania
+            UpdateConstructedSentence();
+        }
+
         return Task.CompletedTask;
     }
 
-    private void OnRemovePictogram(Pictogram pictogram)
+    private void OnRemoveButton(Button button)
     {
         Console.WriteLine(
-            $"OnRemovePictogram wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
-        if (!SelectedPictograms.Contains(pictogram)) return;
-        SelectedPictograms.Remove(pictogram);
-        Console.WriteLine($"Usunięto piktogram: {pictogram.Id}");
+            $"OnRemoveButton wykonywane na wątku {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        if (!SelectedButtons.Contains(button)) return;
+        SelectedButtons.Remove(button);
+        Console.WriteLine($"Usunięto piktogram: {button.Id}");
     }
 
     private void UpdateConstructedSentence()
     {
         // Poprawka: Pobieranie Text z obiektu Keyword
         ConstructedSentence = string.Join(" ",
-            SelectedPictograms.Select(p => p.Keywords.FirstOrDefault()?.KeywordKeyword ?? ""));
+            SelectedButtons.Select(p => p.Label));
         Console.WriteLine($"Skonstruowane zdanie: {ConstructedSentence}");
     }
 
@@ -592,7 +510,7 @@ public class MainViewModel : ViewModelBase
     {
         if (string.IsNullOrWhiteSpace(ConstructedSentence))
         {
-            AiResponse = "Brak zdania do wysłania.";
+            AiResponse = "Nie wybrano żadnych przycisków.";
             return;
         }
 

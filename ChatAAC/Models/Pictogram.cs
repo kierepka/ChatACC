@@ -69,7 +69,9 @@ public class Pictogram
             
             return text;
         }
+
     }
+
     // Publiczny, bezparametrowy konstruktor
     public Pictogram() { }
 
