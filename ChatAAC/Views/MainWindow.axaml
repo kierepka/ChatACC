@@ -150,20 +150,40 @@
 
                 <!-- Control Buttons -->
                 <StackPanel Spacing="10">
+                    <Button Content="Poprzednia Tablica" Classes="control" Background="#FFC107" 
+                            Command="{Binding PreviousBoardCommand}" 
+                            HorizontalContentAlignment="Stretch" Width="200" Height="50"
+                            AutomationProperties.Name="Przycisk poprzedniej tablicy" />
+
+                    <Button Content="Następna Tablica" Classes="control" Background="#03A9F4" 
+                            Command="{Binding NextBoardCommand}" 
+                            HorizontalContentAlignment="Stretch" Width="200" Height="50"
+                            AutomationProperties.Name="Przycisk następnej tablicy" />
+                    
                     <Button Content="Powrót" Classes="control" Background="#2196F3" 
                             Command="{Binding LoadMainBoardCommand}" 
-                            HorizontalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
                             AutomationProperties.Name="Przycisk powrotu do głównego widoku" />
                     <Button Content="Wyczyść" Classes="control" Background="#4CAF50" 
                             Command="{Binding ClearSelectedCommand}" 
-                            HorizontalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
                             AutomationProperties.Name="Przycisk wyczyść wybrane piktogramy" />
                     <Button Content="Ustawienia" Classes="control" Background="#9C27B0" 
                             Command="{Binding OpenSettingsCommand}" 
-                            HorizontalContentAlignment="Stretch"
+                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
                             AutomationProperties.Name="Przycisk otwarcia ustawień" />
                 </StackPanel>
             </StackPanel>
         </Grid>
+        
+        <!-- Indykator Ładowania -->
+        <Border Grid.Row="0" Background="#80000000"
+                IsVisible="{Binding IsLoading}"
+                IsHitTestVisible="{Binding IsLoading}">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" >
+                <ProgressBar IsIndeterminate="True" Width="200" Height="20"/>
+                <TextBlock Text="Ładowanie..." Foreground="White" FontSize="16" Margin="10,10,0,0" HorizontalAlignment="Center"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

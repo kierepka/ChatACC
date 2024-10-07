@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.IO;
 using System.Linq;
+using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 using ChatAAC.Models;
 
 namespace ChatAAC.Services;
@@ -28,7 +30,7 @@ public class PictogramService
     public async Task<List<Pictogram>?> GetAllPictogramsAsync()
     {
         var cacheFile = Path.Combine(_cacheDirectory, "pictograms.json");
-
+   
         // Sprawdź, czy dane są już w buforze
         if (File.Exists(cacheFile))
         {

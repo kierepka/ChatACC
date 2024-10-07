@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
 // Class for Button
 public class Button
 {
-    [JsonPropertyName("id")] public int Id { get; set; }
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(IntFromStringConverter))]
+    public int Id { get; set; }
 
     [JsonPropertyName("label")] public string Label { get; set; } = string.Empty;
 
@@ -32,7 +35,7 @@ public class Button
         get
         {
             var width = Image?.Width + 10;
-            if (width <= 10) width = 90;
+            if (width <= 10) width = ImageWidth;
             if (width > ImageWidth) width = ImageWidth;
             return width ?? ImageWidth;
         }
@@ -44,7 +47,7 @@ public class Button
         get
         {
             var height = Image?.Height + 30;
-            if (height <= 30) height = 110;
+            if (height <= 30) height = ImageHeight;
             if (height > ImageHeight) height = ImageHeight;
             return height ?? ImageHeight;
         }
