@@ -42,11 +42,14 @@ public class OllamaClient
 			6.	Sformułuj zdanie w trybie {request.Form}.
 			7.	Użyj czasu {request.Tense}.
 			8.	Przyjmij, że jeśli występuje liczba, jest to: {request.Quantity}.
-			9.	Zachowaj prostotę i klarowność wypowiedzi.
+			9.	Zachowaj prostotę i klarowność wypowiedzi nie pomijając słów kluczowych.
 
 			Odpowiedź:
 
-			Podaj tylko jedno wygenerowane zdanie, bez żadnych dodatkowych komentarzy czy wyjaśnień.";
+			Podaj tylko jedno wygenerowane zdanie, bez żadnych dodatkowych komentarzy czy wyjaśnień.
+			Przygotuj odpowiedź do odczytania dla osoby z którą rozmawia osoba niepełnosprawna w języku: {ConfigViewModel.Instance.SelectedLanguage}.";
+		
+        
 
         Console.WriteLine(prompt);
         

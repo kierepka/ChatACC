@@ -2,14 +2,8 @@ using System;
 
 namespace ChatAAC.Models;
 
-public class AiResponse
+public class AiResponse(string responseText)
 {
-    public string ResponseText { get; set; }
-    public DateTime Timestamp { get; set; }
-
-    public AiResponse(string responseText)
-    {
-        ResponseText = responseText;
-        Timestamp = DateTime.Now;
-    }
+    public string ResponseText { get; set; } = responseText;
+    public DateTime Timestamp { get; set; } = DateTime.Now;
 }

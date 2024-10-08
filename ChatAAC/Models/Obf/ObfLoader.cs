@@ -1,6 +1,6 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -10,121 +10,68 @@ using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf
 {
-    // Klasa do parsowania plików OBF
     public static partial class ObfLoader
     {
         private static readonly HttpClient HttpClient = new();
 
-        public static string ObfCacheDirectory { get; set; } 
-        public static string PictogramsCacheDirectory { get; set; }
-
-        static ObfLoader()
+        private static readonly JsonSerializerOptions JsonOptions = new()
         {
-            ObfCacheDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ChatAAC",
-                "Cache",
-                "Obf");
+            PropertyNameCaseInsensitive = true,
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new IntFromStringConverter() }
+        };
 
-            // Ścieżka do katalogu Cache/Pictograms
-            PictogramsCacheDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                "ChatAAC",
-                "Cache",
-                "Pictograms");
-        }
+        public static string ObfCacheDirectory { get; } = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ChatAAC", "Cache", "Obf");
+
+        public static string PictogramsCacheDirectory { get; } = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ChatAAC", "Cache", "Pictograms");
+
         /// <summary>
-        /// Ładuje plik OBF, aktualizuje ścieżki obrazów i kopiuje plik do katalogu Cache/Obf, jeśli jeszcze tam nie istnieje.
+        /// Loads an OBF file, processes images, and returns the deserialized object.
         /// </summary>
-        /// <param name="filePath">Ścieżka do pliku OBF.</param>
-        /// <returns>Zaktualizowany obiekt ObfFile lub null w przypadku błędu.</returns>
         public static async Task<ObfFile?> LoadObfAsync(string filePath)
         {
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-                Converters =
-                {
-                    new IntFromStringConverter()
-                }
-            };
-            
             if (string.IsNullOrWhiteSpace(filePath))
             {
-                Console.WriteLine("Ścieżka do pliku OBF jest pusta.");
+                LogError("The OBF file path is empty.");
                 return null;
             }
 
             try
             {
-                // Ścieżka do katalogu Cache/Obf
-             
+                // Ensure cache directories exist
+                EnsureDirectoryExists(ObfCacheDirectory);
+                EnsureDirectoryExists(PictogramsCacheDirectory);
 
-                // Upewnij się, że katalog Cache/Obf istnieje
-                Directory.CreateDirectory(ObfCacheDirectory);
+                // Copy OBF file to cache directory
+                var obfFileName = Path.GetFileName(filePath);
+                var cachedObfPath = Path.Combine(ObfCacheDirectory, obfFileName);
+                await CopyFileIfNeededAsync(filePath, cachedObfPath);
 
-                // Nazwa pliku
-                var fileName = Path.GetFileName(filePath);
-                var destinationPath = Path.Combine(ObfCacheDirectory, fileName);
-
-                // Kopiowanie pliku do Cache/Obf, jeśli nie istnieje
-                if (!File.Exists(destinationPath))
+                // Deserialize OBF file
+                var obfFile = await DeserializeObfFileAsync(cachedObfPath);
+                if (obfFile == null)
                 {
-                    File.Copy(filePath, destinationPath);
-                    Console.WriteLine($"Skopiowano plik OBF do {destinationPath}");
-                }
-                else
-                {
-                    Console.WriteLine($"Plik OBF już istnieje w {destinationPath}. Kopiowanie pominięte.");
+                    LogError("Failed to deserialize the OBF file.");
+                    return null;
                 }
 
-                // Wczytaj zawartość pliku OBF
-                var jsonString = await File.ReadAllTextAsync(destinationPath);
-                var obfFile = JsonSerializer.Deserialize<ObfFile>(jsonString, options);
+                
+                // Pobierz katalog bazowy oryginalnego pliku OBF
+                var obfBaseDirectory = Path.GetDirectoryName(filePath) ?? string.Empty;
+                
+                // Przetwarzaj obrazy w pliku OBF, przekazując katalog bazowy
+                await ProcessImagesAsync(obfFile, obfBaseDirectory);
 
-                if (obfFile != null) return await UpdateImagesInButtonsAsync(obfFile, PictogramsCacheDirectory);
-                Console.WriteLine("Deserializacja pliku OBF zakończyła się niepowodzeniem.");
-                return null;
-
-                // Aktualizuj ścieżki obrazów w przyciskach
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Błąd podczas ładowania pliku OBF: {ex.Message}");
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Aktualizuje ścieżki obrazów w przyciskach, zapisuje obrazy do Cache/Pictograms i aktualizuje ścieżki lokalne.
-        /// </summary>
-        /// <param name="obfFile">Obiekt ObfFile do zaktualizowania.</param>
-        /// <param name="cacheDirectory">Katalog Cache/Pictograms.</param>
-        /// <returns>Zaktualizowany obiekt ObfFile lub null w przypadku błędu.</returns>
-        private static async Task<ObfFile?> UpdateImagesInButtonsAsync(ObfFile? obfFile, string cacheDirectory)
-        {
-            if (obfFile == null)
-            {
-                Console.WriteLine("Obiekt ObfFile jest null.");
-                return null;
-            }
-
-            try
-            {
-                // Upewnij się, że katalog Cache/Pictograms istnieje
-                Directory.CreateDirectory(cacheDirectory);
 
                 foreach (var button in obfFile.Buttons)
                 {
-                    // Znajdź odpowiadający obraz
+                    // Find the corresponding image
                     button.Image = obfFile.Images.Find(image => image.Id == button.ImageId);
-                    if (button.Image != null)
-                    {
-                        // Zapisz obraz do pliku i zaktualizuj ścieżkę
-                        button.Image.ImagePath = await SaveImageToFileAsync(button.Image, cacheDirectory);
-                    }
-                    else
+                    if (button.Image is null)
                     {
                         Console.WriteLine($"Brak obrazu dla przycisku o ID: {button.Id}");
                     }
@@ -134,158 +81,311 @@ namespace ChatAAC.Models.Obf
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas aktualizacji obrazów w przyciskach: {ex.Message}");
+                LogError($"Error loading OBF file: {ex.Message}");
                 return null;
             }
         }
 
         /// <summary>
-        /// Zapisuje obraz do pliku w katalogu Cache/Pictograms, jeśli jeszcze tam nie istnieje.
+        /// Deserializes the OBF file to an ObfFile object.
         /// </summary>
-        /// <param name="image">Obiekt Image do zapisania.</param>
-        /// <param name="cacheDirectory">Katalog Cache/Pictograms.</param>
-        /// <returns>Ścieżka do zapisanego obrazu.</returns>
-        private static async Task<string> SaveImageToFileAsync(Image image, string cacheDirectory)
+        private static async Task<ObfFile?> DeserializeObfFileAsync(string obfFilePath)
         {
             try
             {
-                // Określ rozszerzenie pliku
-                var extension = GetFileExtension(image);
-                var fileName = $"{image.Id}{extension}";
-                var filePath = Path.Combine(cacheDirectory, fileName);
-
-                // Sprawdź, czy plik już istnieje
-                if (File.Exists(filePath))
-                {
-                    Console.WriteLine($"Plik obrazu już istnieje: {filePath}. Pomijanie zapisu.");
-                    return filePath;
-                }
-
-                // Zapisz obraz na podstawie danych lub URL
-                if (!string.IsNullOrEmpty(image.Data) && image.Data.StartsWith("data:image/", StringComparison.OrdinalIgnoreCase))
-                {
-                    await SaveImageFromBase64Async(image, filePath);
-                }
-                else if (!string.IsNullOrEmpty(image.Url))
-                {
-                    await SaveImageFromUrlAsync(image, filePath);
-                }
-                else
-                {
-                    Console.WriteLine($"Brak danych do zapisania dla obrazu o ID: {image.Id}");
-                }
-
-                return filePath;
+                var jsonString = await File.ReadAllTextAsync(obfFilePath);
+                return JsonSerializer.Deserialize<ObfFile>(jsonString, JsonOptions);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas zapisywania obrazu: {ex.Message}");
-                return string.Empty;
+                LogError($"Error deserializing OBF file: {ex.Message}");
+                return null;
             }
         }
 
         /// <summary>
-        /// Zapisuje obraz z danych Base64 do pliku.
+        /// Processes images in the OBF file, saving them to the cache directory.
         /// </summary>
-        /// <param name="image">Obiekt Image zawierający dane Base64.</param>
-        /// <param name="filePath">Ścieżka do pliku docelowego.</param>
-        /// <returns>Task reprezentujący operację.</returns>
-        private static async Task SaveImageFromBase64Async(Image image, string filePath)
+        private static async Task ProcessImagesAsync(ObfFile obfFile, string obfBaseDirectory)
         {
+            foreach (var image in obfFile.Images)
+            {
+                // Generate a unique filename for the image
+                var imageFileName = GenerateImageFileName(image);
+
+                // Set the ImagePath to the cached image path
+                image.ImagePath = Path.Combine(PictogramsCacheDirectory, imageFileName);
+
+                // Skip if the image is already cached
+                if (File.Exists(image.ImagePath))
+                {
+                    Log($"Image already cached: {image.ImagePath}");
+                    continue;
+                }
+
+                // Próba zapisania obrazu z różnych źródeł
+                if (!await SaveImageFromDataAsync(image, image.ImagePath))
+                {
+                    if (!await SaveImageFromUrlAsync(image, image.ImagePath))
+                    {
+                        if (!await SaveImageFromPathAsync(image, image.ImagePath, obfBaseDirectory))
+                        {
+                            LogError($"Nie udało się zapisać obrazu: {image.Id}");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Generates a unique filename for the image based on its ID.
+        /// </summary>
+        private static string GenerateImageFileName(Image image)
+        {
+            var extension = GetFileExtension(image);
+            var imageIdSanitized = Regex.Replace(image.Id, @"[^\w\-]", "_");
+            return $"{imageIdSanitized}{extension}";
+        }
+
+        /// <summary>
+        /// Attempts to save the image from Base64 data.
+        /// </summary>
+        private static async Task<bool> SaveImageFromDataAsync(Image image, string destinationPath)
+        {
+            if (string.IsNullOrEmpty(image.Data))
+                return false;
+
             try
             {
                 var base64Data = ExtractBase64Data(image.Data);
                 var imageBytes = Convert.FromBase64String(base64Data);
-                await File.WriteAllBytesAsync(filePath, imageBytes);
-                Console.WriteLine($"Zapisano obraz Base64 do {filePath}");
+                await File.WriteAllBytesAsync(destinationPath, imageBytes);
+                Log($"Saved image from Base64 data: {destinationPath}");
+                return true;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas zapisywania obrazu z Base64: {ex.Message}");
+                LogError($"Error saving image from Base64 data: {ex.Message}");
+                return false;
             }
         }
 
         /// <summary>
-        /// Zapisuje obraz z URL do pliku.
+        /// Attempts to save the image by downloading it from a URL.
         /// </summary>
-        /// <param name="image">Obiekt Image zawierający URL.</param>
-        /// <param name="filePath">Ścieżka do pliku docelowego.</param>
-        /// <returns>Task reprezentujący operację.</returns>
-        private static async Task SaveImageFromUrlAsync(Image image, string filePath)
+        private static async Task<bool> SaveImageFromUrlAsync(Image image, string destinationPath)
         {
+            if (string.IsNullOrEmpty(image.Url))
+                return false;
+
             try
             {
                 var response = await HttpClient.GetAsync(image.Url);
                 if (response.IsSuccessStatusCode)
                 {
                     var imageBytes = await response.Content.ReadAsByteArrayAsync();
-                    await File.WriteAllBytesAsync(filePath, imageBytes);
-                    Console.WriteLine($"Pobrano i zapisano obraz z URL: {filePath}");
+                    await File.WriteAllBytesAsync(destinationPath, imageBytes);
+                    Log($"Downloaded and saved image from URL: {destinationPath}");
+                    return true;
                 }
                 else
                 {
-                    Console.WriteLine($"Nie udało się pobrać obrazu z URL: {image.Url}. Status code: {response.StatusCode}");
+                    LogError($"Failed to download image from URL: {image.Url}. Status code: {response.StatusCode}");
+                    return false;
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Błąd podczas pobierania obrazu z URL: {ex.Message}");
+                LogError($"Error downloading image from URL: {ex.Message}");
+                return false;
             }
         }
 
         /// <summary>
-        /// Ekstrahuje dane Base64 z danych obrazu.
+        /// Attempts to save the image from a file path, using only the filename.
         /// </summary>
-        /// <param name="data">Dane obrazu w formacie Base64.</param>
-        /// <returns>String zawierający czyste dane Base64.</returns>
+        private static async Task<bool> SaveImageFromPathAsync(Image image, string destinationPath,
+            string obfBaseDirectory)
+        {
+            if (string.IsNullOrEmpty(image.Path))
+                return false;
+
+            try
+            {
+                // Sanitizuj ścieżkę obrazu, aby zapobiec atakom typu directory traversal
+                var sanitizedImagePath = SanitizeImagePath(image.Path);
+
+                // Buduj pełną ścieżkę do obrazu względem katalogu bazowego OBF
+                var fullImagePath = Path.Combine(obfBaseDirectory, sanitizedImagePath);
+                fullImagePath = Path.GetFullPath(fullImagePath);
+
+                // Upewnij się, że ścieżka obrazu znajduje się w katalogu bazowym OBF
+                var fullObfBaseDirectory = Path.GetFullPath(obfBaseDirectory);
+                if (!fullImagePath.StartsWith(fullObfBaseDirectory, StringComparison.OrdinalIgnoreCase))
+                {
+                    LogError($"Wykryto niebezpieczną ścieżkę obrazu: {image.Path}");
+                    return false;
+                }
+
+                if (File.Exists(fullImagePath))
+                {
+                    File.Copy(fullImagePath, destinationPath);
+                    Log($"Skopiowano obraz z {fullImagePath} do {destinationPath}");
+                    return true;
+                }
+                else
+                {
+                    // Spróbuj użyć tylko nazwy pliku w znanych katalogach
+                    var imageFileName = Path.GetFileName(sanitizedImagePath);
+
+                    var potentialPaths = new[]
+                    {
+                        Path.Combine(PictogramsCacheDirectory, imageFileName),
+                        Path.Combine(ObfCacheDirectory, imageFileName)
+                    };
+
+                    foreach (var path in potentialPaths)
+                    {
+                        if (File.Exists(path))
+                        {
+                            File.Copy(path, destinationPath);
+                            Log($"Skopiowano obraz z {path} do {destinationPath}");
+                            return true;
+                        }
+                    }
+
+                    LogError($"Plik obrazu nie został znaleziony: {fullImagePath}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Błąd podczas zapisywania obrazu z ścieżki: {ex.Message}");
+                return false;
+            }
+        }
+        
+        private static string SanitizeImagePath(string imagePath)
+        {
+            // Zamień backslashes na slashe
+            imagePath = imagePath.Replace('\\', '/');
+
+            // Usuń wszelkie niebezpieczne komponenty ścieżki, takie jak '../' lub './'
+            var segments = imagePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
+            var sanitizedSegments = new List<string>();
+            foreach (var segment in segments)
+            {
+                if (segment == "." || segment == "..")
+                {
+                    // Pomijamy niebezpieczne segmenty
+                    continue;
+                }
+                sanitizedSegments.Add(segment);
+            }
+
+            // Ponownie łączymy zsanityzowane segmenty
+            return Path.Combine(sanitizedSegments.ToArray());
+        }
+
+        /// <summary>
+        /// Extracts Base64 data from a data URI.
+        /// </summary>
         private static string ExtractBase64Data(string data)
         {
-            var match = MyRegex().Match(data);
+            var match = DataUriRegex().Match(data);
             if (match.Success)
             {
                 return match.Groups["base64"].Value;
             }
 
-            throw new ArgumentException("Nie udało się wyodrębnić danych Base64 z obrazu.");
+            throw new ArgumentException("Failed to extract Base64 data from image.");
         }
 
         /// <summary>
-        /// Określa rozszerzenie pliku na podstawie typu obrazu.
+        /// Determines the file extension for the image.
         /// </summary>
-        /// <param name="image">Obiekt Image.</param>
-        /// <returns>Rozszerzenie pliku jako string.</returns>
         private static string GetFileExtension(Image image)
         {
             if (!string.IsNullOrEmpty(image.Data))
             {
-                var match = MyRegex().Match(image.Data);
+                var match = DataUriRegex().Match(image.Data);
                 if (match.Success)
                 {
-                    var type = match.Groups["type"].Value.ToLower();
-                    return type switch
-                    {
-                        "png" => ".png",
-                        "jpeg" => ".jpg",
-                        "jpg" => ".jpg",
-                        "svg+xml" => ".svg",
-                        _ => throw new ArgumentException($"Nieobsługiwany typ obrazu: {type}")
-                    };
+                    return GetExtensionFromMimeType(match.Groups["type"].Value);
                 }
             }
 
             if (!string.IsNullOrEmpty(image.Url))
             {
-                var extension = Path.GetExtension(new Uri(image.Url).AbsolutePath);
-                if (!string.IsNullOrEmpty(extension))
-                {
-                    return extension;
-                }
+                return Path.GetExtension(new Uri(image.Url).AbsolutePath) ?? ".png";
             }
 
-            throw new ArgumentException("Nie można określić rozszerzenia pliku obrazu.");
+            if (!string.IsNullOrEmpty(image.Path))
+            {
+                return Path.GetExtension(image.Path) ?? ".png";
+            }
+
+            return ".png"; // Default extension
         }
 
+        /// <summary>
+        /// Maps MIME types to file extensions.
+        /// </summary>
+        private static string GetExtensionFromMimeType(string mimeType)
+        {
+            return mimeType.ToLower() switch
+            {
+                "png" => ".png",
+                "jpeg" or "jpg" => ".jpg",
+                "svg+xml" => ".svg",
+                _ => ".png" // Default to .png if unknown
+            };
+        }
+
+        /// <summary>
+        /// Ensures a directory exists.
+        /// </summary>
+        private static void EnsureDirectoryExists(string path)
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        /// <summary>
+        /// Copies a file to the destination if it doesn't already exist there.
+        /// </summary>
+        private static async Task CopyFileIfNeededAsync(string sourcePath, string destinationPath)
+        {
+            if (!File.Exists(destinationPath))
+            {
+                await Task.Run(() => File.Copy(sourcePath, destinationPath));
+                Log($"Copied file to {destinationPath}");
+            }
+            else
+            {
+                Log($"File already exists at {destinationPath}. Copying skipped.");
+            }
+        }
+
+        /// <summary>
+        /// Logs a message to the console.
+        /// </summary>
+        private static void Log(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Logs an error message to the console.
+        /// </summary>
+        private static void LogError(string message)
+        {
+            Console.Error.WriteLine(message);
+        }
+
+        /// <summary>
+        /// Regular expression to extract data from data URIs.
+        /// </summary>
         [GeneratedRegex(@"data:image/(?<type>\w+);base64,(?<base64>.+)")]
-        private static partial Regex MyRegex();
+        private static partial Regex DataUriRegex();
     }
 }

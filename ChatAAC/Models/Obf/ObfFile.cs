@@ -18,7 +18,7 @@ public class ObfFile
 
     [JsonPropertyName("description_html")] public string DescriptionHtml { get; set; } = string.Empty;
 
-    [JsonPropertyName("grid")] public Grid Grid { get; set; } = new();
+    [JsonPropertyName("grid")] public Grid? Grid { get; set; } 
     [JsonPropertyName("buttons")] public List<Button> Buttons { get; set; } = new();
     [JsonPropertyName("images")] public List<Image> Images { get; set; } = new();
 
