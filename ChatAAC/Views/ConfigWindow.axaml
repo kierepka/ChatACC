@@ -4,61 +4,82 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         xmlns:viewModels="clr-namespace:ChatAAC.ViewModels"
+        xmlns:converters="using:ChatAAC.Converters"
         x:Class="ChatAAC.Views.ConfigWindow"
         x:DataType="viewModels:ConfigViewModel"
-        Title="Ustawienia" Width="500" Height="700">
+        Title="Ustawienia" Width="700" Height="700">
+    <Window.Resources>
+        <converters:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBoolConverter"/>
+    </Window.Resources>
     <ScrollViewer>
         <StackPanel Margin="20">
+            <!-- Wiadomość dla użytkownika -->
+            <TextBlock Text="{Binding Message}" 
+                       Foreground="Red" 
+                       FontSize="16" 
+                       Margin="0,0,0,10"
+                       IsVisible="{Binding Message, Converter={StaticResource StringNotEmptyToBoolConverter}}" />
+            
             <TextBlock Text="Adres Ollama:" FontSize="18" Margin="0,0,0,5" />
-            <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20" 
+            <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20"
                      AutomationProperties.Name="Pole tekstowe do wprowadzenia adresu Ollama" />
 
             <TextBlock Text="Wybór modelu:" FontSize="18" Margin="0,0,0,5" />
-            <ComboBox ItemsSource="{Binding Models}" 
-                      SelectedItem="{Binding SelectedModel}" 
+            <ComboBox ItemsSource="{Binding Models}"
+                      SelectedItem="{Binding SelectedModel}"
                       FontSize="16" Margin="0,0,0,20"
                       AutomationProperties.Name="Lista wyboru modelu AI" />
 
             <TextBlock Text="Pliki tablicy AAC:" FontSize="18" Margin="0,0,0,5" />
             <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-                <Button Grid.Column="1" Content="Dodaj plik" 
+                <Button Grid.Column="1" Content="Dodaj plik"
                         Command="{Binding AddBoardCommand}"
+                        FontSize="16"
                         AutomationProperties.Name="Przycisk do dodania nowego pliku tablicy AAC" />
             </Grid>
-            <ListBox ItemsSource="{Binding BoardPaths}" 
+            <ListBox ItemsSource="{Binding BoardPaths}"
                      MaxHeight="100" Margin="0,0,0,20"
                      AutomationProperties.Name="Lista wybranych plików tablicy AAC">
                 <ListBox.ItemTemplate>
                     <DataTemplate>
                         <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="{Binding}" 
+                            <TextBlock Text="{Binding}"
                                        ToolTip.Tip="{Binding}"
                                        AutomationProperties.Name="Ścieżka do pliku tablicy AAC" />
-                            <Button Grid.Column="1" Content="Usuń"   x:CompileBindings="False"
+                            <Button Grid.Column="1" Content="Usuń" x:CompileBindings="False"
                                     Command="{Binding DataContext.RemoveBoardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     CommandParameter="{Binding}"
+                                    FontSize="14"
                                     AutomationProperties.Name="Przycisk do usunięcia pliku tablicy AAC" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>
             </ListBox>
 
+            <TextBlock Text="Wybierz domyślną tablicę:" FontSize="18" Margin="0,0,0,5" />
+            <ComboBox ItemsSource="{Binding BoardPaths}"
+                      SelectedItem="{Binding DefaultBoardPath}"
+                      FontSize="16" Margin="0,0,0,20"
+                      AutomationProperties.Name="Lista wyboru domyślnej tablicy" />
+
             <TextBlock Text="Widok piktogramów:" FontSize="18" Margin="0,0,0,5" />
-            <CheckBox Content="Symbole związane z seksualnością" 
+            <CheckBox Content="Symbole związane z seksualnością"
                       IsChecked="{Binding ShowSex}" Margin="0,0,0,5"
+                      FontSize="16"
                       AutomationProperties.Name="Przełącznik pokazywania symboli związanych z seksualnością" />
-            <CheckBox Content="Symbole związane z przemocą" 
+            <CheckBox Content="Symbole związane z przemocą"
                       IsChecked="{Binding ShowViolence}" Margin="0,0,0,20"
+                      FontSize="16"
                       AutomationProperties.Name="Przełącznik pokazywania symboli związanych z przemocą" />
-            
+
             <TextBlock Text="Język programu:" FontSize="18" Margin="0,0,0,5" />
-            <ComboBox ItemsSource="{Binding Languages}" 
-                      SelectedItem="{Binding SelectedLanguage}" 
+            <ComboBox ItemsSource="{Binding Languages}"
+                      SelectedItem="{Binding SelectedLanguage}"
                       FontSize="16" Margin="0,0,0,20"
                       AutomationProperties.Name="Lista wyboru języka interfejsu" />
 
             <Button Content="Zapisz" Command="{Binding SaveCommand}"
-                    Width="100" Height="40" FontSize="16" Margin="0,20,0,0"
+                    Width="200" Height="60" FontSize="18" Margin="0,20,0,0"
                     Classes="accent" HorizontalAlignment="Right"
                     AutomationProperties.Name="Przycisk Zapisz - zapisuje wszystkie ustawienia" />
         </StackPanel>

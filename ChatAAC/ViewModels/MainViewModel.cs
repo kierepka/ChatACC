@@ -25,7 +25,7 @@ using Button = ChatAAC.Models.Obf.Button;
 
 namespace ChatAAC.ViewModels
 {
-    public class MainViewModel : ViewModelBase
+    public partial class MainViewModel : ViewModelBase
     {
         #region Fields
 
@@ -46,6 +46,7 @@ namespace ChatAAC.ViewModels
         private int _gridRows;
         private int _gridColumns;
         private bool _isInitialized;
+
         private readonly string _historyFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "ChatAAC",
@@ -156,11 +157,16 @@ namespace ChatAAC.ViewModels
 
         public MainViewModel()
         {
+            
+            // Wczytujemy ustawienia
+            ConfigViewModel.Instance.ReloadSettings();
+
+            
             // Initialize TTS service based on the platform
             _ttsService = InitializeTtsService();
 
             // Initialize commands
-            OpenSettingsCommand = ReactiveCommand.Create(OpenSettings);
+            OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
             LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadInitialFileAsync);
             ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
             ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
@@ -203,7 +209,7 @@ namespace ChatAAC.ViewModels
 
         private async Task LoadInitialFileAsync()
         {
-            if (_isInitialized || string.IsNullOrEmpty(ConfigViewModel.Instance.DefaultBoardPath))
+            if (_isInitialized)
                 return;
 
             IsLoading = true;
@@ -213,20 +219,26 @@ namespace ChatAAC.ViewModels
 
                 if (!string.IsNullOrEmpty(defaultBoardPath))
                 {
+                    if (!ConfigViewModel.Instance.BoardPaths.Contains(defaultBoardPath))
+                    {
+                        ConfigViewModel.Instance.BoardPaths.Add(defaultBoardPath);
+                    }
+
+                    CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(defaultBoardPath);
                     await LoadObfOrObzFileAsync(defaultBoardPath);
-                }
-                else if (ConfigViewModel.Instance.BoardPaths.Count > 0)
-                {
-                    await LoadObfOrObzFileAsync(ConfigViewModel.Instance.BoardPaths[0]);
                 }
                 else
                 {
-                    Console.WriteLine("No default board or additional boards to load.");
+                    // Brak domyślnej tablicy, otwieramy okno ustawień z informacją
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        OpenSettings("Proszę wybrać domyślną tablicę.");
+                    });
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading initial file: {ex.Message}");
+                Console.WriteLine($"Błąd podczas wczytywania pliku początkowego: {ex.Message}");
             }
             finally
             {
@@ -244,7 +256,7 @@ namespace ChatAAC.ViewModels
             var boardPaths = ConfigViewModel.Instance.BoardPaths;
             if (boardPaths.Count == 0)
             {
-                Console.WriteLine("No additional boards to load.");
+                Console.WriteLine("Brak dodatkowych tablic do załadowania.");
                 return;
             }
 
@@ -258,7 +270,7 @@ namespace ChatAAC.ViewModels
             var boardPaths = ConfigViewModel.Instance.BoardPaths;
             if (boardPaths.Count == 0)
             {
-                Console.WriteLine("No additional boards to load.");
+                Console.WriteLine("Brak dodatkowych tablic do załadowania.");
                 return;
             }
 
@@ -402,7 +414,7 @@ namespace ChatAAC.ViewModels
             entryName = entryName.Replace('\\', '/');
 
             // Remove drive letters or root indicators
-            entryName = Regex.Replace(entryName, @"^[a-zA-Z]:/", "");
+            entryName = MyRegex().Replace(entryName, "");
 
             // Remove any leading slashes
             entryName = entryName.TrimStart('/');
@@ -420,11 +432,11 @@ namespace ChatAAC.ViewModels
 
         private void LoadButtonsFromObfData(ObfFile obfFile)
         {
-            // Clear existing buttons
+            // Czyszczenie istniejących przycisków
             Buttons.Clear();
 
-            // Map buttons from OBF to a dictionary for quick access by ID
-            var buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id ?? 0);
+            // Mapowanie przycisków z OBF na słownik dla szybkiego dostępu po ID
+            var buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
 
             if (obfFile.Grid != null)
             {
@@ -434,13 +446,15 @@ namespace ChatAAC.ViewModels
                     var columnIndex = 0;
                     foreach (var buttonId in row)
                     {
-                        if (buttonId.HasValue && buttonDictionary.TryGetValue(buttonId.Value, out var button))
+                        if (buttonId != null && buttonDictionary.TryGetValue(buttonId, out var button))
                         {
                             var buttonViewModel = new ButtonViewModel(button, rowIndex, columnIndex);
                             Buttons.Add(buttonViewModel);
                         }
+
                         columnIndex++;
                     }
+
                     rowIndex++;
                 }
 
@@ -449,9 +463,8 @@ namespace ChatAAC.ViewModels
             }
             else
             {
-                foreach (var button in obfFile.Buttons)
+                foreach (var buttonViewModel in obfFile.Buttons.Select(button => new ButtonViewModel(button, 0, 0)))
                 {
-                    var buttonViewModel = new ButtonViewModel(button, 0, 0);
                     Buttons.Add(buttonViewModel);
                 }
 
@@ -587,6 +600,7 @@ namespace ChatAAC.ViewModels
             {
                 stringBuilder.Append(str);
             }
+
             return stringBuilder.ToString();
         }
 
@@ -702,19 +716,78 @@ namespace ChatAAC.ViewModels
 
         #region Settings
 
-        private void OpenSettings()
+        private void OpenSettings(string? message = null)
         {
+            if (message != null)
+            {
+                ConfigViewModel.Instance.Message = message;
+            }
+
             var configWindow = new ConfigWindow
             {
-                DataContext = new ConfigViewModel()
+                DataContext = ConfigViewModel.Instance
             };
             var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
                 ?.MainWindow;
             if (mainWindow != null)
-                configWindow.ShowDialog(mainWindow);
+            {
+                configWindow.Closed += async (_, _) =>
+                {
+                    await OnConfigWindowClosedAsync();
+                    ConfigViewModel.Instance.Message = null; // Czyścimy wiadomość
+                };
+               
+            }
             else
-                configWindow.Show();
+            {
+                configWindow.Closed += async (_, _) =>
+                {
+                    await OnConfigWindowClosedAsync();
+                    ConfigViewModel.Instance.Message = null; // Czyścimy wiadomość
+                };
+            
+            }
         }
+
+        private async Task OnConfigWindowClosedAsync()
+        {
+            // Zapamiętujemy ścieżkę aktualnie wybranej tablicy
+            var currentBoardPath = ConfigViewModel.Instance.BoardPaths.ElementAtOrDefault(CurrentBoardIndex);
+
+            // Ponowne wczytanie ustawień z ConfigViewModel lub pliku konfiguracyjnego
+            ConfigViewModel.Instance.ReloadSettings();
+
+            // Aktualizacja stanu aplikacji na podstawie nowych ustawień
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                Buttons.Clear();
+                SelectedButtons.Clear();
+                AiResponse = string.Empty;
+                ConstructedSentence = string.Empty;
+            });
+
+            _isInitialized = false; // Resetujemy flagę inicjalizacji
+
+            // Przywracamy CurrentBoardIndex na podstawie poprzednio wybranej tablicy
+            if (!string.IsNullOrEmpty(currentBoardPath))
+            {
+                CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(currentBoardPath);
+                if (CurrentBoardIndex == -1)
+                {
+                    // Jeśli aktualna tablica nie jest już dostępna, ustawiamy indeks na 0
+                    CurrentBoardIndex = 0;
+                }
+            }
+            else
+            {
+                CurrentBoardIndex = 0;
+            }
+
+            await LoadInitialFileAsync();
+        }
+
+        [GeneratedRegex(@"^[a-zA-Z]:/")]
+        private static partial Regex MyRegex();
 
         #endregion
     }

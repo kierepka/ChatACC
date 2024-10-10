@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
@@ -9,5 +10,5 @@ public class Grid
 
     [JsonPropertyName("columns")] public int Columns { get; set; }
 
-    [JsonPropertyName("order")] public List<List<int?>> Order { get; set; } = new();
+    [JsonPropertyName("order")]  public string?[][] Order { get; set; } = [];
 }

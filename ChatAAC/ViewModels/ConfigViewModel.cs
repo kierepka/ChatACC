@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reactive;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -11,6 +11,7 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using ChatAAC.Models;
 using OllamaSharp;
 using ReactiveUI;
 
@@ -18,82 +19,14 @@ namespace ChatAAC.ViewModels
 {
     public class ConfigViewModel : ReactiveObject
     {
+        #region Singleton Implementation
+
         private static ConfigViewModel? _instance;
         private static readonly object Lock = new();
 
-        private string _ollamaAddress = "http://localhost:11434";
-        private string _selectedModel = string.Empty;
-        private bool _showSex;
-        private bool _showViolence;
-        private bool _showAac;
-        private bool _showSchematic;
-        private string? _selectedLanguage;
-        private int _loadedIconsCount;
-
-        [JsonIgnore]
-        public ObservableCollection<string> Models { get; } = new();
-        [JsonIgnore]
-        public ObservableCollection<string> Languages { get; } = new();
-        [JsonIgnore]
-        public ObservableCollection<string> BoardPaths { get; } = new();
-        [JsonIgnore]
-        public ReactiveCommand<Unit, Unit> SaveCommand { get; }
-        [JsonIgnore]
-        public ICommand AddBoardCommand { get; }
-        [JsonIgnore]
-        public ICommand RemoveBoardCommand { get; }
-
-        private const string ConfigFilePath = "config.json";
-
-        // Properties
-        public string OllamaAddress
-        {
-            get => _ollamaAddress;
-            set => this.RaiseAndSetIfChanged(ref _ollamaAddress, value);
-        }
-
-        public string SelectedModel
-        {
-            get => _selectedModel;
-            set => this.RaiseAndSetIfChanged(ref _selectedModel, value);
-        }
-
-        public bool ShowSex
-        {
-            get => _showSex;
-            set => this.RaiseAndSetIfChanged(ref _showSex, value);
-        }
-
-        public bool ShowViolence
-        {
-            get => _showViolence;
-            set => this.RaiseAndSetIfChanged(ref _showViolence, value);
-        }
-
-        public bool ShowAac
-        {
-            get => _showAac;
-            set => this.RaiseAndSetIfChanged(ref _showAac, value);
-        }
-
-        public bool ShowSchematic
-        {
-            get => _showSchematic;
-            set => this.RaiseAndSetIfChanged(ref _showSchematic, value);
-        }
-
-        public string? SelectedLanguage
-        {
-            get => _selectedLanguage;
-            set => this.RaiseAndSetIfChanged(ref _selectedLanguage, value);
-        }
-
-        public int LoadedIconsCount
-        {
-            get => _loadedIconsCount;
-            set => this.RaiseAndSetIfChanged(ref _loadedIconsCount, value);
-        }
-
+        /// <summary>
+        /// Singleton instance of ConfigViewModel.
+        /// </summary>
         public static ConfigViewModel Instance
         {
             get
@@ -103,23 +36,136 @@ namespace ChatAAC.ViewModels
                 {
                     _instance ??= new ConfigViewModel();
                 }
+
                 return _instance;
             }
         }
+        private string? _message;
+        public string? Message
+        {
+            get => _message;
+            set => this.RaiseAndSetIfChanged(ref _message, value);
+        }
+        #endregion
 
-        public ConfigViewModel()
+        #region Fields
+
+        private string _ollamaAddress = "http://localhost:11434";
+        private string _selectedModel = "gemma2";
+        private bool _showSex;
+        private bool _showViolence;
+        private bool _showAac;
+        private bool _showSchematic;
+        private string? _selectedLanguage;
+        private int _loadedIconsCount;
+
+        private string _defaultBoardPath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "ChatAAC",
+            "communikate-20.obz");
+
+        private readonly string _configFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "config.json");
+
+        #endregion
+
+        #region Properties
+
+        public string OllamaAddress
+        {
+            get => _ollamaAddress;
+            set => SetAndSave(ref _ollamaAddress, value);
+        }
+
+        public string SelectedModel
+        {
+            get => _selectedModel;
+            set => SetAndSave(ref _selectedModel, value);
+        }
+
+        public bool ShowSex
+        {
+            get => _showSex;
+            set => SetAndSave(ref _showSex, value);
+        }
+
+        public bool ShowViolence
+        {
+            get => _showViolence;
+            set => SetAndSave(ref _showViolence, value);
+        }
+
+        public bool ShowAac
+        {
+            get => _showAac;
+            set => SetAndSave(ref _showAac, value);
+        }
+
+        public bool ShowSchematic
+        {
+            get => _showSchematic;
+            set => SetAndSave(ref _showSchematic, value);
+        }
+
+        public string? SelectedLanguage
+        {
+            get => _selectedLanguage;
+            set => SetAndSave(ref _selectedLanguage, value);
+        }
+
+        public int LoadedIconsCount
+        {
+            get => _loadedIconsCount;
+            set => SetAndSave(ref _loadedIconsCount, value);
+        }
+
+        public string DefaultBoardPath
+        {
+            get => _defaultBoardPath;
+            set => SetAndSave(ref _defaultBoardPath, value);
+        }
+
+        [JsonIgnore] public ObservableCollection<string> Models { get; } = [];
+
+        [JsonIgnore] public ObservableCollection<string> Languages { get; } = ["Polski", "English"];
+
+        [JsonIgnore] public ObservableCollection<string> BoardPaths { get; } = [];
+
+        #endregion
+
+        #region Commands
+
+        [JsonIgnore] public ReactiveCommand<Unit, Unit> SaveCommand { get; }
+
+        [JsonIgnore] public ICommand AddBoardCommand { get; }
+
+        [JsonIgnore] public ICommand RemoveBoardCommand { get; }
+
+        #endregion
+
+        #region Constructor
+
+        private ConfigViewModel()
         {
             LoadConfiguration();
             NormalizeOllamaAddress();
+
+            // Initialize commands
             SaveCommand = ReactiveCommand.Create(SaveConfiguration);
             AddBoardCommand = ReactiveCommand.CreateFromTask(AddBoardPathAsync);
             RemoveBoardCommand = ReactiveCommand.Create<string>(RemoveBoardPath);
-            InitializeData();
 
-            if (string.IsNullOrEmpty(_selectedModel))
-                _selectedModel = "gemma2";
+            // Initialize models asynchronously
+            _ = InitializeModelsAsync();
         }
 
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Adds a board path to the list of board paths.
+        /// </summary>
         private async Task AddBoardPathAsync()
         {
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
@@ -131,13 +177,13 @@ namespace ChatAAC.ViewModels
                 {
                     Title = "Wybierz plik tablicy AAC",
                     AllowMultiple = false,
-                    FileTypeFilter = new[]
-                    {
-                        new FilePickerFileType("Pliki OBZ")
+                    FileTypeFilter =
+                    [
+                        new FilePickerFileType("Pliki OBZ lub OBF")
                         {
-                            Patterns = new[] { "*.obz" }
+                            Patterns = ["*.obz", "*.obf"]
                         }
-                    }
+                    ]
                 });
 
                 var file = files.FirstOrDefault();
@@ -152,6 +198,9 @@ namespace ChatAAC.ViewModels
             }
         }
 
+        /// <summary>
+        /// Removes a board path from the list of board paths.
+        /// </summary>
         private void RemoveBoardPath(string path)
         {
             if (BoardPaths.Contains(path))
@@ -160,6 +209,9 @@ namespace ChatAAC.ViewModels
             }
         }
 
+        /// <summary>
+        /// Normalizes the Ollama address to ensure it has the correct format.
+        /// </summary>
         private void NormalizeOllamaAddress()
         {
             if (!OllamaAddress.StartsWith("http"))
@@ -169,19 +221,9 @@ namespace ChatAAC.ViewModels
                 OllamaAddress += ":11434";
         }
 
-        private void InitializeData()
-        {
-            Languages.Add("Polski");
-            Languages.Add("English");
-
-            if (string.IsNullOrEmpty(DefaultBoardPath))
-            {
-                DefaultBoardPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "communikate-20.obz");
-            }
-
-            Task.Run(InitializeModelsAsync);
-        }
-
+        /// <summary>
+        /// Initializes the list of models by fetching them from the Ollama API.
+        /// </summary>
         private async Task InitializeModelsAsync()
         {
             try
@@ -202,77 +244,104 @@ namespace ChatAAC.ViewModels
             }
         }
 
+        /// <summary>
+        /// Loads the configuration from the config file.
+        /// </summary>
         private void LoadConfiguration()
         {
-            if (!File.Exists(ConfigFilePath)) return;
-            var json = File.ReadAllText(ConfigFilePath);
-            var options = new JsonSerializerOptions
+            if (!File.Exists(_configFilePath)) return;
+            try
             {
-                PropertyNameCaseInsensitive = true
-            };
-            var config = JsonSerializer.Deserialize<ConfigData>(json, options);
-            if (config == null) return;
-            OllamaAddress = config.OllamaAddress;
-            SelectedModel = config.SelectedModel;
-            ShowSex = config.ShowSex;
-            ShowViolence = config.ShowViolence;
-            ShowAac = config.ShowAac;
-            ShowSchematic = config.ShowSchematic;
-            SelectedLanguage = config.SelectedLanguage;
-            LoadedIconsCount = config.LoadedIconsCount;
-            DefaultBoardPath = config.DefaultBoardPath;
+                var json = File.ReadAllText(_configFilePath);
+                var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+                var config = JsonSerializer.Deserialize<ConfigData>(json, options);
+                if (config == null) return;
+                OllamaAddress = config.OllamaAddress;
+                SelectedModel = config.SelectedModel;
+                ShowSex = config.ShowSex;
+                ShowViolence = config.ShowViolence;
+                ShowAac = config.ShowAac;
+                ShowSchematic = config.ShowSchematic;
+                SelectedLanguage = config.SelectedLanguage ?? SelectedLanguage;
+                LoadedIconsCount = config.LoadedIconsCount;
+                DefaultBoardPath = config.DefaultBoardPath;
 
-            BoardPaths.Clear();
-            foreach (var path in config.BoardPaths)
+                BoardPaths.Clear();
+                foreach (var path in config.BoardPaths.Where(path => !BoardPaths.Contains(path)))
+                {
+                    BoardPaths.Add(path);
+                }
+            }
+            catch (Exception ex)
             {
-                BoardPaths.Add(path);
+                Console.WriteLine($"Error loading configuration: {ex.Message}");
             }
         }
 
+        /// <summary>
+        /// Saves the current configuration to the config file.
+        /// </summary>
         private void SaveConfiguration()
         {
-            var configData = new ConfigData
+            try
             {
-                OllamaAddress = OllamaAddress,
-                SelectedModel = SelectedModel,
-                ShowSex = ShowSex,
-                ShowViolence = ShowViolence,
-                ShowAac = ShowAac,
-                ShowSchematic = ShowSchematic,
-                SelectedLanguage = SelectedLanguage,
-                LoadedIconsCount = LoadedIconsCount,
-                DefaultBoardPath = DefaultBoardPath,
-                BoardPaths = BoardPaths.ToList()
-            };
+                var configData = new ConfigData
+                {
+                    OllamaAddress = OllamaAddress,
+                    SelectedModel = SelectedModel,
+                    ShowSex = ShowSex,
+                    ShowViolence = ShowViolence,
+                    ShowAac = ShowAac,
+                    ShowSchematic = ShowSchematic,
+                    SelectedLanguage = SelectedLanguage,
+                    LoadedIconsCount = LoadedIconsCount,
+                    DefaultBoardPath = DefaultBoardPath,
+                    BoardPaths = BoardPaths.ToList()
+                };
 
-            var options = new JsonSerializerOptions
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                };
+                var json = JsonSerializer.Serialize(configData, options);
+                File.WriteAllText(_configFilePath, json);
+                
+                // Wywołaj interakcję po zapisaniu konfiguracji
+                //CloseWindowInteraction.Handle(Unit.Default).Subscribe();
+            }
+            catch (Exception ex)
             {
-                WriteIndented = true
-            };
-            var json = JsonSerializer.Serialize(configData, options);
-            File.WriteAllText(ConfigFilePath, json);
+                Console.WriteLine($"Error saving configuration: {ex.Message}");
+            }
         }
 
-        public string DefaultBoardPath { get; set; } = string.Empty;
+        /// <summary>
+        /// Helper method to set a property value and save configuration.
+        /// </summary>
+        private void SetAndSave<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            this.RaiseAndSetIfChanged(ref field, value, propertyName);
+        }
 
+        /// <summary>
+        /// Updates the count of loaded icons.
+        /// </summary>
         public void UpdateLoadedIconsCount(int count)
         {
             LoadedIconsCount = count;
-            SaveConfiguration();
         }
-    }
 
-    public class ConfigData
-    {
-        public string OllamaAddress { get; set; } = string.Empty;
-        public string SelectedModel { get; set; } = string.Empty;
-        public bool ShowSex { get; set; }
-        public bool ShowViolence { get; set; }
-        public bool ShowAac { get; set; }
-        public bool ShowSchematic { get; set; }
-        public string? SelectedLanguage { get; set; }
-        public int LoadedIconsCount { get; set; }
-        public string DefaultBoardPath { get; set; } = string.Empty;
-        public List<string> BoardPaths { get; set; } = new();
+        /// <summary>
+        /// Reloads settings from the configuration file.
+        /// </summary>
+        public void ReloadSettings()
+        {
+            LoadConfiguration();
+        }
+
+        #endregion
     }
 }

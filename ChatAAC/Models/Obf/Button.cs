@@ -6,9 +6,7 @@ namespace ChatAAC.Models.Obf;
 // Class for Button
 public class Button
 {
-    [JsonPropertyName("id")]
-    [JsonConverter(typeof(IntFromStringConverter))]
-    public int? Id { get; set; }
+    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("label")] public string Label { get; set; } = string.Empty;
 

@@ -18,7 +18,11 @@ namespace ChatAAC.Models.Obf
         {
             PropertyNameCaseInsensitive = true,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            Converters = { new IntFromStringConverter() }
+            Converters =
+            {
+                new StringConverterAllowNumber(),
+                new IntFromStringConverter()
+            }
         };
 
         public static string ObfCacheDirectory { get; } = Path.Combine(
@@ -59,19 +63,19 @@ namespace ChatAAC.Models.Obf
                     return null;
                 }
 
-                
+
                 // Pobierz katalog bazowy oryginalnego pliku OBF
                 var obfBaseDirectory = Path.GetDirectoryName(filePath) ?? string.Empty;
-                
+
                 // Przetwarzaj obrazy w pliku OBF, przekazując katalog bazowy
                 await ProcessImagesAsync(obfFile, obfBaseDirectory);
 
 
                 foreach (var button in obfFile.Buttons)
                 {
-                    // Find the corresponding image
+                    // Znajdź odpowiadający obraz
                     button.Image = obfFile.Images.Find(image => image.Id == button.ImageId);
-                    if (button.Image is null)
+                    if (button.Image == null)
                     {
                         Console.WriteLine($"Brak obrazu dla przycisku o ID: {button.Id}");
                     }
@@ -124,16 +128,16 @@ namespace ChatAAC.Models.Obf
                 }
 
                 // Próba zapisania obrazu z różnych źródeł
-                if (!await SaveImageFromDataAsync(image, image.ImagePath))
-                {
-                    if (!await SaveImageFromUrlAsync(image, image.ImagePath))
-                    {
-                        if (!await SaveImageFromPathAsync(image, image.ImagePath, obfBaseDirectory))
-                        {
-                            LogError($"Nie udało się zapisać obrazu: {image.Id}");
-                        }
-                    }
-                }
+                if (!string.IsNullOrEmpty(image.Data) || !string.IsNullOrWhiteSpace(image.DataUrl))
+                    if (await SaveImageFromDataAsync(image, image.ImagePath))
+                        continue;
+
+                if (!string.IsNullOrEmpty(image.Url))
+                    if (await SaveImageFromUrlAsync(image, image.ImagePath))
+                        continue;
+
+                if (await SaveImageFromPathAsync(image, image.ImagePath, obfBaseDirectory)) continue;
+                LogError($"Nie udało się zapisać obrazu: {image.Id}");
             }
         }
 
@@ -152,12 +156,23 @@ namespace ChatAAC.Models.Obf
         /// </summary>
         private static async Task<bool> SaveImageFromDataAsync(Image image, string destinationPath)
         {
-            if (string.IsNullOrEmpty(image.Data))
-                return false;
+            var data = image.Data;
+
+            if (!(string.IsNullOrEmpty(image.DataUrl)))
+            {
+                var response = await HttpClient.GetAsync(image.DataUrl);
+                if (response.IsSuccessStatusCode)
+                {
+                    data = await response.Content.ReadAsStringAsync();
+                    Log($"Downloaded image data from URL: {destinationPath}");
+                }
+            }
+
+            if (string.IsNullOrEmpty(data)) return false;
 
             try
             {
-                var base64Data = ExtractBase64Data(image.Data);
+                var base64Data = ExtractBase64Data(data);
                 var imageBytes = Convert.FromBase64String(base64Data);
                 await File.WriteAllBytesAsync(destinationPath, imageBytes);
                 Log($"Saved image from Base64 data: {destinationPath}");
@@ -188,11 +203,9 @@ namespace ChatAAC.Models.Obf
                     Log($"Downloaded and saved image from URL: {destinationPath}");
                     return true;
                 }
-                else
-                {
-                    LogError($"Failed to download image from URL: {image.Url}. Status code: {response.StatusCode}");
-                    return false;
-                }
+
+                LogError($"Failed to download image from URL: {image.Url}. Status code: {response.StatusCode}");
+                return false;
             }
             catch (Exception ex)
             {
@@ -202,7 +215,7 @@ namespace ChatAAC.Models.Obf
         }
 
         /// <summary>
-        /// Attempts to save the image from a file path, using only the filename.
+        /// Próbuje zapisać obraz z podanej ścieżki, używając tylko nazwy pliku.
         /// </summary>
         private static async Task<bool> SaveImageFromPathAsync(Image image, string destinationPath,
             string obfBaseDirectory)
@@ -227,9 +240,12 @@ namespace ChatAAC.Models.Obf
                     return false;
                 }
 
-                if (File.Exists(fullImagePath))
+                // Sprawdź asynchronicznie, czy plik istnieje
+                bool fileExists = await Task.Run(() => File.Exists(fullImagePath));
+                if (fileExists)
                 {
-                    File.Copy(fullImagePath, destinationPath);
+                    // Skopiuj plik asynchronicznie
+                    await CopyFileAsync(fullImagePath, destinationPath);
                     Log($"Skopiowano obraz z {fullImagePath} do {destinationPath}");
                     return true;
                 }
@@ -246,9 +262,10 @@ namespace ChatAAC.Models.Obf
 
                     foreach (var path in potentialPaths)
                     {
-                        if (File.Exists(path))
+                        bool exists = await Task.Run(() => File.Exists(path));
+                        if (exists)
                         {
-                            File.Copy(path, destinationPath);
+                            await CopyFileAsync(path, destinationPath);
                             Log($"Skopiowano obraz z {path} do {destinationPath}");
                             return true;
                         }
@@ -264,7 +281,25 @@ namespace ChatAAC.Models.Obf
                 return false;
             }
         }
-        
+
+        private static async Task CopyFileAsync(string sourceFilePath, string destinationFilePath)
+        {
+            const int bufferSize = 81920; // Domyślny rozmiar bufora
+
+            // Upewnij się, że katalog docelowy istnieje
+            var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
+            if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
+            {
+                Directory.CreateDirectory(destinationDirectory);
+            }
+
+            await using var sourceStream = new FileStream(sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.Read,
+                bufferSize, useAsync: true);
+            await using var destinationStream = new FileStream(destinationFilePath, FileMode.Create, FileAccess.Write,
+                FileShare.None, bufferSize, useAsync: true);
+            await sourceStream.CopyToAsync(destinationStream);
+        }
+
         private static string SanitizeImagePath(string imagePath)
         {
             // Zamień backslashes na slashe
@@ -280,6 +315,7 @@ namespace ChatAAC.Models.Obf
                     // Pomijamy niebezpieczne segmenty
                     continue;
                 }
+
                 sanitizedSegments.Add(segment);
             }
 

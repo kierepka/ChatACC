@@ -35,7 +35,7 @@ public class App : Application
     {
         var configWindow = new ConfigWindow()
         {
-            DataContext = new ConfigViewModel()
+            DataContext = ConfigViewModel.Instance
         };
         var mainWindow = (Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
@@ -52,7 +52,7 @@ public class App : Application
         {
             DataContext = new AboutViewModel()
         };
-        var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+        var mainWindow = (Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
             ?.MainWindow;
         if (mainWindow != null)
             aboutWindow.ShowDialog(mainWindow);
