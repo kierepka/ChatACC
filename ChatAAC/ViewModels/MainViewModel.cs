@@ -217,7 +217,7 @@ namespace ChatAAC.ViewModels
             {
                 var defaultBoardPath = ConfigViewModel.Instance.DefaultBoardPath;
 
-                if (!string.IsNullOrEmpty(defaultBoardPath))
+                if (!string.IsNullOrEmpty(defaultBoardPath) && File.Exists(defaultBoardPath))
                 {
                     if (!ConfigViewModel.Instance.BoardPaths.Contains(defaultBoardPath))
                     {
