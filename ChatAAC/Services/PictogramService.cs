@@ -1,17 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Text.Json;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
 using ChatAAC.Models;
 
 namespace ChatAAC.Services;
 
 public class PictogramService
 {
-    private static readonly HttpClient HttpClient = new HttpClient();
+    private static readonly HttpClient HttpClient = new();
     private readonly string _cacheDirectory;
 
     public PictogramService()
@@ -28,10 +28,9 @@ public class PictogramService
     public async Task<List<Pictogram>?> GetAllPictogramsAsync()
     {
         var cacheFile = Path.Combine(_cacheDirectory, "pictograms.json");
-   
+
         // Sprawdź, czy dane są już w buforze
         if (File.Exists(cacheFile))
-        {
             try
             {
                 var cachedData = await File.ReadAllTextAsync(cacheFile).ConfigureAwait(false);
@@ -44,12 +43,10 @@ public class PictogramService
                     await CheckAndDownloadMissingImages(pictograms);
                     return pictograms;
                 }
-                else
-                {
-                    Console.WriteLine("Cache jest pusty. Pobieranie danych z API.");
-                    // Jeśli dane są puste, usuń plik cache i pobierz ponownie
-                    File.Delete(cacheFile);
-                }
+
+                Console.WriteLine("Cache jest pusty. Pobieranie danych z API.");
+                // Jeśli dane są puste, usuń plik cache i pobierz ponownie
+                File.Delete(cacheFile);
             }
             catch (JsonException ex)
             {
@@ -64,7 +61,6 @@ public class PictogramService
                 // W zależności od potrzeb, możesz zdecydować, czy chcesz kontynuować pobieranie danych
                 // lub przerwać działanie aplikacji
             }
-        }
 
         // Pobierz dane z API ARASAAC
         try
@@ -85,7 +81,7 @@ public class PictogramService
                 // Sprawdź, czy deserializacja zwróciła dane
                 if (pictograms is not { Count: > 0 }) throw new Exception("Pobrano puste dane z API ARASAAC.");
                 await CheckAndDownloadMissingImages(pictograms);
-                
+
                 return pictograms;
             }
 
@@ -106,9 +102,7 @@ public class PictogramService
                  let imagePath = Path.Combine(_cacheDirectory, $"{pictogram.Id}.png")
                  where !File.Exists(imagePath)
                  select pictogram)
-        {
             await DownloadPictogramImageAsync(pictogram.Id.ToString());
-        }
     }
 
     private async Task DownloadPictogramImageAsync(string pictogramId)
@@ -117,7 +111,6 @@ public class PictogramService
         var imagePath = Path.Combine(_cacheDirectory, $"{pictogramId}.png");
 
         if (!File.Exists(imagePath))
-        {
             try
             {
                 var response = await HttpClient.GetAsync(imageUrl).ConfigureAwait(false);
@@ -138,15 +131,12 @@ public class PictogramService
             {
                 Console.WriteLine($"Błąd podczas pobierania obrazu piktogramu {pictogramId}: {ex.Message}");
             }
-        }
         else
-        {
             Console.WriteLine($"Obraz piktogramu {pictogramId} już istnieje w cache.");
-        }
     }
 
     /// <summary>
-    /// Wyodrębnia unikalne kategorie z listy piktogramów
+    ///     Wyodrębnia unikalne kategorie z listy piktogramów
     /// </summary>
     /// <param name="pictograms">Lista piktogramów</param>
     /// <returns>Lista unikalnych kategorii</returns>
@@ -165,7 +155,7 @@ public class PictogramService
     }
 
     /// <summary>
-    /// Wyodrębnia unikalne tagi z listy piktogramów
+    ///     Wyodrębnia unikalne tagi z listy piktogramów
     /// </summary>
     /// <param name="pictograms">Lista piktogramów</param>
     /// <returns>Lista unikalnych tagów</returns>

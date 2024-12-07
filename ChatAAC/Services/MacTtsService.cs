@@ -39,10 +39,7 @@ public class MacTtsService : ITtsService
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException($"Błąd TTS: {error}");
-            }
+            if (process.ExitCode != 0) throw new InvalidOperationException($"Błąd TTS: {error}");
         }
         catch (Exception ex)
         {

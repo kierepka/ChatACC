@@ -9,8 +9,8 @@
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
-             
-    
+
+
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="/Assets/avalonia-logo.ico"
@@ -18,19 +18,19 @@
                       CommandParameter="TrayIconClicked">
                 <TrayIcon.Menu>
                     <NativeMenu>
-                        <NativeMenuItem Header="_About" Click="OnAboutClick"/>
-                        <NativeMenuItem Header="_Settings" Click="OnSettingsClick"/>
+                        <NativeMenuItem Header="_About" Click="OnAboutClick" />
+                        <NativeMenuItem Header="_Settings" Click="OnSettingsClick" />
                     </NativeMenu>
                 </TrayIcon.Menu>
             </TrayIcon>
         </TrayIcons>
     </TrayIcon.Icons>
-    
+
     <!-- Add Native Menu -->
     <NativeMenu.Menu>
         <NativeMenu>
-            <NativeMenuItem Header="_About" Click="OnAboutClick"/>
-            <NativeMenuItem Header="_Settings" Click="OnSettingsClick"/>
+            <NativeMenuItem Header="_About" Click="OnAboutClick" />
+            <NativeMenuItem Header="_Settings" Click="OnSettingsClick" />
         </NativeMenu>
     </NativeMenu.Menu>
 </Application>

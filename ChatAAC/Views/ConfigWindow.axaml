@@ -9,17 +9,17 @@
         x:DataType="viewModels:ConfigViewModel"
         Title="Ustawienia" Width="700" Height="700">
     <Window.Resources>
-        <converters:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBoolConverter"/>
+        <converters:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBoolConverter" />
     </Window.Resources>
     <ScrollViewer>
         <StackPanel Margin="20">
             <!-- Wiadomość dla użytkownika -->
-            <TextBlock Text="{Binding Message}" 
-                       Foreground="Red" 
-                       FontSize="16" 
+            <TextBlock Text="{Binding Message}"
+                       Foreground="Red"
+                       FontSize="16"
                        Margin="0,0,0,10"
                        IsVisible="{Binding Message, Converter={StaticResource StringNotEmptyToBoolConverter}}" />
-            
+
             <TextBlock Text="Adres Ollama:" FontSize="18" Margin="0,0,0,5" />
             <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20"
                      AutomationProperties.Name="Pole tekstowe do wprowadzenia adresu Ollama" />

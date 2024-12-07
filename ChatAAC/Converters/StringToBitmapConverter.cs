@@ -1,8 +1,8 @@
-using Avalonia.Data.Converters;
-using Avalonia.Media.Imaging;
 using System;
 using System.Globalization;
 using System.IO;
+using Avalonia.Data.Converters;
+using Avalonia.Media.Imaging;
 using SkiaSharp;
 using Svg.Skia;
 
@@ -23,15 +23,15 @@ public class StringToBitmapConverter : IValueConverter
             svg.Load(stream);
 
             if (svg.Picture == null) return null;
-            
+
             // Ustawienie docelowego rozmiaru obrazu
             const int targetWidth = 250;
             const int targetHeight = 250;
 
             // Obliczanie skali, aby zachować proporcje obrazu
-            float scaleX = targetWidth / svg.Picture.CullRect.Width;
-            float scaleY = targetHeight / svg.Picture.CullRect.Height;
-            float scale = Math.Min(scaleX, scaleY);
+            var scaleX = targetWidth / svg.Picture.CullRect.Width;
+            var scaleY = targetHeight / svg.Picture.CullRect.Height;
+            var scale = Math.Min(scaleX, scaleY);
 
             // Tworzenie i skalowanie bitmapy
             var scaledSize = new SKImageInfo(targetWidth, targetHeight);

@@ -6,17 +6,13 @@
         x:Class="ChatAAC.Views.MainWindow"
         x:DataType="vm:MainViewModel"
         xmlns:local="clr-namespace:ChatAAC.Helpers"
-        xmlns:models="clr-namespace:ChatAAC.Models"
-        xmlns:obf="clr-namespace:ChatAAC.Models.Obf"
         Title="ChatAAC" Width="1280" Height="960">
     <Window.Resources>
         <converters:ColorConverter x:Key="ColorConverter" />
         <converters:StringToBitmapConverter x:Key="StringToBitmapConverter" />
-        <converters:BooleanToClassConverter x:Key="BooleanToClassConverter" />
-        <converters:EqualityConverter x:Key="EqualityConverter" />
+        <converters:EqualityToBrushConverter x:Key="EqualityToBrushConverter" />
     </Window.Resources>
     <Window.Styles>
-        <!-- Styl dla przycisków symboli -->
         <Style Selector="Button.symbol">
             <Setter Property="MinWidth" Value="120" />
             <Setter Property="MinHeight" Value="120" />
@@ -33,6 +29,9 @@
             <Setter Property="BorderBrush" Value="Gold" />
             <Setter Property="BorderThickness" Value="2" />
             <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background">
+                <ImageBrush Source="avares://ChatAAC/Assets/folder-arrow.png" Stretch="Uniform" />
+            </Setter>
         </Style>
 
         <Style Selector="Button.symbol:pointerover">
@@ -41,7 +40,6 @@
             </Setter>
         </Style>
 
-        <!-- Styl dla przycisków kontrolnych -->
         <Style Selector="Button.control">
             <Setter Property="CornerRadius" Value="5" />
             <Setter Property="Padding" Value="10,5" />
@@ -50,37 +48,126 @@
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="20">
-        <!-- Message Display Area -->
-        <Border Grid.Row="0" Height="100" Margin="0,0,0,20"
-                BorderBrush="Gray" BorderThickness="1" CornerRadius="10">
-            <i:Interaction.Behaviors>
-                <EventTriggerBehavior EventName="PointerPressed">
-                    <InvokeCommandAction Command="{Binding SendToAiCommand}" />
-                </EventTriggerBehavior>
-            </i:Interaction.Behaviors>
-            <ScrollViewer HorizontalScrollBarVisibility="Auto">
-                <ItemsControl ItemsSource="{Binding SelectedButtons}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <StackPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Image
-                                Source="{Binding Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
-                                Width="80" Height="80" Margin="5"
-                                AutomationProperties.HelpText="{Binding Label, StringFormat='Wybrany piktogram: {0}'}" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Border>
+        <!-- Top Section with Message Display and Settings -->
+        <Grid Grid.Row="0" RowDefinitions="Auto,Auto" Margin="0,0,0,20">
+            <!-- Message Display Area -->
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,10">
+                <Border Grid.Column="0" Height="160"
+                        BorderBrush="Gray" BorderThickness="1" CornerRadius="10">
+                    <i:Interaction.Behaviors>
+                        <EventTriggerBehavior EventName="PointerPressed">
+                            <InvokeCommandAction Command="{Binding SendToAiCommand}" />
+                        </EventTriggerBehavior>
+                    </i:Interaction.Behaviors>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding SelectedButtons}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Margin="5" Width="80">
+                                        <Image
+                                            Source="{Binding Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
+                                            Width="80" Height="80"
+                                            AutomationProperties.HelpText="{Binding Label, StringFormat='Wybrany piktogram: {0}'}" />
+                                        <TextBlock Text="{Binding Label}" HorizontalAlignment="Center" FontSize="12"
+                                                   Margin="0,5,0,0" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+                <Button Grid.Column="1" Margin="10,0,0,0"
+                        Classes="control" Background="#4CAF50"
+                        Content="Wyczyść tekst"
+                        Command="{Binding ClearSelectedCommand}"
+                        Width="120" Height="160"
+                        AutomationProperties.Name="Przycisk wyczyść tekst" />
+            </Grid>
 
-        <!-- Main Content Grid -->
-        <Grid Grid.Row="2" ColumnDefinitions="*,Auto">
-            <!-- Symbols Grid -->
-            <Viewbox Grid.Column="0" Stretch="Uniform" UseLayoutRounding="True">
+            <!-- Grammar Controls -->
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="10" Padding="10">
+                <Grid ColumnDefinitions="*,Auto,Auto">
+                    <!-- Tense Controls -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+                        <TextBlock Text="Czas:" VerticalAlignment="Center" FontSize="14" />
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Button Classes="control" Width="60" Height="60"
+                                    Command="{Binding SelectTenseCommand}"
+                                    CommandParameter="Przeszły"
+                                    Background="{Binding SelectedTense, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Przeszły}"
+                                    AutomationProperties.Name="Czas przeszły">
+                                <StackPanel>
+                                    <TextBlock Text="←" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="było" FontSize="12" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Classes="control" Width="60" Height="60"
+                                    Command="{Binding SelectTenseCommand}"
+                                    CommandParameter="Teraźniejszy"
+                                    Background="{Binding SelectedTense, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Teraźniejszy}"
+                                    AutomationProperties.Name="Czas teraźniejszy">
+                                <StackPanel>
+                                    <TextBlock Text="●" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="jest" FontSize="12" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Classes="control" Width="60" Height="60"
+                                    Command="{Binding SelectTenseCommand}"
+                                    CommandParameter="Przyszły"
+                                    Background="{Binding SelectedTense, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Przyszły}"
+                                    AutomationProperties.Name="Czas przyszły">
+                                <StackPanel>
+                                    <TextBlock Text="→" FontSize="20" HorizontalAlignment="Center" />
+                                    <TextBlock Text="będzie" FontSize="12" HorizontalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Form Controls -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="10" Margin="20,0">
+                        <TextBlock Text="Forma:" VerticalAlignment="Center" FontSize="14" />
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                            <Button Content="Oznajmująca" Classes="control" Width="90" Height="60"
+                                    Command="{Binding SelectFormCommand}"
+                                    CommandParameter="Oznajmująca"
+                                    Background="{Binding SelectedForm, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Oznajmująca}"
+                                    AutomationProperties.Name="Forma oznajmująca" />
+                            <Button Content="Pytająca" Classes="control" Width="90" Height="60"
+                                    Command="{Binding SelectFormCommand}"
+                                    CommandParameter="Pytająca"
+                                    Background="{Binding SelectedForm, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Pytająca}"
+                                    AutomationProperties.Name="Forma pytająca" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Control Buttons -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
+                        <Button Content="Powrót" Classes="control" Background="#2196F3"
+                                Command="{Binding LoadMainBoardCommand}"
+                                Width="120" Height="60"
+                                AutomationProperties.Name="Przycisk powrotu do głównego widoku" />
+                        <Button Content="Historia" Classes="control" Background="#9C27B0"
+                                Command="{Binding OpenHistoryCommand}"
+                                Width="120" Height="60"
+                                AutomationProperties.Name="Historia wpisów" />
+                        <Button Content="⚙" Classes="control" Background="#757575"
+                                Command="{Binding OpenSettingsCommand}"
+                                Width="60" Height="60"
+                                AutomationProperties.Name="Przycisk otwarcia ustawień" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Main Symbols Grid -->
+        <Grid Grid.Row="2">
+            <Viewbox Stretch="Uniform" UseLayoutRounding="True">
                 <ItemsControl ItemsSource="{Binding Buttons}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
@@ -93,12 +180,14 @@
                                     Background="{Binding Button.BackgroundColor, Converter={StaticResource ColorConverter}}"
                                     Command="{Binding DataContext.ButtonClickedCommand, RelativeSource={RelativeSource AncestorType=Window}}"
                                     Classes="symbol"
+                                    Classes.folder="{Binding Button.LoadBoard}"
                                     AutomationProperties.HelpText="{Binding Button.Label}"
                                     Focusable="True"
                                     local:ButtonStyleHelper.Action="{Binding Button.LoadBoard}"
                                     CommandParameter="{Binding Button}">
                                 <StackPanel>
-                                    <TextBlock Text="{Binding Button.Label}" HorizontalAlignment="Center" FontSize="14"
+                                    <TextBlock Text="{Binding Button.Label}" HorizontalAlignment="Center"
+                                               FontSize="14"
                                                Margin="0,5,0,0" />
                                     <Image
                                         Source="{Binding Button.Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
@@ -110,75 +199,22 @@
                 </ItemsControl>
             </Viewbox>
 
-            <!-- Side Panel -->
-            <StackPanel Grid.Column="1" Width="200" Margin="20,0,0,0" Spacing="10">
-                <!-- Grammar Controls -->
-                <Border BorderBrush="Gray" BorderThickness="1" CornerRadius="10" Padding="10">
-                    <StackPanel Spacing="10">
-                        <TextBlock Text="Ustawienia Gramatyczne" FontWeight="Bold" FontSize="16"
-                                   AutomationProperties.Name="Ustawienia gramatyczne" />
+            <!-- Navigation Buttons -->
+            <Button Content="←" Classes="control" Background="#03A9F4"
+                    Command="{Binding PreviousBoardCommand}"
+                    HorizontalAlignment="Left" VerticalAlignment="Bottom"
+                    Width="60" Height="60" Margin="20"
+                    AutomationProperties.Name="Poprzednia tablica" />
 
-                        <!-- Tense Selection -->
-                        <StackPanel>
-                            <TextBlock Text="Czas:" FontSize="14" />
-                            <StackPanel Orientation="Vertical" Spacing="5">
-                                <RadioButton Content="Teraźniejszy"
-                                             IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Teraźniejszy}"
-                                             AutomationProperties.Name="Czas teraźniejszy" />
-                                <RadioButton Content="Przeszły"
-                                             IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przeszły}"
-                                             AutomationProperties.Name="Czas przeszły" />
-                                <RadioButton Content="Przyszły"
-                                             IsChecked="{Binding SelectedTense, Converter={StaticResource EqualityConverter}, ConverterParameter=Przyszły}"
-                                             AutomationProperties.Name="Czas przyszły" />
-                            </StackPanel>
-                        </StackPanel>
-
-                        <!-- Form Selection -->
-                        <StackPanel>
-                            <TextBlock Text="Forma:" FontSize="14" />
-                            <StackPanel Orientation="Vertical" Spacing="5">
-                                <RadioButton Content="Oznajmująca"
-                                             IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Oznajmująca}"
-                                             AutomationProperties.Name="Forma oznajmująca" />
-                                <RadioButton Content="Pytająca"
-                                             IsChecked="{Binding SelectedForm, Converter={StaticResource EqualityConverter}, ConverterParameter=Pytająca}"
-                                             AutomationProperties.Name="Forma pytająca" />
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
-                </Border>
-
-                <!-- Control Buttons -->
-                <StackPanel Spacing="10">
-                    <Button Content="Poprzednia Tablica" Classes="control" Background="#FFC107"
-                            Command="{Binding PreviousBoardCommand}"
-                            HorizontalContentAlignment="Stretch" Width="200" Height="50"
-                            AutomationProperties.Name="Przycisk poprzedniej tablicy" />
-
-                    <Button Content="Następna Tablica" Classes="control" Background="#03A9F4"
-                            Command="{Binding NextBoardCommand}"
-                            HorizontalContentAlignment="Stretch" Width="200" Height="50"
-                            AutomationProperties.Name="Przycisk następnej tablicy" />
-
-                    <Button Content="Powrót" Classes="control" Background="#2196F3"
-                            Command="{Binding LoadMainBoardCommand}"
-                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
-                            AutomationProperties.Name="Przycisk powrotu do głównego widoku" />
-                    <Button Content="Wyczyść" Classes="control" Background="#4CAF50"
-                            Command="{Binding ClearSelectedCommand}"
-                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
-                            AutomationProperties.Name="Przycisk wyczyść wybrane piktogramy" />
-                    <Button Content="Ustawienia" Classes="control" Background="#9C27B0"
-                            Command="{Binding OpenSettingsCommand}"
-                            HorizontalContentAlignment="Stretch" Width="200" Height="100"
-                            AutomationProperties.Name="Przycisk otwarcia ustawień" />
-                </StackPanel>
-            </StackPanel>
+            <Button Content="→" Classes="control" Background="#03A9F4"
+                    Command="{Binding NextBoardCommand}"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Width="60" Height="60" Margin="20"
+                    AutomationProperties.Name="Następna tablica" />
         </Grid>
 
-        <!-- Indykator Ładowania -->
-        <Border Grid.Row="0" Background="#80000000"
+        <!-- Loading Indicator -->
+        <Border Grid.Row="0" Grid.RowSpan="3" Background="#80000000"
                 IsVisible="{Binding IsLoading}"
                 IsHitTestVisible="{Binding IsLoading}">
             <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

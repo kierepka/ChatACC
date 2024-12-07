@@ -13,5 +13,5 @@ public class ConfigData
     public string? SelectedLanguage { get; set; }
     public int LoadedIconsCount { get; set; }
     public string DefaultBoardPath { get; set; } = string.Empty;
-    public List<string> BoardPaths { get; set; } = new();
+    public List<string>? BoardPaths { get; set; }
 }

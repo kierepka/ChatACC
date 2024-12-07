@@ -2,10 +2,10 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using ChatAAC.Views;
-using ReactiveUI;
 using Avalonia.ReactiveUI;
 using ChatAAC.ViewModels;
+using ChatAAC.Views;
+using ReactiveUI;
 
 namespace ChatAAC;
 
@@ -21,19 +21,17 @@ public class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-        {
             desktop.MainWindow = new MainWindow
             {
                 DataContext = new MainViewModel()
             };
-        }
 
         base.OnFrameworkInitializationCompleted();
     }
-    
+
     private void OpenConfigWindow()
     {
-        var configWindow = new ConfigWindow()
+        var configWindow = new ConfigWindow
         {
             DataContext = ConfigViewModel.Instance
         };
@@ -43,9 +41,8 @@ public class App : Application
             configWindow.ShowDialog(mainWindow);
         else
             configWindow.Show();
-        
     }
-    
+
     private void OpenAboutWindow()
     {
         var aboutWindow = new AboutWindow

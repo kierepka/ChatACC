@@ -1,7 +1,7 @@
 using System;
+using System.Runtime.Versioning;
 using System.Speech.Synthesis;
 using System.Threading.Tasks;
-using System.Runtime.Versioning;
 
 namespace ChatAAC.Services;
 

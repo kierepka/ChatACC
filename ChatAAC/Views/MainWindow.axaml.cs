@@ -13,22 +13,22 @@ public partial class MainWindow : Window
         InitializeComponent();
         // Verify DataContext
         DataContext = new MainViewModel();
-    
+
         // Optional: Add this for debugging
-        this.AttachedToVisualTree += (s, e) =>
+        AttachedToVisualTree += (s, e) =>
         {
             Console.WriteLine(DataContext is MainViewModel vm
                 ? $"Window loaded with {vm.Buttons.Count} buttons"
                 : "DataContext is not set correctly!");
         };
 
-       
+
 #if DEBUG
         this.AttachDevTools();
 #endif
     }
-    
-    
+
+
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);

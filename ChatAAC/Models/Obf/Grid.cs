@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 namespace ChatAAC.Models.Obf;
+
 // Class for Grid (for button layout)
 public class Grid
 {
@@ -10,5 +9,5 @@ public class Grid
 
     [JsonPropertyName("columns")] public int Columns { get; set; }
 
-    [JsonPropertyName("order")]  public string?[][] Order { get; set; } = [];
+    [JsonPropertyName("order")] public string?[][] Order { get; set; } = [];
 }

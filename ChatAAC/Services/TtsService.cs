@@ -8,7 +8,7 @@ namespace ChatAAC.Services;
 public class TtsService
 {
     /// <summary>
-    /// Wywołuje polecenie 'say' na macOS, aby odczytać podany tekst.
+    ///     Wywołuje polecenie 'say' na macOS, aby odczytać podany tekst.
     /// </summary>
     /// <param name="text">Tekst do odczytania.</param>
     /// <returns>Zadanie reprezentujące operację asynchroniczną.</returns>
@@ -46,10 +46,7 @@ public class TtsService
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0)
-            {
-                throw new InvalidOperationException($"Błąd TTS: {error}");
-            }
+            if (process.ExitCode != 0) throw new InvalidOperationException($"Błąd TTS: {error}");
         }
         catch (Exception ex)
         {
@@ -59,7 +56,7 @@ public class TtsService
     }
 
     /// <summary>
-    /// Sprawdza, czy aplikacja działa na macOS.
+    ///     Sprawdza, czy aplikacja działa na macOS.
     /// </summary>
     /// <returns>Prawda, jeśli system operacyjny to macOS; w przeciwnym razie fałsz.</returns>
     private bool IsMacOs()

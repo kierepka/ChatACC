@@ -28,13 +28,11 @@ public partial class AboutWindow : Window
         var newDataContext = ((Control)sender).DataContext;
 
         if (newDataContext is AboutViewModel viewModel)
-        {
             viewModel.CloseInteraction.RegisterHandler(async interaction =>
             {
                 interaction.SetOutput(Unit.Default);
                 await Dispatcher.UIThread.InvokeAsync(Close);
             });
-        }
     }
 
     private void InitializeComponent()

@@ -11,9 +11,9 @@ public class ColorConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         if (value is not string colorString) return Colors.Transparent;
-        
+
         if (string.IsNullOrEmpty(colorString)) return Colors.Transparent;
-        
+
         var rgb = colorString.Split(['(', ',', ')'], StringSplitOptions.RemoveEmptyEntries)
             .Skip(1) // Skip "rgb"
             .Select(int.Parse).ToList();

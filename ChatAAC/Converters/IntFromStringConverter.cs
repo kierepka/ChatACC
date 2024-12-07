@@ -17,10 +17,7 @@ public class IntFromStringConverter : JsonConverter<int>
                 case JsonTokenType.String:
                 {
                     var stringValue = reader.GetString();
-                    if (int.TryParse(stringValue, out int result))
-                    {
-                        return result;
-                    }
+                    if (int.TryParse(stringValue, out var result)) return result;
 
                     break;
                 }
