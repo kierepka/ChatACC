@@ -351,15 +351,19 @@ public partial class MainViewModel : ViewModelBase
         {
             Directory.CreateDirectory(tempDirectory);
 
-            await ExtractObzArchiveAsync(filePath, tempDirectory);
+            // Tworzymy podkatalog o nazwie odpowiadającej plikowi .obz
+            var obzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
+            var destinationDirectory = Path.Combine(tempDirectory, obzDirectoryName);
+            
+            await ExtractObzArchiveAsync(filePath, destinationDirectory);
 
-            var manifestPath = Path.Combine(tempDirectory, "manifest.json");
+            var manifestPath = Path.Combine(destinationDirectory, "manifest.json");
             if (File.Exists(manifestPath))
             {
                 var manifestJson = await File.ReadAllTextAsync(manifestPath);
                 var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
 
-                var rootObfPath = Path.Combine(tempDirectory, manifest?.Root ?? "root.obf");
+                var rootObfPath = Path.Combine(destinationDirectory, manifest?.Root ?? "root.obf");
                 if (File.Exists(rootObfPath))
                     await LoadObfFileAsync(rootObfPath);
                 else
@@ -386,12 +390,10 @@ public partial class MainViewModel : ViewModelBase
     {
         await Task.Run(() =>
         {
-            // Tworzymy podkatalog o nazwie odpowiadającej plikowi .obz
-            var obzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
-            var destinationDirectory = Path.Combine(extractPath, obzDirectoryName);
+     
 
             // Tworzymy katalog docelowy, jeśli nie istnieje
-            Directory.CreateDirectory(destinationDirectory);
+            Directory.CreateDirectory(extractPath);
 
             using var archive = ZipFile.OpenRead(filePath);
             foreach (var entry in archive.Entries)
@@ -400,9 +402,9 @@ public partial class MainViewModel : ViewModelBase
                 var sanitizedEntryName = SanitizeEntryName(entry.FullName);
 
                 // Build the full destination path within the new directory
-                var destinationPath = Path.GetFullPath(Path.Combine(destinationDirectory, sanitizedEntryName));
+                var destinationPath = Path.GetFullPath(Path.Combine(extractPath, sanitizedEntryName));
 
-                if (!destinationPath.StartsWith(destinationDirectory, StringComparison.Ordinal))
+                if (!destinationPath.StartsWith(extractPath, StringComparison.Ordinal))
                 {
                     // Skip dangerous entries
                     Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
