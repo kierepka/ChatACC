@@ -9,7 +9,7 @@
   "buttons": [
     {
       "id": 0,
-      "etykieta": "Strona Główna",
+      "label": "Strona Główna",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -22,49 +22,49 @@
     },
     {
       "id": 1,
-      "etykieta": "owad",
+      "label": "owad",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4124_4aca2480220da7d31c85f885"
     },
     {
       "id": 2,
-      "etykieta": "gąsienica",
+      "label": "gąsienica",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4125_1b2e49c9b799a28c0bdd00de"
     },
     {
       "id": 3,
-      "etykieta": "pomrów",
+      "label": "pomrów",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4126_652c844dec04b6ec172473e2"
     },
     {
       "id": 4,
-      "etykieta": "ślimak",
+      "label": "ślimak",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4127_62070e22f9ebc3cbf681776b"
     },
     {
       "id": 5,
-      "etykieta": "pszczoła",
+      "label": "pszczoła",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4128_b9f86d64e96b5801188ee331"
     },
     {
       "id": 6,
-      "etykieta": "mucha",
+      "label": "mucha",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4129_e34cebd66cc0dfca3cddcb74"
     },
     {
       "id": 7,
-      "etykieta": "pająk",
+      "label": "pająk",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4130_b3c5c07cf27cf02cc7eff3c1"

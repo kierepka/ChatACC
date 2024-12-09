@@ -9,7 +9,7 @@
   "buttons": [
     {
       "id": 20,
-      "etykieta": "Strona Główna",
+      "label": "Strona Główna",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -22,133 +22,133 @@
     },
     {
       "id": 1,
-      "etykieta": "opieka nad zwierzętami",
+      "label": "opieka nad zwierzętami",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_11342_d317fc33a72d63d116536f44"
     },
     {
       "id": 2,
-      "etykieta": "karma dla psa",
+      "label": "karma dla psa",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4133_edfd4df054e858f7d1913f9d"
     },
     {
       "id": 3,
-      "etykieta": "karma dla kota",
+      "label": "karma dla kota",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4134_2fee8b26f01429b901e92f42"
     },
     {
       "id": 4,
-      "etykieta": "pokarm dla ryb",
+      "label": "pokarm dla ryb",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4135_cadb6033572752277bba040b"
     },
     {
       "id": 5,
-      "etykieta": "obroża",
+      "label": "obroża",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5438_9d3404750ea6f459d5ba1561"
     },
     {
       "id": 6,
-      "etykieta": "grzebień dla zwierząt",
+      "label": "grzebień dla zwierząt",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5439_6d096f4fc4bba0e5d9c394c8"
     },
     {
       "id": 7,
-      "etykieta": "koc dla zwierząt",
+      "label": "koc dla zwierząt",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4138_85cead5b10b20e7c73665979"
     },
     {
       "id": 8,
-      "etykieta": "legowisko dla zwierząt",
+      "label": "legowisko dla zwierząt",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5440_f34409376bd66757deae1af5"
     },
     {
       "id": 9,
-      "etykieta": "akwarium",
+      "label": "akwarium",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4140_159692b54f3f276f464757de"
     },
     {
       "id": 10,
-      "etykieta": "przysmak",
+      "label": "przysmak",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5441_394d3e9bd9fabe1eb8057f33"
     },
     {
       "id": 11,
-      "etykieta": "smycz",
+      "label": "smycz",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4142_18ff48c7183d9151bb9c0d7e"
     },
     {
       "id": 12,
-      "etykieta": "buda",
+      "label": "buda",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4143_f7dce86210e2584eaa76380e"
     },
     {
       "id": 13,
-      "etykieta": "transporter dla zwierząt",
+      "label": "transporter dla zwierząt",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4144_4bb9e92abc818cc5f0e1ab9e"
     },
     {
       "id": 14,
-      "etykieta": "karma dla zwierząt",
+      "label": "karma dla zwierząt",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5442_240b2c98a6386e7867389e68"
     },
     {
       "id": 15,
-      "etykieta": "karmnik dla ptaków",
+      "label": "karmnik dla ptaków",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4146_c5ad6a4ca75627d57bd83dde"
     },
     {
       "id": 16,
-      "etykieta": "opiekować się zwierzęciem",
+      "label": "opiekować się zwierzęciem",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "image_id": "1_5443_46eb17a80c723dda272b9446"
     },
     {
       "id": 17,
-      "etykieta": "nakarmić zwierzę",
+      "label": "nakarmić zwierzę",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "image_id": "1_5444_83d56d37b5b799d10929eb86"
     },
     {
       "id": 18,
-      "etykieta": "wyprowadzić psa",
+      "label": "wyprowadzić psa",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "image_id": "1_4149_33cd4f5a76512701c329e94e"
     },
     {
       "id": 19,
-      "etykieta": "klatka",
+      "label": "klatka",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4150_58598912089e1696f79d4c32"

@@ -9,7 +9,7 @@
   "buttons": [
     {
       "id": 11,
-      "etykieta": "Strona Główna",
+      "label": "Strona Główna",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -22,70 +22,70 @@
     },
     {
       "id": 1,
-      "etykieta": "ptak",
+      "label": "ptak",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_5436_8139d64cd78827791e58cb64"
     },
     {
       "id": 2,
-      "etykieta": "kaczka",
+      "label": "kaczka",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4114_0ac24aaa386b4b0415801ebb"
     },
     {
       "id": 3,
-      "etykieta": "papuga",
+      "label": "papuga",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4115_8db3960ab614c8719d5d86fe"
     },
     {
       "id": 4,
-      "etykieta": "rudzik",
+      "label": "rudzik",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4116_ad2fdc237eaeeccfd6aaec7e"
     },
     {
       "id": 5,
-      "etykieta": "indyk",
+      "label": "indyk",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4117_4cf9e0942477afc576140c4c"
     },
     {
       "id": 6,
-      "etykieta": "gęś",
+      "label": "gęś",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4118_4530b4ab598f17ca71bcbeb0"
     },
     {
       "id": 7,
-      "etykieta": "łabędź",
+      "label": "łabędź",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4119_199f2666933ebe449d68f8df"
     },
     {
       "id": 8,
-      "etykieta": "paw",
+      "label": "paw",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4120_0c13af71f540322ebdc908c2"
     },
     {
       "id": 9,
-      "etykieta": "sowa",
+      "label": "sowa",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4121_7a45dca596555536118bb923"
     },
     {
       "id": 10,
-      "etykieta": "pingwin",
+      "label": "pingwin",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "image_id": "1_4122_3eb66fba215ceb4a3b1307b7"

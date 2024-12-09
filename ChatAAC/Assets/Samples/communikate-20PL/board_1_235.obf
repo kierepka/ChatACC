@@ -9,21 +9,21 @@
   "buttons": [
     {
       "id": 18,
-      "etykieta": "cześć",
+      "label": "cześć",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(192, 192, 192)",
       "image_id": "1_4241_11be41c199409ffaf4183ed5"
     },
     {
       "id": 1,
-      "etykieta": "Chcę z tobą porozmawiać",
+      "label": "Chcę z tobą porozmawiać",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(192, 192, 192)",
       "image_id": "1_4230_a6514cd7be9d59106f83586a"
     },
     {
       "id": 2,
-      "etykieta": "Rozmowa",
+      "label": "Rozmowa",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(192, 192, 192)",
       "load_board": {
@@ -36,7 +36,7 @@
     },
     {
       "id": 3,
-      "etykieta": "Pytania",
+      "label": "Pytania",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 124, 33)",
       "load_board": {
@@ -49,7 +49,7 @@
     },
     {
       "id": 4,
-      "etykieta": "Jedzenie",
+      "label": "Jedzenie",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -62,14 +62,14 @@
     },
     {
       "id": 5,
-      "etykieta": "Ja",
+      "label": "Ja",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(191, 140, 30)",
       "image_id": "1_4234_8028fd3a6a44fe619d40582b"
     },
     {
       "id": 6,
-      "etykieta": "Ludzie",
+      "label": "Ludzie",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(191, 140, 30)",
       "load_board": {
@@ -82,7 +82,7 @@
     },
     {
       "id": 7,
-      "etykieta": "Pielęgnacja osobista",
+      "label": "Pielęgnacja osobista",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "load_board": {
@@ -95,7 +95,7 @@
     },
     {
       "id": 8,
-      "etykieta": "Małe słowa",
+      "label": "Małe słówka",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(50, 220, 50)",
       "load_board": {
@@ -108,7 +108,7 @@
     },
     {
       "id": 9,
-      "etykieta": "Mój dzień",
+      "label": "Mój dzień",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -121,7 +121,7 @@
     },
     {
       "id": 10,
-      "etykieta": "Akcja",
+      "label": "Działanie",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "load_board": {
@@ -134,21 +134,21 @@
     },
     {
       "id": 11,
-      "etykieta": "iść",
+      "label": "iść",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "image_id": "1_4238_ec6faa0105dbaf2b301ea81a"
     },
     {
       "id": 12,
-      "etykieta": "chcieć",
+      "label": "chcieć",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 50, 255)",
       "image_id": "1_2810_23e1f7a08d6f53facf1587f1"
     },
     {
       "id": 13,
-      "etykieta": "Opisz",
+      "label": "Opisz",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(0, 255, 255)",
       "load_board": {
@@ -161,7 +161,7 @@
     },
     {
       "id": 14,
-      "etykieta": "Rzeczy",
+      "label": "Rzeczy",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",
       "load_board": {
@@ -174,14 +174,14 @@
     },
     {
       "id": 19,
-      "etykieta": "tak",
+      "label": "tak",
       "border_color": "rgb(83, 255, 71)",
       "background_color": "rgb(255, 255, 255)",
       "image_id": "1_4251_1cffb328fb376157fa98278f"
     },
     {
       "id": 15,
-      "etykieta": "Czas",
+      "label": "Czas",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(63, 102, 221)",
       "load_board": {
@@ -194,7 +194,7 @@
     },
     {
       "id": 16,
-      "etykieta": "Miejsca",
+      "label": "Miejsca",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(122, 31, 120)",
       "load_board": {
@@ -207,7 +207,7 @@
     },
     {
       "id": 17,
-      "etykieta": "Wypoczynek",
+      "label": "Wypoczynek",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(63, 102, 221)",
       "load_board": {
@@ -220,7 +220,7 @@
     },
     {
       "id": 20,
-      "etykieta": "nie",
+      "label": "nie",
       "border_color": "rgb(255, 0, 0)",
       "background_color": "rgb(255, 255, 255)",
       "image_id": "1_4252_c272cb253e56667735ca6759"
