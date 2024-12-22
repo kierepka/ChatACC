@@ -19,10 +19,10 @@ public class ObfFile
     [JsonPropertyName("description_html")] public string DescriptionHtml { get; set; } = string.Empty;
 
     [JsonPropertyName("grid")] public Grid? Grid { get; set; }
-    [JsonPropertyName("buttons")] public List<Button> Buttons { get; set; } = new();
-    [JsonPropertyName("images")] public List<Image> Images { get; set; } = new();
+    [JsonPropertyName("buttons")] public List<Button> Buttons { get; set; } = [];
+    [JsonPropertyName("images")] public List<Image> Images { get; set; } = [];
 
-    [JsonPropertyName("sounds")] public List<Sound> Sounds { get; set; } = new();
+    [JsonPropertyName("sounds")] public List<Sound> Sounds { get; set; } = [];
 
     [JsonPropertyName("default_layout")] public string DefaultLayout { get; set; } = string.Empty;
 

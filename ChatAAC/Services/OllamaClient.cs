@@ -17,7 +17,7 @@ public class OllamaClient
 
         var ollama = new OllamaApiClient(ConfigViewModel.Instance.OllamaAddress)
         {
-            SelectedModel = ConfigViewModel.Instance.SelectedModel ?? "gemma2"
+            SelectedModel = ConfigViewModel.Instance.SelectedModel
         };
         _chat = new Chat(ollama);
     }
@@ -27,22 +27,26 @@ public class OllamaClient
         Console.WriteLine("Żądanie do Ollama:");
 
 
+        
+        
+        
         var prompt =
-            $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w jedno pełne, gramatycznie poprawne zdanie.
+            $@"Jesteś asystentem komunikacyjnym dla osoby niepełnosprawnej, która używa systemu AAC (Augmentative and Alternative Communication). Twoim zadaniem jest przekształcenie wybranych przez tę osobę słów kluczowych w jedno pełne, gramatycznie poprawne zdanie lub jedną sentencję.
 
 			Kontekst: Osoba niepełnosprawna wybrała następujące słowa kluczowe: [{request.Prompt}]
 
 			Twoje zadanie:
 
 			1.	Przeanalizuj podane słowa kluczowe. 
-			2.	Używając tych słów, stwórz jedno sensowne zdanie skierowane do jednej osoby.
+			2.	Używając tych wszystkich słów kluczowych, stwórz jedno sensowne zdanie lub jedną sentencję skierowane do jednej osoby słuchającej.
 			3.	Upewnij się, że zdanie jest gramatycznie poprawne i oddaje intencję komunikacyjną użytkownika.
 			4.	Dodaj niezbędne słowa łączące lub kontekstowe, aby zdanie brzmiało naturalnie.
 			5.	Nie zmieniaj znaczenia ani nie wprowadzaj informacji spoza podanych słów kluczowych.
 			6.	Sformułuj zdanie w trybie {request.Form}. Jeżeli w słowach kluczowych jest słowo 'Ja' to przyjmij zdanie w trybie pierwszej osoby.
 			7.	Użyj czasu {request.Tense}.
 			8.	Przyjmij, że jeśli występuje liczba, jest to: {request.Quantity}.
-			9.	Zachowaj prostotę i klarowność wypowiedzi nie pomijając słów kluczowych.
+			9.	Jeśli w słowach kluczowych jest słowo ""Ja"", skonstruuj zdanie w trybie pierwszej osoby.
+			10. Zachowaj prostotę i klarowność wypowiedzi, nie pomijając słów kluczowych, ale łącząc je w sposób logiczny i gramatyczny.
 
 			Odpowiedź:
 
@@ -53,6 +57,6 @@ public class OllamaClient
         Console.WriteLine(prompt);
 
 
-        return Task.FromResult(_chat.Send(prompt));
+        return Task.FromResult(_chat.SendAsync(prompt));
     }
 }

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
@@ -9,5 +10,7 @@ public class Grid
 
     [JsonPropertyName("columns")] public int Columns { get; set; }
 
-    [JsonPropertyName("order")] public string?[][] Order { get; set; } = [];
+    [JsonPropertyName("order")]
+    [JsonConverter(typeof(OrderConverter))]
+    public int?[][] Order { get; set; } = [];
 }

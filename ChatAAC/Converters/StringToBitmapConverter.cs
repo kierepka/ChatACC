@@ -40,7 +40,7 @@ public class StringToBitmapConverter : IValueConverter
             canvas.Clear(SKColors.Transparent);
 
             var matrix = SKMatrix.CreateScale(scale, scale);
-            canvas.DrawPicture(svg.Picture, ref matrix);
+            canvas.DrawPicture(svg.Picture, in matrix);
             canvas.Flush();
 
             // Konwersja SKBitmap na Bitmapę Avalonii

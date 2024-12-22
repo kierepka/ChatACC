@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
@@ -31,7 +30,6 @@ public partial class MainViewModel : ViewModelBase
 
     private readonly OllamaClient _ollamaClient = new();
     private readonly ITtsService _ttsService;
-    private readonly ConcurrentDictionary<string, ObfFile> _obfCache = new();
 
     private string _selectedTense = "Teraźniejszy";
     private string _selectedForm = "Oznajmująca";
@@ -56,9 +54,9 @@ public partial class MainViewModel : ViewModelBase
 
     #region Properties
 
-    public ObservableCollection<ButtonViewModel> Buttons { get; } = new();
-    public ObservableCollection<Button> SelectedButtons { get; } = new();
-    public ObservableCollection<AiResponse> AiResponseHistory { get; } = new();
+    public ObservableCollection<ButtonViewModel> Buttons { get; } = [];
+    public ObservableCollection<Button> SelectedButtons { get; } = [];
+    public ObservableCollection<AiResponse> AiResponseHistory { get; } = [];
 
     public string SelectedTense
     {
@@ -250,6 +248,7 @@ public partial class MainViewModel : ViewModelBase
                     ConfigViewModel.Instance.BoardPaths.Add(defaultBoardPath);
 
                 CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(defaultBoardPath);
+                ObzDirectoryName = string.Empty;
                 await LoadObfOrObzFileAsync(defaultBoardPath);
             }
             else
@@ -284,6 +283,7 @@ public partial class MainViewModel : ViewModelBase
 
         CurrentBoardIndex = (CurrentBoardIndex + 1) % boardPaths.Count;
         var nextBoardPath = boardPaths[CurrentBoardIndex];
+        ObzDirectoryName = string.Empty;
         await LoadObfOrObzFileAsync(nextBoardPath);
     }
 
@@ -298,6 +298,7 @@ public partial class MainViewModel : ViewModelBase
 
         CurrentBoardIndex = (CurrentBoardIndex - 1 + boardPaths.Count) % boardPaths.Count;
         var previousBoardPath = boardPaths[CurrentBoardIndex];
+        ObzDirectoryName = string.Empty;
         await LoadObfOrObzFileAsync(previousBoardPath);
     }
 
@@ -305,12 +306,32 @@ public partial class MainViewModel : ViewModelBase
 
     #region File Loading Methods
 
+    /// <summary>
+    /// Clears previous cache for the specified OBF file.
+    /// </summary>
+    /// <param name="filePath">The path to the OBF file.</param>
+    private static void ClearPreviousCache(string filePath)
+    {
+        var cachedFileName = Path.GetFileName(filePath);
+        var cachedFilePath = Path.Combine(ObfCacheDirectory, cachedFileName);
+
+        if (!File.Exists(cachedFilePath)) return;
+        File.Delete(cachedFilePath);
+    }
+    
     private async Task LoadObfOrObzFileAsync(string filePath)
     {
         if (filePath.EndsWith(".obz", StringComparison.OrdinalIgnoreCase))
             await LoadObzFileAsync(filePath);
         else if (filePath.EndsWith(".obf", StringComparison.OrdinalIgnoreCase))
-            await LoadObfFileAsync(filePath);
+        {
+            
+            var obfFileName = Path.GetFileName(filePath);
+            var cachedObfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName, obfFileName);
+            
+            
+            await LoadObfFileAsync(cachedObfPath);
+        }
         else
             Console.WriteLine("Nieobsługiwany typ pliku. Podaj plik z rozszerzeniem .obf lub .obz.");
     }
@@ -345,17 +366,14 @@ public partial class MainViewModel : ViewModelBase
     private async Task LoadObzFileAsync(string filePath)
     {
         IsLoading = true;
-        var tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
 
         try
         {
-            Directory.CreateDirectory(tempDirectory);
-
             // Tworzymy podkatalog o nazwie odpowiadającej plikowi .obz
-            var obzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
-            var destinationDirectory = Path.Combine(tempDirectory, obzDirectoryName);
-            
-            await ExtractObzArchiveAsync(filePath, destinationDirectory);
+            ObzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
+            var destinationDirectory = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
+
+            await ExtractObzArchiveAsync(filePath);
 
             var manifestPath = Path.Combine(destinationDirectory, "manifest.json");
             if (File.Exists(manifestPath))
@@ -381,49 +399,106 @@ public partial class MainViewModel : ViewModelBase
         finally
         {
             IsLoading = false;
-            // Remove the temporary directory after use
-            if (Directory.Exists(tempDirectory)) Directory.Delete(tempDirectory, true);
+     
         }
     }
 
-    private async Task ExtractObzArchiveAsync(string filePath, string extractPath)
+    private string? ObzDirectoryName { get; set; } = string.Empty;
+
+    private static string ObfCacheDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ChatAAC", "Cache", "Obf");
+
+    private static string PictogramsCacheDirectory { get; } = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "ChatAAC", "Cache", "Pictograms");
+
+
+    private async Task ExtractObzArchiveAsync(string filePath)
     {
-        await Task.Run(() =>
+        // Extract the directory name from the .obz file
+        if (ObzDirectoryName != null)
         {
-     
+            var pictogramsPath = Path.Combine(PictogramsCacheDirectory, ObzDirectoryName);
+            var obfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
 
-            // Tworzymy katalog docelowy, jeśli nie istnieje
-            Directory.CreateDirectory(extractPath);
+            // Ensure the target directories exist
+            Directory.CreateDirectory(pictogramsPath);
+            Directory.CreateDirectory(obfPath);
 
-            using var archive = ZipFile.OpenRead(filePath);
-            foreach (var entry in archive.Entries)
+            await Task.Run(() =>
             {
-                // Sanitize the entry name to avoid directory traversal attacks
-                var sanitizedEntryName = SanitizeEntryName(entry.FullName);
-
-                // Build the full destination path within the new directory
-                var destinationPath = Path.GetFullPath(Path.Combine(extractPath, sanitizedEntryName));
-
-                if (!destinationPath.StartsWith(extractPath, StringComparison.Ordinal))
+                using var archive = ZipFile.OpenRead(filePath);
+                foreach (var entry in archive.Entries)
                 {
-                    // Skip dangerous entries
-                    Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
-                    continue;
-                }
+                    // Sanitize the entry name to prevent directory traversal attacks
+                    var sanitizedEntryName = SanitizeEntryName(entry.FullName);
 
-                if (string.IsNullOrEmpty(entry.Name))
-                {
-                    // This is a directory, create it
-                    Directory.CreateDirectory(destinationPath);
+                    // Determine the destination directory based on the file type
+                    string? destinationDirectory = null;
+
+                    if (IsImageFile(sanitizedEntryName))
+                    {
+                        destinationDirectory = pictogramsPath;
+                    }
+                    else if (IsObfFile(sanitizedEntryName))
+                    {
+                        destinationDirectory = obfPath;
+                    }
+                    else if (IsManifestFile(sanitizedEntryName))
+                    {
+                        destinationDirectory = obfPath;
+                    }
+
+                    if (destinationDirectory == null) continue;
+                    // Build the full destination path within the target directory
+                    var destinationPath =
+                        Path.GetFullPath(Path.Combine(destinationDirectory, Path.GetFileName(sanitizedEntryName)));
+
+                    // Skip unsafe entries
+                    if (!destinationPath.StartsWith(destinationDirectory, StringComparison.Ordinal))
+                    {
+                        Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(entry.Name))
+                    {
+                        // Create directory if the entry is a folder
+                        Directory.CreateDirectory(destinationPath);
+                    }
+                    else
+                    {
+                        // Ensure the destination directory exists and extract the file
+                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                        entry.ExtractToFile(destinationPath, true);
+                    }
                 }
-                else
-                {
-                    // Ensure the destination directory exists
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    entry.ExtractToFile(destinationPath, true);
-                }
-            }
-        });
+            });
+        }
+    }
+
+    private bool IsManifestFile(string fileName)
+    {
+        return fileName.ToLower().Equals("manifest.json");
+    }
+
+    /// <summary>
+    /// Checks if the file is an image file based on its extension.
+    /// </summary>
+    private static bool IsImageFile(string fileName)
+    {
+        var extensions = new[] { ".jpg", ".jpeg", ".png", ".bmp" };
+        var fileExtension = Path.GetExtension(fileName)?.ToLowerInvariant();
+        return extensions.Contains(fileExtension);
+    }
+
+    /// <summary>
+    /// Checks if the file is an OBF file based on its extension.
+    /// </summary>
+    private static bool IsObfFile(string fileName)
+    {
+        return Path.GetExtension(fileName)?.ToLowerInvariant() == ".obf";
     }
 
     private string SanitizeEntryName(string entryName)
@@ -454,7 +529,7 @@ public partial class MainViewModel : ViewModelBase
         Buttons.Clear();
 
         // Mapowanie przycisków z OBF na słownik dla szybkiego dostępu po ID
-        var buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
+        Dictionary<int, Button> buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
 
         if (obfFile.Grid != null)
         {
@@ -464,7 +539,7 @@ public partial class MainViewModel : ViewModelBase
                 var columnIndex = 0;
                 foreach (var buttonId in row)
                 {
-                    if (buttonId != null && buttonDictionary.TryGetValue(buttonId, out var button))
+                    if (buttonId != null && buttonDictionary.TryGetValue(buttonId.Value, out var button))
                     {
                         var buttonViewModel = new ButtonViewModel(button, rowIndex, columnIndex);
                         Buttons.Add(buttonViewModel);
@@ -501,25 +576,6 @@ public partial class MainViewModel : ViewModelBase
         {
             if (SelectedButtons.Contains(button)) return;
             SelectedButtons.Add(button);
-        }
-    }
-
-    private async Task LoadBoardAsync(string boardPath)
-    {
-        var fullBoardPath = Path.Combine(ObfLoader.ObfCacheDirectory, boardPath);
-
-        if (_obfCache.TryGetValue(fullBoardPath, out var cachedObf))
-        {
-            Console.WriteLine($"Loading board from cache: {fullBoardPath}");
-            ObfData = cachedObf;
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                if (ObfData != null) LoadButtonsFromObfData(ObfData);
-            });
-        }
-        else
-        {
-            await LoadObfOrObzFileAsync(fullBoardPath);
         }
     }
 

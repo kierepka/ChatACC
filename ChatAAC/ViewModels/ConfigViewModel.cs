@@ -144,11 +144,11 @@ public class ConfigViewModel : ReactiveObject
         set => SetAndSave(ref _defaultBoardPath, value);
     }
 
-    [JsonIgnore] public ObservableCollection<string> Models { get; } = new();
+    [JsonIgnore] public ObservableCollection<string> Models { get; } = [];
 
-    [JsonIgnore] public ObservableCollection<string> Languages { get; } = new() { "Polski", "English" };
+    [JsonIgnore] public ObservableCollection<string> Languages { get; } = ["Polski", "English"];
 
-    [JsonIgnore] public ObservableCollection<string> BoardPaths { get; } = new();
+    [JsonIgnore] public ObservableCollection<string> BoardPaths { get; } = [];
 
     #endregion
 
@@ -178,13 +178,13 @@ public class ConfigViewModel : ReactiveObject
             {
                 Title = "Wybierz plik tablicy AAC",
                 AllowMultiple = false,
-                FileTypeFilter = new[]
-                {
+                FileTypeFilter =
+                [
                     new FilePickerFileType("Pliki OBZ lub OBF")
                     {
-                        Patterns = new[] { "*.obz", "*.obf" }
+                        Patterns = ["*.obz", "*.obf"]
                     }
-                }
+                ]
             });
 
             var file = files.FirstOrDefault();
@@ -224,7 +224,7 @@ public class ConfigViewModel : ReactiveObject
         try
         {
             var ollamaClient = new OllamaApiClient(OllamaAddress);
-            var models = await ollamaClient.ListLocalModels();
+            var models = await ollamaClient.ListLocalModelsAsync();
             var sortedModels = models.OrderBy(m => m.Name);
 
             foreach (var model in sortedModels) Models.Add(model.Name);

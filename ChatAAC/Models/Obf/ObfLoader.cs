@@ -1,12 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
@@ -14,28 +12,23 @@ public static partial class ObfLoader
 {
     private static readonly HttpClient HttpClient = new();
 
-    private static readonly JsonSerializerOptions JsonOptions = new()
-    {
-        PropertyNameCaseInsensitive = true,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters =
-        {
-            new StringConverterAllowNumber(),
-            new IntFromStringConverter()
-        }
-    };
-
-    public static string ObfCacheDirectory { get; } = Path.Combine(
+    private static string ObfCacheDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "ChatAAC", "Cache", "Obf");
 
-    public static string PictogramsCacheDirectory { get; } = Path.Combine(
+    private static string PictogramsCacheDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "ChatAAC", "Cache", "Pictograms");
 
     /// <summary>
-    ///     Loads an OBF file, processes images, and returns the deserialized object.
+    /// Asynchronously loads an OBF file, processes images, and returns the deserialized object.
+    /// If previous data exists in the cache, it will be overwritten.
     /// </summary>
+    /// <param name="filePath">The path to the OBF file to be loaded.</param>
+    /// <returns>
+    /// An asynchronous task that returns an ObfFile object if successful.
+    /// Returns null if loading or processing fails.
+    /// </returns>
     public static async Task<ObfFile?> LoadObfAsync(string filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
@@ -49,33 +42,29 @@ public static partial class ObfLoader
             // Ensure cache directories exist
             EnsureDirectoryExists(ObfCacheDirectory);
             EnsureDirectoryExists(PictogramsCacheDirectory);
-
-            // Copy OBF file to cache directory
-            var obfFileName = Path.GetFileName(filePath);
-            var cachedObfPath = Path.Combine(ObfCacheDirectory, obfFileName);
-            await CopyFileIfNeededAsync(filePath, cachedObfPath);
-
+            
             // Deserialize OBF file
-            var obfFile = await DeserializeObfFileAsync(cachedObfPath);
+            var obfFile = await DeserializeObfFileAsync(filePath);
             if (obfFile == null)
             {
                 LogError("Failed to deserialize the OBF file.");
                 return null;
             }
 
-
-            // Pobierz katalog bazowy oryginalnego pliku OBF
+            // Get base directory of the original OBF file
             var obfBaseDirectory = Path.GetDirectoryName(filePath) ?? string.Empty;
 
-            // Przetwarzaj obrazy w pliku OBF, przekazując katalog bazowy
+            // Process images in the OBF file, passing the base directory
             await ProcessImagesAsync(obfFile, obfBaseDirectory);
-
 
             foreach (var button in obfFile.Buttons)
             {
-                // Znajdź odpowiadający obraz
+                // Match the corresponding image
                 button.Image = obfFile.Images.Find(image => image.Id == button.ImageId);
-                if (button.Image == null) Console.WriteLine($"Brak obrazu dla przycisku o ID: {button.Id}");
+                if (button.Image == null)
+                    Console.WriteLine($"No image found for button with ID: {button.Id}");
+                if (string.IsNullOrEmpty(button.Label))
+                    Console.WriteLine($"Missing label for button with ID: {button.Id}");
             }
 
             return obfFile;
@@ -88,14 +77,19 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Deserializes the OBF file to an ObfFile object.
+    /// Deserializes the OBF file to an ObfFile object.
     /// </summary>
+    /// <param name="obfFilePath">The path to the OBF file to be deserialized.</param>
+    /// <returns>
+    /// An asynchronous task that returns an ObfFile object if deserialization is successful.
+    /// Returns null if deserialization fails.
+    /// </returns>
     private static async Task<ObfFile?> DeserializeObfFileAsync(string obfFilePath)
     {
         try
         {
             var jsonString = await File.ReadAllTextAsync(obfFilePath);
-            return JsonSerializer.Deserialize<ObfFile>(jsonString, JsonOptions);
+            return JsonSerializer.Deserialize<ObfFile>(jsonString);
         }
         catch (Exception ex)
         {
@@ -104,27 +98,25 @@ public static partial class ObfLoader
         }
     }
 
+
     /// <summary>
-    ///     Processes images in the OBF file, saving them to the cache directory.
+    /// Processes images in the OBF file, saving them to the cache directory.
     /// </summary>
+    /// <param name="obfFile">The OBF file containing the images to be processed.</param>
+    /// <param name="obfBaseDirectory">The base directory of the original OBF file.</param>
     private static async Task ProcessImagesAsync(ObfFile obfFile, string obfBaseDirectory)
     {
         foreach (var image in obfFile.Images)
         {
-            // Generate a unique filename for the image
             var imageFileName = GenerateImageFileName(image);
-
-            // Set the ImagePath to the cached image path
             image.ImagePath = Path.Combine(PictogramsCacheDirectory, imageFileName);
 
-            // Skip if the image is already cached
             if (File.Exists(image.ImagePath))
             {
                 Log($"Image already cached: {image.ImagePath}");
                 continue;
             }
 
-            // Próba zapisania obrazu z różnych źródeł
             if (!string.IsNullOrEmpty(image.Data) || !string.IsNullOrWhiteSpace(image.DataUrl))
                 if (await SaveImageFromDataAsync(image, image.ImagePath))
                     continue;
@@ -134,13 +126,20 @@ public static partial class ObfLoader
                     continue;
 
             if (await SaveImageFromPathAsync(image, image.ImagePath, obfBaseDirectory)) continue;
-            LogError($"Nie udało się zapisać obrazu: {image.Id}");
+            LogError($"Failed to save image: {image.Id}");
         }
     }
 
+ 
+
     /// <summary>
-    ///     Generates a unique filename for the image based on its ID.
+    /// Generates a unique filename for the image based on its ID and file extension.
     /// </summary>
+    /// <param name="image">The Image object containing the image information.</param>
+    /// <returns>
+    /// A string representing the generated filename for the image.
+    /// The filename consists of a sanitized version of the image ID followed by the appropriate file extension.
+    /// </returns>
     private static string GenerateImageFileName(Image image)
     {
         var extension = GetFileExtension(image);
@@ -149,8 +148,18 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Attempts to save the image from Base64 data.
+    /// Attempts to save an image from Base64 data or by downloading it from a URL.
     /// </summary>
+    /// <param name="image">The Image object containing the image data or URL.</param>
+    /// <param name="destinationPath">The file path where the image should be saved.</param>
+    /// <returns>
+    /// A boolean value indicating whether the image was successfully saved.
+    /// Returns true if the image was saved, false otherwise.
+    /// </returns>
+    /// <remarks>
+    /// This method first checks if the image has a DataUrl. If so, it attempts to download the data from that URL.
+    /// If not, it uses the existing Data property. The method then converts the Base64 data to bytes and saves it to the specified path.
+    /// </remarks>
     private static async Task<bool> SaveImageFromDataAsync(Image image, string destinationPath)
     {
         var data = image.Data;
@@ -183,8 +192,14 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Attempts to save the image by downloading it from a URL.
+    /// Attempts to save the image by downloading it from a URL.
     /// </summary>
+    /// <param name="image">The Image object containing the URL of the image to be downloaded.</param>
+    /// <param name="destinationPath">The file path where the downloaded image should be saved.</param>
+    /// <returns>
+    /// An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
+    /// Returns true if the image was saved, false otherwise.
+    /// </returns>
     private static async Task<bool> SaveImageFromUrlAsync(Image image, string destinationPath)
     {
         if (string.IsNullOrEmpty(image.Url))
@@ -210,10 +225,17 @@ public static partial class ObfLoader
             return false;
         }
     }
-
+    
     /// <summary>
-    ///     Próbuje zapisać obraz z podanej ścieżki, używając tylko nazwy pliku.
+    /// Attempts to save the image by downloading it from a path, using only the file name.
     /// </summary>
+    /// <param name="image">The Image object containing the path of the image to be saved.</param>
+    /// <param name="destinationPath">The file path where the downloaded image should be saved.</param>
+    /// <param name="obfBaseDirectory">The base directory of the original OBF file.</param>
+    /// <returns>
+    /// An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
+    /// Returns true if the image was saved, false otherwise.
+    /// </returns>
     private static async Task<bool> SaveImageFromPathAsync(Image image, string destinationPath,
         string obfBaseDirectory)
     {
@@ -222,32 +244,32 @@ public static partial class ObfLoader
 
         try
         {
-            // Sanitizuj ścieżkę obrazu, aby zapobiec atakom typu directory traversal
+            // Sanitize the image path to prevent directory traversal attacks
             var sanitizedImagePath = SanitizeImagePath(image.Path);
 
-            // Buduj pełną ścieżkę do obrazu względem katalogu bazowego OBF
+            // Build the full path to the image relative to the OBF base directory
             var fullImagePath = Path.Combine(obfBaseDirectory, sanitizedImagePath);
             fullImagePath = Path.GetFullPath(fullImagePath);
 
-            // Upewnij się, że ścieżka obrazu znajduje się w katalogu bazowym OBF
+            // Ensure that the image path is within the OBF base directory
             var fullObfBaseDirectory = Path.GetFullPath(obfBaseDirectory);
             if (!fullImagePath.StartsWith(fullObfBaseDirectory, StringComparison.OrdinalIgnoreCase))
             {
-                LogError($"Wykryto niebezpieczną ścieżkę obrazu: {image.Path}");
+                LogError($"Detected a potentially unsafe image path: {image.Path}");
                 return false;
             }
 
-            // Sprawdź asynchronicznie, czy plik istnieje
+            // Check asynchronously if the file exists
             var fileExists = await Task.Run(() => File.Exists(fullImagePath));
             if (fileExists)
             {
-                // Skopiuj plik asynchronicznie
+                // Copy the file asynchronously
                 await CopyFileAsync(fullImagePath, destinationPath);
-                Log($"Skopiowano obraz z {fullImagePath} do {destinationPath}");
+                Log($"Copied image from {fullImagePath} to {destinationPath}");
                 return true;
             }
 
-            // Spróbuj użyć tylko nazwy pliku w znanych katalogach
+            // Try using only the file name in known directories
             var imageFileName = Path.GetFileName(sanitizedImagePath);
 
             var potentialPaths = new[]
@@ -259,29 +281,36 @@ public static partial class ObfLoader
             foreach (var path in potentialPaths)
             {
                 var exists = await Task.Run(() => File.Exists(path));
-                if (exists)
-                {
-                    await CopyFileAsync(path, destinationPath);
-                    Log($"Skopiowano obraz z {path} do {destinationPath}");
-                    return true;
-                }
+                if (!exists) continue;
+                await CopyFileAsync(path, destinationPath);
+                Log($"Copied image from {path} to {destinationPath}");
+                return true;
             }
 
-            LogError($"Plik obrazu nie został znaleziony: {fullImagePath}");
+            LogError($"Image file not found: {fullImagePath}");
             return false;
         }
         catch (Exception ex)
         {
-            LogError($"Błąd podczas zapisywania obrazu z ścieżki: {ex.Message}");
+            LogError($"Error saving image from path: {ex.Message}");
             return false;
         }
     }
 
+    /// <summary>
+    /// Asynchronously copies a file from the source path to the destination path.
+    /// If the destination directory does not exist, it is created.
+    /// </summary>
+    /// <param name="sourceFilePath">The path of the source file to be copied.</param>
+    /// <param name="destinationFilePath">The path where the file should be copied.</param>
+    /// <returns>
+    /// An asynchronous task that completes when the file is copied.
+    /// </returns>
     private static async Task CopyFileAsync(string sourceFilePath, string destinationFilePath)
     {
-        const int bufferSize = 81920; // Domyślny rozmiar bufora
+        const int bufferSize = 81920; // Default buffer size
 
-        // Upewnij się, że katalog docelowy istnieje
+        // Ensure the destination directory exists
         var destinationDirectory = Path.GetDirectoryName(destinationFilePath);
         if (!string.IsNullOrEmpty(destinationDirectory) && !Directory.Exists(destinationDirectory))
             Directory.CreateDirectory(destinationDirectory);
@@ -293,24 +322,23 @@ public static partial class ObfLoader
         await sourceStream.CopyToAsync(destinationStream);
     }
 
+    /// <summary>
+    /// Sanitizes an image path by replacing backslashes with slashes and removing any potentially unsafe components.
+    /// </summary>
+    /// <param name="imagePath">The original image path.</param>
+    /// <returns>The sanitized image path.</returns>
     private static string SanitizeImagePath(string imagePath)
     {
-        // Zamień backslashes na slashe
+        // Replace backslashes with slashes
         imagePath = imagePath.Replace('\\', '/');
 
-        // Usuń wszelkie niebezpieczne komponenty ścieżki, takie jak '../' lub './'
-        var segments = imagePath.Split(new[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        var sanitizedSegments = new List<string>();
-        foreach (var segment in segments)
-        {
-            if (segment == "." || segment == "..")
-                // Pomijamy niebezpieczne segmenty
-                continue;
+        // Split the image path into segments
+        var segments = imagePath.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
-            sanitizedSegments.Add(segment);
-        }
+        // Filter out any potentially unsafe components (e.g., ".", "..")
+        var sanitizedSegments = segments.Where(segment => segment != "." && segment != "..");
 
-        // Ponownie łączymy zsanityzowane segmenty
+        // Combine the sanitized segments back into a single path
         return Path.Combine(sanitizedSegments.ToArray());
     }
 
@@ -336,9 +364,9 @@ public static partial class ObfLoader
             if (match.Success) return GetExtensionFromMimeType(match.Groups["type"].Value);
         }
 
-        if (!string.IsNullOrEmpty(image.Url)) return Path.GetExtension(new Uri(image.Url).AbsolutePath) ?? ".png";
+        if (!string.IsNullOrEmpty(image.Url)) return Path.GetExtension(new Uri(image.Url).AbsolutePath);
 
-        if (!string.IsNullOrEmpty(image.Path)) return Path.GetExtension(image.Path) ?? ".png";
+        if (!string.IsNullOrEmpty(image.Path)) return Path.GetExtension(image.Path);
 
         return ".png"; // Default extension
     }
@@ -358,11 +386,12 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Ensures a directory exists.
+    /// Ensures a directory exists.
     /// </summary>
     private static void EnsureDirectoryExists(string path)
     {
-        Directory.CreateDirectory(path);
+        if (!Directory.Exists(path))
+            Directory.CreateDirectory(path);
     }
 
     /// <summary>
@@ -382,7 +411,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Logs a message to the console.
+    /// Logs a message to the console.
     /// </summary>
     private static void Log(string message)
     {
@@ -390,7 +419,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    ///     Logs an error message to the console.
+    /// Logs an error message to the console.
     /// </summary>
     private static void LogError(string message)
     {
