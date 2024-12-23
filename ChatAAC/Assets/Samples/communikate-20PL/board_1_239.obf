@@ -8,7 +8,7 @@
   },
   "buttons": [
     {
-      "id": 17,
+      "id": 20,
       "label": "Strona Główna",
       "border_color": "rgb(68, 68, 68)",
       "background_color": "rgb(255, 255, 50)",

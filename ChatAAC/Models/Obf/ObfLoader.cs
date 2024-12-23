@@ -93,7 +93,7 @@ public static partial class ObfLoader
         }
         catch (Exception ex)
         {
-            LogError($"Error deserializing OBF file: {ex.Message}");
+            LogError($"Error deserializing OBF file: {obfFilePath} błąd:  {ex.Message}");
             return null;
         }
     }

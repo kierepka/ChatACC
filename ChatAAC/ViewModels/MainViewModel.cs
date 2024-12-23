@@ -44,6 +44,9 @@ public partial class MainViewModel : ViewModelBase
     private int _gridRows;
     private int _gridColumns;
     private bool _isInitialized;
+    // Field to store history of loaded files
+    private List<string> _obfFileHistory = [];
+    private int _currentHistoryIndex = -1; // Indeks bieżącego pliku w historii
 
     private readonly string _historyFilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -167,7 +170,7 @@ public partial class MainViewModel : ViewModelBase
 
         // Initialize commands
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
-        LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadInitialFileAsync);
+        LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadMainBoard);
         ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
         ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
         RemoveButtonCommand = ReactiveCommand.Create<Button>(RemoveSelectedButton);
@@ -191,6 +194,18 @@ public partial class MainViewModel : ViewModelBase
 
         // Load initial OBF or OBZ file
         _ = LoadInitialFileAsync();
+    }
+
+    private async Task LoadMainBoard()
+    {
+        if (_obfFileHistory.Count == 0)
+        {
+            Console.WriteLine("Historia jest pusta.");
+            return;
+        }
+        
+        var nextFilePath = _obfFileHistory[0];
+        await LoadObfFileAsync(nextFilePath);
     }
 
     private void OpenHistoryFolder()
@@ -274,68 +289,68 @@ public partial class MainViewModel : ViewModelBase
 
     private async Task LoadNextBoardAsync()
     {
-        var boardPaths = ConfigViewModel.Instance.BoardPaths;
-        if (boardPaths.Count == 0)
+        if (_obfFileHistory.Count == 0)
         {
-            Console.WriteLine("Brak dodatkowych tablic do załadowania.");
+            Console.WriteLine("Historia jest pusta.");
             return;
         }
 
-        CurrentBoardIndex = (CurrentBoardIndex + 1) % boardPaths.Count;
-        var nextBoardPath = boardPaths[CurrentBoardIndex];
-        ObzDirectoryName = string.Empty;
-        await LoadObfOrObzFileAsync(nextBoardPath);
+        // Sprawdź, czy można przejść do przodu
+        if (_currentHistoryIndex + 1 < _obfFileHistory.Count)
+        {
+            _currentHistoryIndex++;
+            var nextFilePath = _obfFileHistory[_currentHistoryIndex];
+            await LoadObfFileAsync(nextFilePath);
+        }
+        else
+        {
+            Console.WriteLine("Brak kolejnych tablic w historii.");
+        }
     }
 
     private async Task LoadPreviousBoardAsync()
     {
-        var boardPaths = ConfigViewModel.Instance.BoardPaths;
-        if (boardPaths.Count == 0)
+        if (_obfFileHistory.Count == 0)
         {
-            Console.WriteLine("Brak dodatkowych tablic do załadowania.");
+            Console.WriteLine("Historia jest pusta.");
             return;
         }
 
-        CurrentBoardIndex = (CurrentBoardIndex - 1 + boardPaths.Count) % boardPaths.Count;
-        var previousBoardPath = boardPaths[CurrentBoardIndex];
-        ObzDirectoryName = string.Empty;
-        await LoadObfOrObzFileAsync(previousBoardPath);
+        // Sprawdź, czy można przejść wstecz
+        if (_currentHistoryIndex > 0)
+        {
+            _currentHistoryIndex--;
+            var previousFilePath = _obfFileHistory[_currentHistoryIndex];
+            await LoadObfFileAsync(previousFilePath);
+        }
+        else
+        {
+            Console.WriteLine("Brak poprzednich tablic w historii.");
+        }
     }
 
     #endregion
 
     #region File Loading Methods
 
-    /// <summary>
-    /// Clears previous cache for the specified OBF file.
-    /// </summary>
-    /// <param name="filePath">The path to the OBF file.</param>
-    private static void ClearPreviousCache(string filePath)
-    {
-        var cachedFileName = Path.GetFileName(filePath);
-        var cachedFilePath = Path.Combine(ObfCacheDirectory, cachedFileName);
-
-        if (!File.Exists(cachedFilePath)) return;
-        File.Delete(cachedFilePath);
-    }
-    
     private async Task LoadObfOrObzFileAsync(string filePath)
     {
         if (filePath.EndsWith(".obz", StringComparison.OrdinalIgnoreCase))
             await LoadObzFileAsync(filePath);
         else if (filePath.EndsWith(".obf", StringComparison.OrdinalIgnoreCase))
         {
-            
             var obfFileName = Path.GetFileName(filePath);
             var cachedObfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName, obfFileName);
-            
-            
+
+
             await LoadObfFileAsync(cachedObfPath);
         }
         else
             Console.WriteLine("Nieobsługiwany typ pliku. Podaj plik z rozszerzeniem .obf lub .obz.");
     }
 
+    
+    // Metoda pomocnicza do ładowania pliku OBF i aktualizacji historii
     private async Task LoadObfFileAsync(string filePath)
     {
         IsLoading = true;
@@ -344,18 +359,33 @@ public partial class MainViewModel : ViewModelBase
             var obfFile = await ObfLoader.LoadObfAsync(filePath);
             if (obfFile == null)
             {
-                Console.WriteLine("The OBF file is empty or invalid.");
+                Console.WriteLine("Plik OBF jest pusty lub nieprawidłowy.");
                 return;
             }
 
             ObfData = obfFile;
+            CurrentObfFilePath = filePath;
 
-            // Load buttons from ObfData
+            // Jeśli wczytujemy nowy plik spoza historii
+            if (_currentHistoryIndex == -1 || _currentHistoryIndex == _obfFileHistory.Count - 1 || _obfFileHistory[_currentHistoryIndex] != filePath)
+            {
+                // Usuń elementy z historii po bieżącym indeksie (jeśli poruszamy się w środku historii)
+                if (_currentHistoryIndex < _obfFileHistory.Count - 1)
+                {
+                    _obfFileHistory = _obfFileHistory.Take(_currentHistoryIndex + 1).ToList();
+                }
+
+                // Dodaj nowy plik do historii
+                _obfFileHistory.Add(filePath);
+                _currentHistoryIndex = _obfFileHistory.Count - 1;
+            }
+
+            // Załaduj przyciski z pliku OBF
             LoadButtonsFromObfData(ObfData);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading OBF file: {ex.Message}");
+            Console.WriteLine($"Błąd podczas ładowania pliku OBF: {filePath}. Szczegóły: {ex.Message}");
         }
         finally
         {
@@ -363,26 +393,38 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
+    public string CurrentObfFilePath { get; set; }
+
+    /// <summary>
+    /// Asynchronously loads an OBZ file from the specified file path.
+    /// </summary>
+    /// <param name="filePath">The path to the OBZ file.</param>
+    /// <returns>An asynchronous task.</returns>
     private async Task LoadObzFileAsync(string filePath)
     {
+        // Set the loading state to true
         IsLoading = true;
 
         try
         {
-            // Tworzymy podkatalog o nazwie odpowiadającej plikowi .obz
+            // Create a subdirectory with the name corresponding to the .obz file
             ObzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
             var destinationDirectory = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
 
+            // Extract the contents of the OBZ file
             await ExtractObzArchiveAsync(filePath);
 
             var manifestPath = Path.Combine(destinationDirectory, "manifest.json");
             if (File.Exists(manifestPath))
             {
+                // Read the manifest file
                 var manifestJson = await File.ReadAllTextAsync(manifestPath);
                 var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
 
+                // Construct the path to the root OBF file
                 var rootObfPath = Path.Combine(destinationDirectory, manifest?.Root ?? "root.obf");
                 if (File.Exists(rootObfPath))
+                    // Load the root OBF file
                     await LoadObfFileAsync(rootObfPath);
                 else
                     Console.WriteLine("root.obf file not found in the OBZ package.");
@@ -394,16 +436,18 @@ public partial class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            // Log any errors that occur during the loading process
             Console.WriteLine($"Error loading OBZ file: {ex.Message}");
         }
         finally
         {
+            // Set the loading state to false
             IsLoading = false;
-     
         }
     }
+    
 
-    private string? ObzDirectoryName { get; set; } = string.Empty;
+    private string ObzDirectoryName { get; set; } = string.Empty;
 
     private static string ObfCacheDirectory { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -417,65 +461,63 @@ public partial class MainViewModel : ViewModelBase
     private async Task ExtractObzArchiveAsync(string filePath)
     {
         // Extract the directory name from the .obz file
-        if (ObzDirectoryName != null)
+
+        var pictogramsPath = Path.Combine(PictogramsCacheDirectory, ObzDirectoryName);
+        var obfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
+
+        // Ensure the target directories exist
+        Directory.CreateDirectory(pictogramsPath);
+        Directory.CreateDirectory(obfPath);
+
+        await Task.Run(() =>
         {
-            var pictogramsPath = Path.Combine(PictogramsCacheDirectory, ObzDirectoryName);
-            var obfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
-
-            // Ensure the target directories exist
-            Directory.CreateDirectory(pictogramsPath);
-            Directory.CreateDirectory(obfPath);
-
-            await Task.Run(() =>
+            using var archive = ZipFile.OpenRead(filePath);
+            foreach (var entry in archive.Entries)
             {
-                using var archive = ZipFile.OpenRead(filePath);
-                foreach (var entry in archive.Entries)
+                // Sanitize the entry name to prevent directory traversal attacks
+                var sanitizedEntryName = SanitizeEntryName(entry.FullName);
+
+                // Determine the destination directory based on the file type
+                string? destinationDirectory = null;
+
+                if (IsImageFile(sanitizedEntryName))
                 {
-                    // Sanitize the entry name to prevent directory traversal attacks
-                    var sanitizedEntryName = SanitizeEntryName(entry.FullName);
-
-                    // Determine the destination directory based on the file type
-                    string? destinationDirectory = null;
-
-                    if (IsImageFile(sanitizedEntryName))
-                    {
-                        destinationDirectory = pictogramsPath;
-                    }
-                    else if (IsObfFile(sanitizedEntryName))
-                    {
-                        destinationDirectory = obfPath;
-                    }
-                    else if (IsManifestFile(sanitizedEntryName))
-                    {
-                        destinationDirectory = obfPath;
-                    }
-
-                    if (destinationDirectory == null) continue;
-                    // Build the full destination path within the target directory
-                    var destinationPath =
-                        Path.GetFullPath(Path.Combine(destinationDirectory, Path.GetFileName(sanitizedEntryName)));
-
-                    // Skip unsafe entries
-                    if (!destinationPath.StartsWith(destinationDirectory, StringComparison.Ordinal))
-                    {
-                        Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
-                        continue;
-                    }
-
-                    if (string.IsNullOrEmpty(entry.Name))
-                    {
-                        // Create directory if the entry is a folder
-                        Directory.CreateDirectory(destinationPath);
-                    }
-                    else
-                    {
-                        // Ensure the destination directory exists and extract the file
-                        Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                        entry.ExtractToFile(destinationPath, true);
-                    }
+                    destinationDirectory = pictogramsPath;
                 }
-            });
-        }
+                else if (IsObfFile(sanitizedEntryName))
+                {
+                    destinationDirectory = obfPath;
+                }
+                else if (IsManifestFile(sanitizedEntryName))
+                {
+                    destinationDirectory = obfPath;
+                }
+
+                if (destinationDirectory == null) continue;
+                // Build the full destination path within the target directory
+                var destinationPath =
+                    Path.GetFullPath(Path.Combine(destinationDirectory, Path.GetFileName(sanitizedEntryName)));
+
+                // Skip unsafe entries
+                if (!destinationPath.StartsWith(destinationDirectory, StringComparison.Ordinal))
+                {
+                    Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
+                    continue;
+                }
+
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    // Create directory if the entry is a folder
+                    Directory.CreateDirectory(destinationPath);
+                }
+                else
+                {
+                    // Ensure the destination directory exists and extract the file
+                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
+                    entry.ExtractToFile(destinationPath, true);
+                }
+            }
+        });
     }
 
     private bool IsManifestFile(string fileName)
@@ -489,7 +531,7 @@ public partial class MainViewModel : ViewModelBase
     private static bool IsImageFile(string fileName)
     {
         var extensions = new[] { ".jpg", ".jpeg", ".png", ".bmp" };
-        var fileExtension = Path.GetExtension(fileName)?.ToLowerInvariant();
+        var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
         return extensions.Contains(fileExtension);
     }
 
@@ -498,7 +540,7 @@ public partial class MainViewModel : ViewModelBase
     /// </summary>
     private static bool IsObfFile(string fileName)
     {
-        return Path.GetExtension(fileName)?.ToLowerInvariant() == ".obf";
+        return Path.GetExtension(fileName).ToLowerInvariant() == ".obf";
     }
 
     private string SanitizeEntryName(string entryName)
