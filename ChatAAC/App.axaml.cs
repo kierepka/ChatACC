@@ -6,6 +6,7 @@ using Avalonia.ReactiveUI;
 using ChatAAC.ViewModels;
 using ChatAAC.Views;
 using ReactiveUI;
+using System.Globalization;
 
 namespace ChatAAC;
 
@@ -20,6 +21,9 @@ public class App : Application
 
     public override void OnFrameworkInitializationCompleted()
     {
+        // Ustawienie kultury na aktualną kulturę systemową
+        Lang.Resources.Culture = CultureInfo.CurrentCulture;
+        
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             desktop.MainWindow = new MainWindow
             {

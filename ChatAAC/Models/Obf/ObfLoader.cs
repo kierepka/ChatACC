@@ -29,7 +29,7 @@ public static partial class ObfLoader
     /// An asynchronous task that returns an ObfFile object if successful.
     /// Returns null if loading or processing fails.
     /// </returns>
-    public static async Task<ObfFile?> LoadObfAsync(string filePath)
+    public static async Task<ObfFile?> LoadObfAsync(string? filePath)
     {
         if (string.IsNullOrWhiteSpace(filePath))
         {
@@ -84,8 +84,14 @@ public static partial class ObfLoader
     /// An asynchronous task that returns an ObfFile object if deserialization is successful.
     /// Returns null if deserialization fails.
     /// </returns>
-    private static async Task<ObfFile?> DeserializeObfFileAsync(string obfFilePath)
+    private static async Task<ObfFile?> DeserializeObfFileAsync(string? obfFilePath)
     {
+        if (string.IsNullOrWhiteSpace(obfFilePath))
+        {
+            LogError("The file path is null or empty.");
+            return null;
+        }
+
         try
         {
             var jsonString = await File.ReadAllTextAsync(obfFilePath);
@@ -93,7 +99,7 @@ public static partial class ObfLoader
         }
         catch (Exception ex)
         {
-            LogError($"Error deserializing OBF file: {obfFilePath} błąd:  {ex.Message}");
+            LogError($"Error deserializing OBF file: {ex.Message}");
             return null;
         }
     }

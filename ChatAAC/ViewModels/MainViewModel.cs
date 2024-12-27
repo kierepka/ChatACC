@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -43,9 +45,11 @@ public partial class MainViewModel : ViewModelBase
     private int _currentBoardIndex;
     private int _gridRows;
     private int _gridColumns;
+
     private bool _isInitialized;
+
     // Field to store history of loaded files
-    private List<string> _obfFileHistory = [];
+    private List<string?> _obfFileHistory = [];
     private int _currentHistoryIndex = -1; // Indeks bieżącego pliku w historii
 
     private readonly string _historyFilePath = Path.Combine(
@@ -203,7 +207,7 @@ public partial class MainViewModel : ViewModelBase
             Console.WriteLine("Historia jest pusta.");
             return;
         }
-        
+
         var nextFilePath = _obfFileHistory[0];
         await LoadObfFileAsync(nextFilePath);
     }
@@ -349,9 +353,9 @@ public partial class MainViewModel : ViewModelBase
             Console.WriteLine("Nieobsługiwany typ pliku. Podaj plik z rozszerzeniem .obf lub .obz.");
     }
 
-    
+
     // Metoda pomocnicza do ładowania pliku OBF i aktualizacji historii
-    private async Task LoadObfFileAsync(string filePath)
+    private async Task LoadObfFileAsync(string? filePath)
     {
         IsLoading = true;
         try
@@ -364,10 +368,11 @@ public partial class MainViewModel : ViewModelBase
             }
 
             ObfData = obfFile;
-            CurrentObfFilePath = filePath;
+            CurrentObfFilePath = filePath ?? string.Empty;
 
             // Jeśli wczytujemy nowy plik spoza historii
-            if (_currentHistoryIndex == -1 || _currentHistoryIndex == _obfFileHistory.Count - 1 || _obfFileHistory[_currentHistoryIndex] != filePath)
+            if (_currentHistoryIndex == -1 || _currentHistoryIndex == _obfFileHistory.Count - 1 ||
+                _obfFileHistory[_currentHistoryIndex] != filePath)
             {
                 // Usuń elementy z historii po bieżącym indeksie (jeśli poruszamy się w środku historii)
                 if (_currentHistoryIndex < _obfFileHistory.Count - 1)
@@ -393,7 +398,7 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    public string CurrentObfFilePath { get; set; }
+    public string CurrentObfFilePath { get; set; } = string.Empty;
 
     /// <summary>
     /// Asynchronously loads an OBZ file from the specified file path.
@@ -445,7 +450,7 @@ public partial class MainViewModel : ViewModelBase
             IsLoading = false;
         }
     }
-    
+
 
     private string ObzDirectoryName { get; set; } = string.Empty;
 
@@ -514,7 +519,26 @@ public partial class MainViewModel : ViewModelBase
                 {
                     // Ensure the destination directory exists and extract the file
                     Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    entry.ExtractToFile(destinationPath, true);
+                    try
+                    {
+                        // Próba rozpakowania pliku
+                        entry.ExtractToFile(destinationPath, true);
+                    }
+                    catch (UnauthorizedAccessException ex)
+                    {
+                        // Obsługa wyjątku braku dostępu do pliku
+                        Console.WriteLine($"Access denied to file: {destinationPath}. {ex.Message}");
+                    }
+                    catch (IOException ex)
+                    {
+                        // Obsługa wyjątku związanych z I/O, np. plik w użyciu
+                        Console.WriteLine($"Unable to overwrite file: {destinationPath}. {ex.Message}");
+                    }
+                    catch (Exception ex)
+                    {
+                        // Obsługa wszystkich innych wyjątków
+                        Console.WriteLine($"An error occurred while extracting file: {entry.FullName}. {ex.Message}");
+                    }
                 }
             }
         });
@@ -833,11 +857,9 @@ public partial class MainViewModel : ViewModelBase
             if (mainWindow == null) return;
             await configWindow.ShowDialog(mainWindow);
 
-            configWindow.Closed += async (_, _) =>
-            {
-                await OnConfigWindowClosedAsync();
-                ConfigViewModel.Instance.Message = null;
-            };
+    
+            ConfigViewModel.Instance.Message = null;
+            RefreshUi();
         }
         catch (Exception ex)
         {
@@ -845,52 +867,24 @@ public partial class MainViewModel : ViewModelBase
         }
     }
 
-    private async Task OnConfigWindowClosedAsync()
+    private void RefreshUi()
     {
-        try
-        {
-            // Wymuszamy zapis konfiguracji przed zamknięciem
-            ConfigViewModel.Instance.SaveCommand.Execute().Subscribe();
+        Thread.CurrentThread.CurrentCulture = ConfigViewModel.Instance.SelectedCulture ?? CultureInfo.InvariantCulture;
+        Thread.CurrentThread.CurrentUICulture =
+            ConfigViewModel.Instance.SelectedCulture ?? CultureInfo.InvariantCulture;
 
-            // Zapamiętujemy aktualną ścieżkę
-            var currentBoardPath = ConfigViewModel.Instance.BoardPaths.ElementAtOrDefault(CurrentBoardIndex);
+        Lang.Resources.Culture = ConfigViewModel.Instance.SelectedCulture;
 
-            // Przeładowanie ustawień
-            ConfigViewModel.Instance.ReloadSettings();
 
-            // Sprawdzamy czy konfiguracja została poprawnie zapisana
-            var savedBoardPaths = ConfigViewModel.Instance.BoardPaths;
-            if (!savedBoardPaths.Any()) Console.WriteLine("Warning: Board paths are empty after reload");
+        // Notify all bindings to refresh
+        this.RaisePropertyChanged(string.Empty);
 
-            // Czyścimy stan aplikacji
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                Buttons.Clear();
-                SelectedButtons.Clear();
-                AiResponse = string.Empty;
-                ConstructedSentence = string.Empty;
-            });
-
-            _isInitialized = false;
-
-            // Przywracamy pozycję w BoardPaths
-            if (!string.IsNullOrEmpty(currentBoardPath))
-            {
-                CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(currentBoardPath);
-                if (CurrentBoardIndex == -1) CurrentBoardIndex = 0;
-            }
-            else
-            {
-                CurrentBoardIndex = 0;
-            }
-
-            await LoadInitialFileAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error in OnConfigWindowClosedAsync: {ex.Message}");
-        }
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
+        var mainWindow = desktop.MainWindow;
+        mainWindow?.InvalidateVisual();
     }
+
+   
 
     [GeneratedRegex(@"^[a-zA-Z]:/")]
     private static partial Regex MyRegex();

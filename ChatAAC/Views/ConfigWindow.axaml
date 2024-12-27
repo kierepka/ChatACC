@@ -5,83 +5,89 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         xmlns:viewModels="clr-namespace:ChatAAC.ViewModels"
         xmlns:converters="using:ChatAAC.Converters"
+        xmlns:lang="clr-namespace:ChatAAC.Lang"
         x:Class="ChatAAC.Views.ConfigWindow"
         x:DataType="viewModels:ConfigViewModel"
-        Title="Ustawienia" Width="700" Height="700">
+        Title="{x:Static lang:Resources.SettingsWindowTitle}" Width="700" Height="700">
     <Window.Resources>
         <converters:StringNotEmptyToBoolConverter x:Key="StringNotEmptyToBoolConverter" />
     </Window.Resources>
-    <ScrollViewer>
-        <StackPanel Margin="20">
-            <!-- Wiadomość dla użytkownika -->
-            <TextBlock Text="{Binding Message}"
-                       Foreground="Red"
-                       FontSize="16"
-                       Margin="0,0,0,10"
-                       IsVisible="{Binding Message, Converter={StaticResource StringNotEmptyToBoolConverter}}" />
 
-            <TextBlock Text="Adres Ollama:" FontSize="18" Margin="0,0,0,5" />
-            <TextBox Text="{Binding OllamaAddress}" FontSize="16" Margin="0,0,0,20"
-                     AutomationProperties.Name="Pole tekstowe do wprowadzenia adresu Ollama" />
+    <Grid Margin="10">
+        <TextBlock Text="{x:Static lang:Resources.SettingsTitle}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeLarge}" FontWeight="Bold" Margin="0,0,0,20" />
 
-            <TextBlock Text="Wybór modelu:" FontSize="18" Margin="0,0,0,5" />
-            <ComboBox ItemsSource="{Binding Models}"
-                      SelectedItem="{Binding SelectedModel}"
-                      FontSize="16" Margin="0,0,0,20"
-                      AutomationProperties.Name="Lista wyboru modelu AI" />
+        <TabControl Margin="0,40,0,60">
+            <!-- General Settings Tab -->
+            <TabItem Header="{x:Static lang:Resources.GeneralTab}">
+                <StackPanel Margin="10" Spacing="10">
+                    <TextBlock Text="{x:Static lang:Resources.OllamaAddressLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <TextBox Text="{Binding OllamaAddress}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" AutomationProperties.Name="Ollama Address" />
+                    <TextBlock Text="{x:Static lang:Resources.SelectModelLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <ComboBox ItemsSource="{Binding Models}" SelectedItem="{Binding SelectedModel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <TextBlock Text="{x:Static lang:Resources.ProgramLanguageLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <ComboBox ItemsSource="{Binding Languages}" SelectedItem="{Binding SelectedLanguage}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                </StackPanel>
+            </TabItem>
 
-            <TextBlock Text="Pliki tablicy AAC:" FontSize="18" Margin="0,0,0,5" />
-            <Grid ColumnDefinitions="*, Auto" Margin="0,0,0,10">
-                <Button Grid.Column="1" Content="Dodaj plik"
-                        Command="{Binding AddBoardCommand}"
-                        FontSize="16"
-                        AutomationProperties.Name="Przycisk do dodania nowego pliku tablicy AAC" />
-            </Grid>
-            <ListBox ItemsSource="{Binding BoardPaths}"
-                     MaxHeight="100" Margin="0,0,0,20"
-                     AutomationProperties.Name="Lista wybranych plików tablicy AAC">
-                <ListBox.ItemTemplate>
-                    <DataTemplate>
-                        <Grid ColumnDefinitions="*, Auto">
-                            <TextBlock Text="{Binding}"
-                                       ToolTip.Tip="{Binding}"
-                                       AutomationProperties.Name="Ścieżka do pliku tablicy AAC" />
-                            <Button Grid.Column="1" Content="Usuń" x:CompileBindings="False"
-                                    Command="{Binding DataContext.RemoveBoardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                    CommandParameter="{Binding}"
-                                    FontSize="14"
-                                    AutomationProperties.Name="Przycisk do usunięcia pliku tablicy AAC" />
-                        </Grid>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
+            <!-- Board Management Tab -->
+            <TabItem Header="{x:Static lang:Resources.BoardsTab}">
+                <StackPanel Margin="10" Spacing="10">
+                    <TextBlock Text="{x:Static lang:Resources.ShowSymbolsLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <CheckBox Content="{x:Static lang:Resources.IncludeSexSymbols}" IsChecked="{Binding ShowSex}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <CheckBox Content="{x:Static lang:Resources.IncludeViolenceSymbols}" IsChecked="{Binding ShowViolence}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <TextBlock Text="{x:Static lang:Resources.DefaultBoardLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <ComboBox ItemsSource="{Binding BoardPaths}" SelectedItem="{Binding DefaultBoardPath}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <TextBlock Text="{x:Static lang:Resources.AACBoardFilesLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <Grid ColumnDefinitions="*, Auto">
+                        <Button Content="{x:Static lang:Resources.AddFileButton}" Command="{Binding AddBoardCommand}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    </Grid>
+                    <ListBox ItemsSource="{Binding BoardPaths}" MaxHeight="150" Margin="0,10,0,10">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <TextBlock Text="{Binding}"
+                                               ToolTip.Tip="{Binding}"
+                                               AutomationProperties.Name="Ścieżka do pliku tablicy AAC" />
+                                    <Button x:CompileBindings="False" 
+                                            Grid.Column="1" Content="Usuń"
+                                            Command="{Binding DataContext.RemoveBoardCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                            CommandParameter="{Binding}"
+                                            FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}"
+                                            AutomationProperties.Name="{x:Static lang:Resources.BoardPathTooltip}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </TabItem>
 
-            <TextBlock Text="Wybierz domyślną tablicę:" FontSize="18" Margin="0,0,0,5" />
-            <ComboBox ItemsSource="{Binding BoardPaths}"
-                      SelectedItem="{Binding DefaultBoardPath}"
-                      FontSize="16" Margin="0,0,0,20"
-                      AutomationProperties.Name="Lista wyboru domyślnej tablicy" />
+            <!-- Display Settings Tab -->
+            <TabItem Header="{x:Static lang:Resources.DisplayTab}">
+                <StackPanel Margin="10" Spacing="10">
+                    <TextBlock Text="{x:Static lang:Resources.FontSizeLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <Slider Minimum="10" Maximum="30" Value="{Binding FontSize}" />
+                    <TextBlock Text="{x:Static lang:Resources.ButtonSizeLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <Slider Minimum="50" Maximum="150" Value="{Binding ButtonSize}" />
+                </StackPanel>
+            </TabItem>
 
-            <TextBlock Text="Widok piktogramów:" FontSize="18" Margin="0,0,0,5" />
-            <CheckBox Content="Symbole związane z seksualnością"
-                      IsChecked="{Binding ShowSex}" Margin="0,0,0,5"
-                      FontSize="16"
-                      AutomationProperties.Name="Przełącznik pokazywania symboli związanych z seksualnością" />
-            <CheckBox Content="Symbole związane z przemocą"
-                      IsChecked="{Binding ShowViolence}" Margin="0,0,0,20"
-                      FontSize="16"
-                      AutomationProperties.Name="Przełącznik pokazywania symboli związanych z przemocą" />
+            <!-- Advanced Tab -->
+            <TabItem Header="{x:Static lang:Resources.AdvancedTab}">
+                <StackPanel Margin="10" Spacing="10">
+                    <TextBlock Text="{x:Static lang:Resources.CacheDirectoryLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <TextBox Text="{Binding CacheDirectory}" IsReadOnly="True" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <Button Content="{x:Static lang:Resources.ClearCacheButton}" Command="{Binding ClearCacheCommand}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <TextBlock Text="{x:Static lang:Resources.BackupSettingsLabel}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
+                    <Button Content="{x:Static lang:Resources.ExportSettingsButton}" Command="{Binding ExportSettingsCommand}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                    <Button Content="{x:Static lang:Resources.ImportSettingsButton}" Command="{Binding ImportSettingsCommand}" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
+                </StackPanel>
+            </TabItem>
+        </TabControl>
 
-            <TextBlock Text="Język programu:" FontSize="18" Margin="0,0,0,5" />
-            <ComboBox ItemsSource="{Binding Languages}"
-                      SelectedItem="{Binding SelectedLanguage}"
-                      FontSize="16" Margin="0,0,0,20"
-                      AutomationProperties.Name="Lista wyboru języka interfejsu" />
-
-            <Button Content="Zapisz" Command="{Binding SaveCommand}"
-                    Width="200" Height="60" FontSize="18" Margin="0,20,0,0"
-                    Classes="accent" HorizontalAlignment="Right"
-                    AutomationProperties.Name="Przycisk Zapisz - zapisuje wszystkie ustawienia" />
+        <!-- Footer Buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+            <Button Content="{x:Static lang:Resources.AboutButton}" Command="{Binding OpenAboutWindowCommand}" Width="80" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" Margin="0,0,10,0" />
+            <Button Content="{x:Static lang:Resources.SaveButton}" Command="{Binding SaveCommand}" Width="80" FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
         </StackPanel>
-    </ScrollViewer>
+    </Grid>
 </Window>

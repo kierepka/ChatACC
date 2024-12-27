@@ -4,6 +4,7 @@
     <option name="projectPerEditor">
       <map>
         <entry key="ChatAAC/App.axaml" value="ChatAAC/ChatAAC.csproj" />
+        <entry key="ChatAAC/Lang/Resources.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/ViewModels/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/ConfigWindow.axaml" value="ChatAAC/ChatAAC.csproj" />

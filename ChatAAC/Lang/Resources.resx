@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<root>
+    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+        <xsd:element name="root" msdata:IsDataSet="true">
+            
+        </xsd:element>
+    </xsd:schema>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="MainWindowTitle" xml:space="preserve">
+        <value>ChatAAC</value>
+    </data>
+    <data name="SelectedPictogramHelpText" xml:space="preserve">
+        <value>Wybrany piktogram: {0}</value>
+    </data>
+    <data name="ClearTextButton" xml:space="preserve">
+        <value>Wyczyść tekst</value>
+    </data>
+    <data name="TenseLabel" xml:space="preserve">
+        <value>Czas:</value>
+    </data>
+    <data name="PastTense" xml:space="preserve">
+        <value>było</value>
+    </data>
+    <data name="FutureTense" xml:space="preserve">
+        <value>będzie</value>
+    </data>
+    <data name="FormLabel" xml:space="preserve">
+        <value>Forma:</value>
+    </data>
+    <data name="DeclarativeForm" xml:space="preserve">
+        <value>Oznajmująca</value>
+    </data>
+    <data name="QuestionForm" xml:space="preserve">
+        <value>Pytająca</value>
+    </data>
+    <data name="ClearTextButtonAutomation" xml:space="preserve">
+        <value>Przycisk wyczyść tekst</value>
+    </data>
+    <data name="PastTenseAutomation" xml:space="preserve">
+        <value>Czas przeszły</value>
+    </data>
+    <data name="PresentTenseAutomation" xml:space="preserve">
+        <value>Czas teraźniejszy</value>
+    </data>
+    <data name="PresentTense" xml:space="preserve">
+        <value>jest</value>
+    </data>
+    <data name="DeclarativeFormAutomation" xml:space="preserve">
+        <value>Forma oznajmująca</value>
+    </data>
+    <data name="QuestionFormAutomation" xml:space="preserve">
+        <value>Forma pytająca</value>
+    </data>
+    <data name="BackButtonAutomation" xml:space="preserve">
+        <value>Powrót</value>
+    </data>
+    <data name="BackButton" xml:space="preserve">
+        <value>Wróć</value>
+    </data>
+    <data name="FutureTenseAutomation" xml:space="preserve">
+        <value>Czas przyszły</value>
+    </data>
+    <data name="HistoryButtonAutomation" xml:space="preserve">
+        <value>Historia wpisów</value>
+    </data>
+    <data name="HistoryButton" xml:space="preserve">
+        <value>Historia</value>
+    </data>
+    <data name="SettingsButtonAutomation" xml:space="preserve">
+        <value>Ustawienia</value>
+    </data>
+    <data name="SettingsButton" xml:space="preserve">
+        <value>Ustawienia</value>
+    </data>
+    <data name="LoadingText" xml:space="preserve">
+        <value>Ładowanie…</value>
+    </data>
+    <data name="PreviousBoardAutomation" xml:space="preserve">
+        <value>Poprzednia tablica</value>
+    </data>
+    <data name="PreviousBoard" xml:space="preserve">
+        <value>Wstecz</value>
+    </data>
+    <data name="NextBoardAutomation" xml:space="preserve">
+        <value>Następna tablica</value>
+    </data>
+    <data name="NextBoard" xml:space="preserve">
+        <value>Dalej</value>
+    </data>
+    <data name="SettingsWindowTitle" xml:space="preserve">
+        <value>Ustawienia</value>
+    </data>
+    <data name="SettingsTitle" xml:space="preserve">
+        <value>Ustawienia </value>
+    </data>
+    <data name="GeneralTab" xml:space="preserve">
+        <value>Ogólne</value>
+    </data>
+    <data name="OllamaAddressLabel" xml:space="preserve">
+        <value>Adres dla Ollama:</value>
+    </data>
+    <data name="OllamaAddressAutomation" xml:space="preserve">
+        <value>Adres IP serwera Ollama</value>
+    </data>
+    <data name="SelectModelLabel" xml:space="preserve">
+        <value>Wybierz model:</value>
+    </data>
+    <data name="ProgramLanguageLabel" xml:space="preserve">
+        <value>Język programu:</value>
+    </data>
+    <data name="BoardsTab" xml:space="preserve">
+        <value>Tablice</value>
+    </data>
+    <data name="IncludeSexSymbols" xml:space="preserve">
+        <value>Uwzględnij symbole związane z seksualnością</value>
+    </data>
+    <data name="IncludeViolenceSymbols" xml:space="preserve">
+        <value>Uwzględnij symbole związane z przemocą</value>
+    </data>
+    <data name="DefaultBoardLabel" xml:space="preserve">
+        <value>Domyślna tablica:</value>
+    </data>
+    <data name="AACBoardFilesLabel" xml:space="preserve">
+        <value>Pliki tablic AAC:</value>
+    </data>
+    <data name="AddFileButton" xml:space="preserve">
+        <value>Dodaj plik</value>
+    </data>
+    <data name="BoardPathTooltip" xml:space="preserve">
+        <value>Ścieżka do pliku tablicy AAC</value>
+    </data>
+    <data name="RemoveButton" xml:space="preserve">
+        <value>Usuń</value>
+    </data>
+    <data name="RemoveButtonAutomation" xml:space="preserve">
+        <value>Przycisk usuń</value>
+    </data>
+    <data name="DisplayTab" xml:space="preserve">
+        <value>Wyświetlanie</value>
+    </data>
+    <data name="FontSizeLabel" xml:space="preserve">
+        <value>Rozmiar czcionki:</value>
+    </data>
+    <data name="ButtonSizeLabel" xml:space="preserve">
+        <value>Rozmiar przycisków:</value>
+    </data>
+    <data name="ShowSymbolsLabel" xml:space="preserve">
+        <value>Pokaż symbole:</value>
+    </data>
+    <data name="AdvancedTab" xml:space="preserve">
+        <value>Zaawansowane</value>
+    </data>
+    <data name="CacheDirectoryLabel" xml:space="preserve">
+        <value>Katalog pamięci podręcznej:</value>
+    </data>
+    <data name="ClearCacheButton" xml:space="preserve">
+        <value>Wyczyść pamięć podręczną</value>
+    </data>
+    <data name="BackupSettingsLabel" xml:space="preserve">
+        <value>Kopia zapasowa ustawień:</value>
+    </data>
+    <data name="ExportSettingsButton" xml:space="preserve">
+        <value>Eksportuj ustawienia</value>
+    </data>
+    <data name="ImportSettingsButton" xml:space="preserve">
+        <value>Importuj ustawienia</value>
+    </data>
+    <data name="AboutButton" xml:space="preserve">
+        <value>O programie</value>
+    </data>
+    <data name="SaveButton" xml:space="preserve">
+        <value>Zapisz</value>
+    </data>
+    <data name="AboutWindowTitle" xml:space="preserve">
+        <value>O programie</value>
+    </data>
+    <data name="AboutTitle" xml:space="preserve">
+        <value>ChatAAC </value>
+    </data>
+    <data name="AboutVersion" xml:space="preserve">
+        <value>Wersja 1.0.0</value>
+    </data>
+    <data name="AboutDescription" xml:space="preserve">
+        <value>ChatAAC to aplikacja wspomagająca komunikację osób z niepełnosprawnościami ruchowymi za pomocą piktogramów.</value>
+    </data>
+    <data name="AboutAuthor" xml:space="preserve">
+        <value>Autor: Mateusz Kierepka</value>
+    </data>
+    <data name="AboutContact" xml:space="preserve">
+        <value>Kontakt: mateusz@kierepka.com</value>
+    </data>
+    <data name="AboutArasaacTitle" xml:space="preserve">
+        <value>O ARASAAC</value>
+    </data>
+    <data name="AboutArasaacDescription" xml:space="preserve">
+        <value>ARASAAC (Aragonese Center of Augmentative and Alternative Communication) dostarcza piktogramy używane w aplikacji ChatAAC. Dzięki ARASAAC użytkownicy mogą tworzyć komunikaty za pomocą symboli wizualnych, co wspiera efektywną komunikację osób z niepełnosprawnościami ruchowymi.</value>
+    </data>
+    <data name="AboutLicensesTitle" xml:space="preserve">
+        <value>Licencje</value>
+    </data>
+    <data name="AboutLicensesDescription" xml:space="preserve">
+        <value>ChatAAC jest dostępny na licencji MIT. Piktogramy ARASAAC są używane zgodnie z warunkami licencji ARASAAC, która umożliwia ich wykorzystanie w aplikacjach wspierających komunikację.</value>
+    </data>
+    <data name="AboutCloseButton" xml:space="preserve">
+        <value>Zamknij</value>
+    </data>
+    <data name="AboutCloseButtonAutomation" xml:space="preserve">
+        <value>Przycisk zamknięcia</value>
+    </data>
+</root>

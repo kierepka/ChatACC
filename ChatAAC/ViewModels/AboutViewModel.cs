@@ -1,6 +1,5 @@
 using System;
 using System.Reactive;
-using System.Reactive.Linq;
 using ReactiveUI;
 
 namespace ChatAAC.ViewModels;
@@ -10,13 +9,16 @@ public class AboutViewModel : ViewModelBase
     public AboutViewModel()
     {
         CloseInteraction = new Interaction<Unit, Unit>();
-        CloseCommand = ReactiveCommand.CreateFromTask(async () => { await CloseInteraction.Handle(Unit.Default); });
+        CloseCommand = ReactiveCommand.Create(() =>
+        {
+            // Trigger the CloseInteraction to close the window
+            CloseInteraction.Handle(Unit.Default).Subscribe();
+        });
 
-        // Obsługa wyjątków
+        // Handle exceptions from the command
         CloseCommand.ThrownExceptions.Subscribe(ex =>
         {
-            // Logowanie lub obsługa błędów
-            Console.WriteLine($"Błąd w CloseCommand: {ex.Message}");
+            Console.WriteLine($"Error in CloseCommand: {ex.Message}");
         });
     }
 

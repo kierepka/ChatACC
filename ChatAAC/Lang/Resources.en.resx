@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="MainWindowTitle" xml:space="preserve">
+        <value>ChatAAC</value>
+    </data>
+    <data name="SelectedPictogramHelpText" xml:space="preserve">
+        <value>Selected pictogram: {0}</value>
+    </data>
+    <data name="ClearTextButton" xml:space="preserve">
+        <value>Clear Text</value>
+    </data>
+    <data name="TenseLabel" xml:space="preserve">
+        <value>Tense:</value>
+    </data>
+    <data name="PastTense" xml:space="preserve">
+        <value>past</value>
+    </data>
+    <data name="FutureTense" xml:space="preserve">
+        <value>future</value>
+    </data>
+    <data name="FormLabel" xml:space="preserve">
+        <value>Form:</value>
+    </data>
+    <data name="DeclarativeForm" xml:space="preserve">
+        <value>Declarative</value>
+    </data>
+    <data name="QuestionForm" xml:space="preserve">
+        <value>Question</value>
+    </data>
+    <data name="ClearTextButtonAutomation" xml:space="preserve">
+        <value>Clear text button</value>
+    </data>
+    <data name="PastTenseAutomation" xml:space="preserve">
+        <value>Past tense</value>
+    </data>
+    <data name="PresentTenseAutomation" xml:space="preserve">
+        <value>Present tense</value>
+    </data>
+    <data name="PresentTense" xml:space="preserve">
+        <value>present</value>
+    </data>
+    <data name="DeclarativeFormAutomation" xml:space="preserve">
+        <value>Declarative form</value>
+    </data>
+    <data name="QuestionFormAutomation" xml:space="preserve">
+        <value>Question form</value>
+    </data>
+    <data name="BackButtonAutomation" xml:space="preserve">
+        <value>Back</value>
+    </data>
+    <data name="BackButton" xml:space="preserve">
+        <value>Back</value>
+    </data>
+    <data name="FutureTenseAutomation" xml:space="preserve">
+        <value>Future tense</value>
+    </data>
+    <data name="HistoryButtonAutomation" xml:space="preserve">
+        <value>History of entries</value>
+    </data>
+    <data name="HistoryButton" xml:space="preserve">
+        <value>History</value>
+    </data>
+    <data name="SettingsButtonAutomation" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="SettingsButton" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="LoadingText" xml:space="preserve">
+        <value>Loading…</value>
+    </data>
+    <data name="PreviousBoardAutomation" xml:space="preserve">
+        <value>Previous board</value>
+    </data>
+    <data name="PreviousBoard" xml:space="preserve">
+        <value>Previous</value>
+    </data>
+    <data name="NextBoardAutomation" xml:space="preserve">
+        <value>Next board</value>
+    </data>
+    <data name="NextBoard" xml:space="preserve">
+        <value>Next</value>
+    </data>
+    <data name="SettingsWindowTitle" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="SettingsTitle" xml:space="preserve">
+        <value>Settings</value>
+    </data>
+    <data name="GeneralTab" xml:space="preserve">
+        <value>General</value>
+    </data>
+    <data name="OllamaAddressLabel" xml:space="preserve">
+        <value>Address for Ollama:</value>
+    </data>
+    <data name="OllamaAddressAutomation" xml:space="preserve">
+        <value>Ollama server IP address</value>
+    </data>
+    <data name="SelectModelLabel" xml:space="preserve">
+        <value>Select model:</value>
+    </data>
+    <data name="ProgramLanguageLabel" xml:space="preserve">
+        <value>Program language:</value>
+    </data>
+    <data name="BoardsTab" xml:space="preserve">
+        <value>Boards</value>
+    </data>
+    <data name="IncludeSexSymbols" xml:space="preserve">
+        <value>Include symbols about sexuality</value>
+    </data>
+    <data name="IncludeViolenceSymbols" xml:space="preserve">
+        <value>Include symbols about violence</value>
+    </data>
+    <data name="DefaultBoardLabel" xml:space="preserve">
+        <value>Default board:</value>
+    </data>
+    <data name="AACBoardFilesLabel" xml:space="preserve">
+        <value>AAC board files:</value>
+    </data>
+    <data name="AddFileButton" xml:space="preserve">
+        <value>Add file</value>
+    </data>
+    <data name="BoardPathTooltip" xml:space="preserve">
+        <value>Path to AAC board file</value>
+    </data>
+    <data name="RemoveButton" xml:space="preserve">
+        <value>Remove</value>
+    </data>
+    <data name="RemoveButtonAutomation" xml:space="preserve">
+        <value>Remove button</value>
+    </data>
+    <data name="DisplayTab" xml:space="preserve">
+        <value>Display</value>
+    </data>
+    <data name="FontSizeLabel" xml:space="preserve">
+        <value>Font size:</value>
+    </data>
+    <data name="ButtonSizeLabel" xml:space="preserve">
+        <value>Button size:</value>
+    </data>
+    <data name="ShowSymbolsLabel" xml:space="preserve">
+        <value>Show symbols:</value>
+    </data>
+    <data name="AdvancedTab" xml:space="preserve">
+        <value>Advanced</value>
+    </data>
+    <data name="CacheDirectoryLabel" xml:space="preserve">
+        <value>Cache directory:</value>
+    </data>
+    <data name="ClearCacheButton" xml:space="preserve">
+        <value>Clear cache</value>
+    </data>
+    <data name="BackupSettingsLabel" xml:space="preserve">
+        <value>Backup settings:</value>
+    </data>
+    <data name="ExportSettingsButton" xml:space="preserve">
+        <value>Export settings</value>
+    </data>
+    <data name="ImportSettingsButton" xml:space="preserve">
+        <value>Import settings</value>
+    </data>
+    <data name="AboutButton" xml:space="preserve">
+        <value>About</value>
+    </data>
+    <data name="SaveButton" xml:space="preserve">
+        <value>Save</value>
+    </data>
+    <data name="AboutWindowTitle" xml:space="preserve">
+        <value>About</value>
+    </data>
+    <data name="AboutTitle" xml:space="preserve">
+        <value>ChatAAC</value>
+    </data>
+    <data name="AboutVersion" xml:space="preserve">
+        <value>Version 1.0.0</value>
+    </data>
+    <data name="AboutDescription" xml:space="preserve">
+        <value>ChatAAC is an application that supports communication for individuals with physical disabilities using pictograms.</value>
+    </data>
+    <data name="AboutAuthor" xml:space="preserve">
+        <value>Author: Mateusz Kierepka</value>
+    </data>
+    <data name="AboutContact" xml:space="preserve">
+        <value>Contact: mateusz@kierepka.com</value>
+    </data>
+    <data name="AboutArasaacTitle" xml:space="preserve">
+        <value>About ARASAAC</value>
+    </data>
+    <data name="AboutArasaacDescription" xml:space="preserve">
+        <value>ARASAAC (Aragonese Center of Augmentative and Alternative Communication) provides the pictograms used in the ChatAAC application. With ARASAAC, users can create messages using visual symbols, enhancing effective communication for individuals with physical disabilities.</value>
+    </data>
+    <data name="AboutLicensesTitle" xml:space="preserve">
+        <value>Licenses</value>
+    </data>
+    <data name="AboutLicensesDescription" xml:space="preserve">
+        <value>ChatAAC is available under the MIT license. ARASAAC pictograms are used in compliance with the ARASAAC license, which allows their use in communication-supporting applications.</value>
+    </data>
+    <data name="AboutCloseButton" xml:space="preserve">
+        <value>Close</value>
+    </data>
+    <data name="AboutCloseButtonAutomation" xml:space="preserve">
+        <value>Close button</value>
+    </data>
+</root>
