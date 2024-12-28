@@ -57,6 +57,8 @@ public partial class MainViewModel : ViewModelBase
         "ChatAAC",
         "ai_response_history.json");
 
+    private readonly HistoryService _historyService;
+
     #endregion
 
     #region Properties
@@ -152,7 +154,7 @@ public partial class MainViewModel : ViewModelBase
     public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
     public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
     public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
-    public ReactiveCommand<Unit, Unit> ClearHistoryCommand { get; }
+   
     public ReactiveCommand<Unit, Unit> CopyAiResponseCommand { get; }
     public ReactiveCommand<Unit, Unit> NextBoardCommand { get; }
     public ReactiveCommand<Unit, Unit> PreviousBoardCommand { get; }
@@ -171,7 +173,8 @@ public partial class MainViewModel : ViewModelBase
 
         // Initialize TTS service based on the platform
         _ttsService = InitializeTtsService();
-
+        _historyService = new HistoryService();
+        
         // Initialize commands
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
         LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadMainBoard);
@@ -183,8 +186,8 @@ public partial class MainViewModel : ViewModelBase
         SpeakAiResponseCommand = ReactiveCommand.CreateFromTask(SpeakAiResponseAsync);
         CopySentenceCommand = ReactiveCommand.Create(CopyConstructedSentenceToClipboard);
         CopyHistoryItemCommand = ReactiveCommand.Create<string>(CopyToClipboard);
-        ClearHistoryCommand = ReactiveCommand.Create(ClearHistory);
-        OpenHistoryCommand = ReactiveCommand.Create(OpenHistoryFolder);
+ 
+        OpenHistoryCommand = ReactiveCommand.Create(OpenHistoryWindow);
         CopyAiResponseCommand = ReactiveCommand.Create(CopyAiResponseToClipboard);
         NextBoardCommand = ReactiveCommand.CreateFromTask(LoadNextBoardAsync);
         PreviousBoardCommand = ReactiveCommand.CreateFromTask(LoadPreviousBoardAsync);
@@ -194,7 +197,7 @@ public partial class MainViewModel : ViewModelBase
         SelectedButtons.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
         // Load AI response history
-        LoadHistory();
+        _historyService.LoadHistory();
 
         // Load initial OBF or OBZ file
         _ = LoadInitialFileAsync();
@@ -202,38 +205,14 @@ public partial class MainViewModel : ViewModelBase
 
     private async Task LoadMainBoard()
     {
-        if (_obfFileHistory.Count == 0)
+        if (_obfFileHistory.Count != 0)
         {
-            Console.WriteLine("Historia jest pusta.");
-            return;
-        }
-
-        var nextFilePath = _obfFileHistory[0];
-        await LoadObfFileAsync(nextFilePath);
-    }
-
-    private void OpenHistoryFolder()
-    {
-        try
-        {
-            var directory = Path.GetDirectoryName(_historyFilePath);
-            if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory)) Directory.CreateDirectory(directory!);
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error opening history folder: {ex.Message}");
+            var nextFilePath = _obfFileHistory[0];
+            await LoadObfFileAsync(nextFilePath);
         }
     }
+
+    
 
     #endregion
 
@@ -791,51 +770,30 @@ public partial class MainViewModel : ViewModelBase
     private void AddAiResponseToHistory(string response)
     {
         if (string.IsNullOrWhiteSpace(response)) return;
-        AiResponseHistory.Add(new AiResponse(response));
-        SaveHistory();
+        _historyService.AddToHistory(new AiResponse(response));
+        _historyService.SaveHistory();
     }
+    
 
-    private void SaveHistory()
+    private void OpenHistoryWindow()
     {
         try
         {
-            var directory = Path.GetDirectoryName(_historyFilePath);
-            if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                Directory.CreateDirectory(directory);
+            // Create the HistoryWindow and bind the history items to it
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
+            var historyWindow = new HistoryWindow
+            {
+                DataContext = new HistoryViewModel(_historyService.HistoryItems, _historyService.HistoryFilePath)
+            };
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(AiResponseHistory, options);
-            File.WriteAllText(_historyFilePath, json);
+            // Show the HistoryWindow
+            historyWindow.Show();
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving history: {ex.Message}");
+            Console.WriteLine($"Error opening history window: {ex.Message}");
         }
     }
-
-    private void LoadHistory()
-    {
-        try
-        {
-            if (!File.Exists(_historyFilePath)) return;
-            var json = File.ReadAllText(_historyFilePath);
-            var history = JsonSerializer.Deserialize<ObservableCollection<AiResponse>>(json);
-            if (history == null) return;
-            foreach (var response in history)
-                AiResponseHistory.Add(response);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error loading history: {ex.Message}");
-        }
-    }
-
-    private void ClearHistory()
-    {
-        AiResponseHistory.Clear();
-        SaveHistory();
-    }
-
     #endregion
 
     #region Settings

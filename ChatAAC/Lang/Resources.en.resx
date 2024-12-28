@@ -213,4 +213,25 @@
     <data name="AboutCloseButtonAutomation" xml:space="preserve">
         <value>Close button</value>
     </data>
+    <data name="SortNewestToOldestButton" xml:space="preserve">
+        <value>Sort Newest to Oldest</value>
+    </data>
+    <data name="SpeakSelectedEntryButton" xml:space="preserve">
+        <value>Odczytaj wybrany wpis</value>
+    </data>
+    <data name="CloseButton" xml:space="preserve">
+        <value>Close</value>
+    </data>
+    <data name="HistoryWindowTitle" xml:space="preserve">
+        <value>History of entries</value>
+    </data>
+    <data name="SortOldestToNewestButton" xml:space="preserve">
+        <value>Sort Oldest to Newest</value>
+    </data>
+    <data name="SortFavoritesButton" xml:space="preserve">
+        <value>Sort by favorites</value>
+    </data>
+    <data name="FavoriteButton" xml:space="preserve">
+        <value>Favorite</value>
+    </data>
 </root>

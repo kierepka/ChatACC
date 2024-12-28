@@ -446,5 +446,47 @@ namespace ChatAAC.Lang {
                 return ResourceManager.GetString("AboutCloseButtonAutomation", resourceCulture);
             }
         }
+        
+        public static string SortNewestToOldestButton {
+            get {
+                return ResourceManager.GetString("SortNewestToOldestButton", resourceCulture);
+            }
+        }
+        
+        public static string SpeakSelectedEntryButton {
+            get {
+                return ResourceManager.GetString("SpeakSelectedEntryButton", resourceCulture);
+            }
+        }
+        
+        public static string CloseButton {
+            get {
+                return ResourceManager.GetString("CloseButton", resourceCulture);
+            }
+        }
+        
+        public static string HistoryWindowTitle {
+            get {
+                return ResourceManager.GetString("HistoryWindowTitle", resourceCulture);
+            }
+        }
+        
+        public static string SortOldestToNewestButton {
+            get {
+                return ResourceManager.GetString("SortOldestToNewestButton", resourceCulture);
+            }
+        }
+        
+        public static string SortFavoritesButton {
+            get {
+                return ResourceManager.GetString("SortFavoritesButton", resourceCulture);
+            }
+        }
+        
+        public static string FavoriteButton {
+            get {
+                return ResourceManager.GetString("FavoriteButton", resourceCulture);
+            }
+        }
     }
 }

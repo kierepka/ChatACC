@@ -8,6 +8,7 @@
         <entry key="ChatAAC/ViewModels/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/ConfigWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
+        <entry key="ChatAAC/Views/HistoryWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/LoadingWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/MainWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
       </map>
