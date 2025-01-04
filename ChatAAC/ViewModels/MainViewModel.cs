@@ -2,21 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reactive;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Logging;
 using Avalonia.Threading;
-using Avalonia.VisualTree;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 using ChatAAC.Models;
 using ChatAAC.Models.Obf;
 using ChatAAC.Services;
@@ -24,828 +20,504 @@ using ChatAAC.Views;
 using ReactiveUI;
 using Button = ChatAAC.Models.Obf.Button;
 
-namespace ChatAAC.ViewModels;
-
-public partial class MainViewModel : ViewModelBase
+namespace ChatAAC.ViewModels
 {
-    #region Fields
-
-    private readonly OllamaClient _ollamaClient = new();
-    private readonly ITtsService _ttsService;
-
-    private string _selectedTense = "Teraźniejszy";
-    private string _selectedForm = "Oznajmująca";
-    private int _quantity = 1;
-    private bool _isConfigBarVisible;
-    private string _constructedSentence = string.Empty;
-    private string _aiResponse = string.Empty;
-    private bool _isLoading;
-    private bool _isFullScreen;
-    private ObfFile? _obfData;
-    private int _currentBoardIndex;
-    private int _gridRows;
-    private int _gridColumns;
-
-    private bool _isInitialized;
-
-    // Field to store history of loaded files
-    private List<string?> _obfFileHistory = [];
-    private int _currentHistoryIndex = -1; // Indeks bieżącego pliku w historii
-
-    private readonly string _historyFilePath = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "ChatAAC",
-        "ai_response_history.json");
-
-    private readonly HistoryService _historyService;
-
-    #endregion
-
-    #region Properties
-
-    public ObservableCollection<ButtonViewModel> Buttons { get; } = [];
-    public ObservableCollection<Button> SelectedButtons { get; } = [];
-    public ObservableCollection<AiResponse> AiResponseHistory { get; } = [];
-
-    public string SelectedTense
+    public partial class MainViewModel : ViewModelBase
     {
-        get => _selectedTense;
-        set => this.RaiseAndSetIfChanged(ref _selectedTense, value);
-    }
+        #region Fields
 
-    public string SelectedForm
-    {
-        get => _selectedForm;
-        set => this.RaiseAndSetIfChanged(ref _selectedForm, value);
-    }
+        private readonly ITtsService _ttsService;
+        private readonly AiInteractionService _aiInteractionService;
+        private readonly BoardLoaderService _boardLoaderService;
+        private readonly HistoryService _historyService;
 
-    public int Quantity
-    {
-        get => _quantity;
-        set => this.RaiseAndSetIfChanged(ref _quantity, value);
-    }
+        private string _selectedTense = "Teraźniejszy";
+        private string _selectedForm = "Oznajmująca";
+        private int _quantity = 1;
+        private bool _isConfigBarVisible;
+        private string _constructedSentence = string.Empty;
+        private string _aiResponse = string.Empty;
+        private bool _isLoading;
+        private bool _isFullScreen;
+        private ObfFile? _obfData;
+        private int _currentBoardIndex;
+        private int _gridRows;
+        private int _gridColumns;
+        private bool _isInitialized;
 
-    public bool IsConfigBarVisible
-    {
-        get => _isConfigBarVisible;
-        set => this.RaiseAndSetIfChanged(ref _isConfigBarVisible, value);
-    }
+        // Field to store history of loaded files
+        private List<string?> _obfFileHistory = [];
+        private int _currentHistoryIndex = -1; // Index current file in history 
 
-    public string ConstructedSentence
-    {
-        get => _constructedSentence;
-        private set => this.RaiseAndSetIfChanged(ref _constructedSentence, value);
-    }
+        #endregion
 
-    public string AiResponse
-    {
-        get => _aiResponse;
-        set => this.RaiseAndSetIfChanged(ref _aiResponse, value);
-    }
+        #region Properties
 
-    public bool IsLoading
-    {
-        get => _isLoading;
-        set => this.RaiseAndSetIfChanged(ref _isLoading, value);
-    }
+        public ObservableCollection<ButtonViewModel> Buttons { get; } = new();
+        public ObservableCollection<Button> SelectedButtons { get; } = new();
+        public ObservableCollection<AiResponse> AiResponseHistory { get; } = new();
 
-    public bool IsFullScreen
-    {
-        get => _isFullScreen;
-        set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
-    }
-
-    public ObfFile? ObfData
-    {
-        get => _obfData;
-        set => this.RaiseAndSetIfChanged(ref _obfData, value);
-    }
-
-    public int CurrentBoardIndex
-    {
-        get => _currentBoardIndex;
-        set => this.RaiseAndSetIfChanged(ref _currentBoardIndex, value);
-    }
-
-    public int GridRows
-    {
-        get => _gridRows;
-        set => this.RaiseAndSetIfChanged(ref _gridRows, value);
-    }
-
-    public int GridColumns
-    {
-        get => _gridColumns;
-        set => this.RaiseAndSetIfChanged(ref _gridColumns, value);
-    }
-
-    #endregion
-
-    #region Commands
-
-    public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
-    public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadMainBoardCommand { get; }
-    public ReactiveCommand<Unit, Unit> ClearSelectedCommand { get; }
-    public ReactiveCommand<Button, Unit> ButtonClickedCommand { get; }
-    public ReactiveCommand<Button, Unit> RemoveButtonCommand { get; }
-    public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
-    public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
-    public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
-    public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
-    public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
-   
-    public ReactiveCommand<Unit, Unit> CopyAiResponseCommand { get; }
-    public ReactiveCommand<Unit, Unit> NextBoardCommand { get; }
-    public ReactiveCommand<Unit, Unit> PreviousBoardCommand { get; }
-    public ReactiveCommand<string, Unit> SelectTenseCommand { get; }
-    public ReactiveCommand<string, Unit> SelectFormCommand { get; }
-
-    #endregion
-
-    #region Constructor
-
-    public MainViewModel()
-    {
-        // Wczytujemy ustawienia
-        ConfigViewModel.Instance.ReloadSettings();
-
-
-        // Initialize TTS service based on the platform
-        _ttsService = InitializeTtsService();
-        _historyService = new HistoryService();
-        
-        // Initialize commands
-        OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
-        LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadMainBoard);
-        ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
-        ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
-        RemoveButtonCommand = ReactiveCommand.Create<Button>(RemoveSelectedButton);
-        SpeakCommand = ReactiveCommand.Create(SpeakConstructedSentence);
-        SendToAiCommand = ReactiveCommand.CreateFromTask(SendToAiAsync);
-        SpeakAiResponseCommand = ReactiveCommand.CreateFromTask(SpeakAiResponseAsync);
-        CopySentenceCommand = ReactiveCommand.Create(CopyConstructedSentenceToClipboard);
-        CopyHistoryItemCommand = ReactiveCommand.Create<string>(CopyToClipboard);
- 
-        OpenHistoryCommand = ReactiveCommand.Create(OpenHistoryWindow);
-        CopyAiResponseCommand = ReactiveCommand.Create(CopyAiResponseToClipboard);
-        NextBoardCommand = ReactiveCommand.CreateFromTask(LoadNextBoardAsync);
-        PreviousBoardCommand = ReactiveCommand.CreateFromTask(LoadPreviousBoardAsync);
-        SelectTenseCommand = ReactiveCommand.Create<string>(tense => SelectedTense = tense);
-        SelectFormCommand = ReactiveCommand.Create<string>(form => SelectedForm = form);
-        // Subscribe to changes in SelectedButtons
-        SelectedButtons.CollectionChanged += (_, _) => UpdateConstructedSentence();
-
-        // Load AI response history
-        _historyService.LoadHistory();
-
-        // Load initial OBF or OBZ file
-        _ = LoadInitialFileAsync();
-    }
-
-    private async Task LoadMainBoard()
-    {
-        if (_obfFileHistory.Count != 0)
+        public string SelectedTense
         {
-            var nextFilePath = _obfFileHistory[0];
-            await LoadObfFileAsync(nextFilePath);
+            get => _selectedTense;
+            set => this.RaiseAndSetIfChanged(ref _selectedTense, value);
         }
-    }
 
-    
-
-    #endregion
-
-    #region Initialization Methods
-
-    private ITtsService InitializeTtsService()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return new MacTtsService();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return new WindowsTtsService();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            return new LinuxTtsService();
-
-        throw new PlatformNotSupportedException("The platform is not supported for TTS.");
-    }
-
-    private async Task LoadInitialFileAsync()
-    {
-        if (_isInitialized)
-            return;
-
-        IsLoading = true;
-        try
+        public string SelectedForm
         {
-            var defaultBoardPath = ConfigViewModel.Instance.DefaultBoardPath;
+            get => _selectedForm;
+            set => this.RaiseAndSetIfChanged(ref _selectedForm, value);
+        }
 
-            if (!string.IsNullOrEmpty(defaultBoardPath))
-            {
-                if (!ConfigViewModel.Instance.BoardPaths.Contains(defaultBoardPath))
-                    ConfigViewModel.Instance.BoardPaths.Add(defaultBoardPath);
+        public int Quantity
+        {
+            get => _quantity;
+            set => this.RaiseAndSetIfChanged(ref _quantity, value);
+        }
 
-                CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(defaultBoardPath);
-                ObzDirectoryName = string.Empty;
-                await LoadObfOrObzFileAsync(defaultBoardPath);
-            }
-            else
+        public bool IsConfigBarVisible
+        {
+            get => _isConfigBarVisible;
+            set => this.RaiseAndSetIfChanged(ref _isConfigBarVisible, value);
+        }
+
+        private string ConstructedSentence
+        {
+            get => _constructedSentence;
+            set => this.RaiseAndSetIfChanged(ref _constructedSentence, value);
+        }
+
+        private string AiResponse
+        {
+            get => _aiResponse;
+            set => this.RaiseAndSetIfChanged(ref _aiResponse, value);
+        }
+
+        public bool IsLoading
+        {
+            get => _isLoading;
+            set => this.RaiseAndSetIfChanged(ref _isLoading, value);
+        }
+
+        public bool IsFullScreen
+        {
+            get => _isFullScreen;
+            set => this.RaiseAndSetIfChanged(ref _isFullScreen, value);
+        }
+
+        public ObfFile? ObfData
+        {
+            get => _obfData;
+            set => this.RaiseAndSetIfChanged(ref _obfData, value);
+        }
+
+        public int CurrentBoardIndex
+        {
+            get => _currentBoardIndex;
+            set => this.RaiseAndSetIfChanged(ref _currentBoardIndex, value);
+        }
+
+        public int GridRows
+        {
+            get => _gridRows;
+            set => this.RaiseAndSetIfChanged(ref _gridRows, value);
+        }
+
+        public int GridColumns
+        {
+            get => _gridColumns;
+            set => this.RaiseAndSetIfChanged(ref _gridColumns, value);
+        }
+
+        public List<string?> ObfFileHistory
+        {
+            get => _obfFileHistory;
+            set => this.RaiseAndSetIfChanged(ref _obfFileHistory, value);
+        }
+
+        public int CurrentHistoryIndex
+        {
+            get => _currentHistoryIndex;
+            set => this.RaiseAndSetIfChanged(ref _currentHistoryIndex, value);
+        }
+
+        #endregion
+
+        #region Commands
+
+        public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
+        public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
+        public ReactiveCommand<Unit, Unit> LoadMainBoardCommand { get; }
+        public ReactiveCommand<Unit, Unit> ClearSelectedCommand { get; }
+        public ReactiveCommand<Button, Unit> ButtonClickedCommand { get; }
+        public ReactiveCommand<Button, Unit> RemoveButtonCommand { get; }
+        public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
+        public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
+        public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
+        public ReactiveCommand<Unit, Unit> CopySentenceCommand { get; }
+        public ReactiveCommand<string, Unit> CopyHistoryItemCommand { get; }
+        public ReactiveCommand<Unit, Unit> CopyAiResponseCommand { get; }
+        public ReactiveCommand<Unit, Unit> NextBoardCommand { get; }
+        public ReactiveCommand<Unit, Unit> PreviousBoardCommand { get; }
+        public ReactiveCommand<string, Unit> SelectTenseCommand { get; }
+        public ReactiveCommand<string, Unit> SelectFormCommand { get; }
+
+        #endregion
+
+        #region Constructor
+
+        public MainViewModel()
+        {
+            // Load settings
+            ConfigViewModel.Instance.ReloadSettings();
+
+            // Initialize TTS service via factory
+            _ttsService = TtsServiceFactory.CreateTtsService();
+
+            // Initialize services
+            _aiInteractionService = new AiInteractionService();
+            _boardLoaderService = new BoardLoaderService(this);
+            _historyService = new HistoryService();
+
+            // Initialize commands
+            OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
+            LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadMainBoard);
+            ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
+            ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
+            RemoveButtonCommand = ReactiveCommand.Create<Button>(RemoveSelectedButton);
+            SpeakCommand = ReactiveCommand.Create(SpeakConstructedSentence);
+            SendToAiCommand = ReactiveCommand.CreateFromTask(SendToAiAsync);
+            SpeakAiResponseCommand = ReactiveCommand.CreateFromTask(SpeakAiResponseAsync);
+            CopySentenceCommand = ReactiveCommand.Create(CopyConstructedSentenceToClipboard);
+            CopyHistoryItemCommand = ReactiveCommand.Create<string>(ClipboardService.CopyToClipboard);
+            OpenHistoryCommand = ReactiveCommand.Create(OpenHistoryWindow);
+            CopyAiResponseCommand = ReactiveCommand.Create(CopyAiResponseToClipboard);
+            NextBoardCommand = ReactiveCommand.CreateFromTask(LoadNextBoardAsync);
+            PreviousBoardCommand = ReactiveCommand.CreateFromTask(LoadPreviousBoardAsync);
+            SelectTenseCommand = ReactiveCommand.Create<string>(tense => SelectedTense = tense);
+            SelectFormCommand = ReactiveCommand.Create<string>(form => SelectedForm = form);
+
+            SelectedButtons.CollectionChanged += (_, _) => UpdateConstructedSentence();
+
+            // Load AI response history
+            _historyService.LoadHistory();
+
+            // Load initial OBF or OBZ file
+            _ = LoadInitialFileAsync();
+        }
+
+        #endregion
+
+        #region File Loading / Initialization
+
+        private async Task LoadMainBoard()
+        {
+            if (_obfFileHistory.Count != 0)
             {
-                // Brak domyślnej tablicy, otwieramy okno ustawień z informacją
-                await Dispatcher.UIThread.InvokeAsync(() => { OpenSettings("Proszę wybrać domyślną tablicę."); });
+                var nextFilePath = _obfFileHistory[0];
+                await _boardLoaderService.LoadObfFileAsync(nextFilePath);
             }
         }
-        catch (Exception ex)
+
+        private async Task LoadInitialFileAsync()
         {
-            Console.WriteLine($"Błąd podczas wczytywania pliku początkowego: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-            _isInitialized = true;
-        }
-    }
-
-    #endregion
-
-    #region Board Navigation Methods
-
-    private async Task LoadNextBoardAsync()
-    {
-        if (_obfFileHistory.Count == 0)
-        {
-            Console.WriteLine("Historia jest pusta.");
-            return;
-        }
-
-        // Sprawdź, czy można przejść do przodu
-        if (_currentHistoryIndex + 1 < _obfFileHistory.Count)
-        {
-            _currentHistoryIndex++;
-            var nextFilePath = _obfFileHistory[_currentHistoryIndex];
-            await LoadObfFileAsync(nextFilePath);
-        }
-        else
-        {
-            Console.WriteLine("Brak kolejnych tablic w historii.");
-        }
-    }
-
-    private async Task LoadPreviousBoardAsync()
-    {
-        if (_obfFileHistory.Count == 0)
-        {
-            Console.WriteLine("Historia jest pusta.");
-            return;
-        }
-
-        // Sprawdź, czy można przejść wstecz
-        if (_currentHistoryIndex > 0)
-        {
-            _currentHistoryIndex--;
-            var previousFilePath = _obfFileHistory[_currentHistoryIndex];
-            await LoadObfFileAsync(previousFilePath);
-        }
-        else
-        {
-            Console.WriteLine("Brak poprzednich tablic w historii.");
-        }
-    }
-
-    #endregion
-
-    #region File Loading Methods
-
-    private async Task LoadObfOrObzFileAsync(string filePath)
-    {
-        if (filePath.EndsWith(".obz", StringComparison.OrdinalIgnoreCase))
-            await LoadObzFileAsync(filePath);
-        else if (filePath.EndsWith(".obf", StringComparison.OrdinalIgnoreCase))
-        {
-            var obfFileName = Path.GetFileName(filePath);
-            var cachedObfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName, obfFileName);
-
-
-            await LoadObfFileAsync(cachedObfPath);
-        }
-        else
-            Console.WriteLine("Nieobsługiwany typ pliku. Podaj plik z rozszerzeniem .obf lub .obz.");
-    }
-
-
-    // Metoda pomocnicza do ładowania pliku OBF i aktualizacji historii
-    private async Task LoadObfFileAsync(string? filePath)
-    {
-        IsLoading = true;
-        try
-        {
-            var obfFile = await ObfLoader.LoadObfAsync(filePath);
-            if (obfFile == null)
-            {
-                Console.WriteLine("Plik OBF jest pusty lub nieprawidłowy.");
+            if (_isInitialized)
                 return;
-            }
 
-            ObfData = obfFile;
-            CurrentObfFilePath = filePath ?? string.Empty;
-
-            // Jeśli wczytujemy nowy plik spoza historii
-            if (_currentHistoryIndex == -1 || _currentHistoryIndex == _obfFileHistory.Count - 1 ||
-                _obfFileHistory[_currentHistoryIndex] != filePath)
-            {
-                // Usuń elementy z historii po bieżącym indeksie (jeśli poruszamy się w środku historii)
-                if (_currentHistoryIndex < _obfFileHistory.Count - 1)
-                {
-                    _obfFileHistory = _obfFileHistory.Take(_currentHistoryIndex + 1).ToList();
-                }
-
-                // Dodaj nowy plik do historii
-                _obfFileHistory.Add(filePath);
-                _currentHistoryIndex = _obfFileHistory.Count - 1;
-            }
-
-            // Załaduj przyciski z pliku OBF
-            LoadButtonsFromObfData(ObfData);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Błąd podczas ładowania pliku OBF: {filePath}. Szczegóły: {ex.Message}");
-        }
-        finally
-        {
-            IsLoading = false;
-        }
-    }
-
-    public string CurrentObfFilePath { get; set; } = string.Empty;
-
-    /// <summary>
-    /// Asynchronously loads an OBZ file from the specified file path.
-    /// </summary>
-    /// <param name="filePath">The path to the OBZ file.</param>
-    /// <returns>An asynchronous task.</returns>
-    private async Task LoadObzFileAsync(string filePath)
-    {
-        // Set the loading state to true
-        IsLoading = true;
-
-        try
-        {
-            // Create a subdirectory with the name corresponding to the .obz file
-            ObzDirectoryName = Path.GetFileNameWithoutExtension(filePath);
-            var destinationDirectory = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
-
-            // Extract the contents of the OBZ file
-            await ExtractObzArchiveAsync(filePath);
-
-            var manifestPath = Path.Combine(destinationDirectory, "manifest.json");
-            if (File.Exists(manifestPath))
-            {
-                // Read the manifest file
-                var manifestJson = await File.ReadAllTextAsync(manifestPath);
-                var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
-
-                // Construct the path to the root OBF file
-                var rootObfPath = Path.Combine(destinationDirectory, manifest?.Root ?? "root.obf");
-                if (File.Exists(rootObfPath))
-                    // Load the root OBF file
-                    await LoadObfFileAsync(rootObfPath);
-                else
-                    Console.WriteLine("root.obf file not found in the OBZ package.");
-            }
-            else
-            {
-                Console.WriteLine("manifest.json file not found in the OBZ package.");
-            }
-        }
-        catch (Exception ex)
-        {
-            // Log any errors that occur during the loading process
-            Console.WriteLine($"Error loading OBZ file: {ex.Message}");
-        }
-        finally
-        {
-            // Set the loading state to false
-            IsLoading = false;
-        }
-    }
-
-
-    private string ObzDirectoryName { get; set; } = string.Empty;
-
-    private static string ObfCacheDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "ChatAAC", "Cache", "Obf");
-
-    private static string PictogramsCacheDirectory { get; } = Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-        "ChatAAC", "Cache", "Pictograms");
-
-
-    private async Task ExtractObzArchiveAsync(string filePath)
-    {
-        // Extract the directory name from the .obz file
-
-        var pictogramsPath = Path.Combine(PictogramsCacheDirectory, ObzDirectoryName);
-        var obfPath = Path.Combine(ObfCacheDirectory, ObzDirectoryName);
-
-        // Ensure the target directories exist
-        Directory.CreateDirectory(pictogramsPath);
-        Directory.CreateDirectory(obfPath);
-
-        await Task.Run(() =>
-        {
-            using var archive = ZipFile.OpenRead(filePath);
-            foreach (var entry in archive.Entries)
-            {
-                // Sanitize the entry name to prevent directory traversal attacks
-                var sanitizedEntryName = SanitizeEntryName(entry.FullName);
-
-                // Determine the destination directory based on the file type
-                string? destinationDirectory = null;
-
-                if (IsImageFile(sanitizedEntryName))
-                {
-                    destinationDirectory = pictogramsPath;
-                }
-                else if (IsObfFile(sanitizedEntryName))
-                {
-                    destinationDirectory = obfPath;
-                }
-                else if (IsManifestFile(sanitizedEntryName))
-                {
-                    destinationDirectory = obfPath;
-                }
-
-                if (destinationDirectory == null) continue;
-                // Build the full destination path within the target directory
-                var destinationPath =
-                    Path.GetFullPath(Path.Combine(destinationDirectory, Path.GetFileName(sanitizedEntryName)));
-
-                // Skip unsafe entries
-                if (!destinationPath.StartsWith(destinationDirectory, StringComparison.Ordinal))
-                {
-                    Console.WriteLine($"Skipped unsafe entry: {entry.FullName}");
-                    continue;
-                }
-
-                if (string.IsNullOrEmpty(entry.Name))
-                {
-                    // Create directory if the entry is a folder
-                    Directory.CreateDirectory(destinationPath);
-                }
-                else
-                {
-                    // Ensure the destination directory exists and extract the file
-                    Directory.CreateDirectory(Path.GetDirectoryName(destinationPath)!);
-                    try
-                    {
-                        // Próba rozpakowania pliku
-                        entry.ExtractToFile(destinationPath, true);
-                    }
-                    catch (UnauthorizedAccessException ex)
-                    {
-                        // Obsługa wyjątku braku dostępu do pliku
-                        Console.WriteLine($"Access denied to file: {destinationPath}. {ex.Message}");
-                    }
-                    catch (IOException ex)
-                    {
-                        // Obsługa wyjątku związanych z I/O, np. plik w użyciu
-                        Console.WriteLine($"Unable to overwrite file: {destinationPath}. {ex.Message}");
-                    }
-                    catch (Exception ex)
-                    {
-                        // Obsługa wszystkich innych wyjątków
-                        Console.WriteLine($"An error occurred while extracting file: {entry.FullName}. {ex.Message}");
-                    }
-                }
-            }
-        });
-    }
-
-    private bool IsManifestFile(string fileName)
-    {
-        return fileName.ToLower().Equals("manifest.json");
-    }
-
-    /// <summary>
-    /// Checks if the file is an image file based on its extension.
-    /// </summary>
-    private static bool IsImageFile(string fileName)
-    {
-        var extensions = new[] { ".jpg", ".jpeg", ".png", ".bmp" };
-        var fileExtension = Path.GetExtension(fileName).ToLowerInvariant();
-        return extensions.Contains(fileExtension);
-    }
-
-    /// <summary>
-    /// Checks if the file is an OBF file based on its extension.
-    /// </summary>
-    private static bool IsObfFile(string fileName)
-    {
-        return Path.GetExtension(fileName).ToLowerInvariant() == ".obf";
-    }
-
-    private string SanitizeEntryName(string entryName)
-    {
-        // Replace backslashes with slashes
-        entryName = entryName.Replace('\\', '/');
-
-        // Remove drive letters or root indicators
-        entryName = MyRegex().Replace(entryName, "");
-
-        // Remove any leading slashes
-        entryName = entryName.TrimStart('/');
-
-        // Remove "../" and "./" components
-        var segments = entryName.Split('/');
-        var sanitizedSegments = segments.Where(segment => segment != ".." && segment != ".").ToArray();
-
-        return Path.Combine(sanitizedSegments);
-    }
-
-    #endregion
-
-    #region Button Handling Methods
-
-    private void LoadButtonsFromObfData(ObfFile obfFile)
-    {
-        // Czyszczenie istniejących przycisków
-        Buttons.Clear();
-
-        // Mapowanie przycisków z OBF na słownik dla szybkiego dostępu po ID
-        Dictionary<int, Button> buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
-
-        if (obfFile.Grid != null)
-        {
-            var rowIndex = 0;
-            foreach (var row in obfFile.Grid.Order)
-            {
-                var columnIndex = 0;
-                foreach (var buttonId in row)
-                {
-                    if (buttonId != null && buttonDictionary.TryGetValue(buttonId.Value, out var button))
-                    {
-                        var buttonViewModel = new ButtonViewModel(button, rowIndex, columnIndex);
-                        Buttons.Add(buttonViewModel);
-                    }
-
-                    columnIndex++;
-                }
-
-                rowIndex++;
-            }
-
-            GridRows = obfFile.Grid.Rows;
-            GridColumns = obfFile.Grid.Columns;
-        }
-        else
-        {
-            foreach (var buttonViewModel in obfFile.Buttons.Select(button => new ButtonViewModel(button, 0, 0)))
-                Buttons.Add(buttonViewModel);
-
-            GridRows = 1;
-            GridColumns = Buttons.Count;
-        }
-    }
-
-    private async Task OnButtonClickedAsync(Button button)
-    {
-        Console.WriteLine($"Kliknięto przycisk: {button.Label}");
-
-        if (button.LoadBoard != null && !string.IsNullOrEmpty(button.LoadBoard.Path))
-        {
-            await LoadObfOrObzFileAsync(button.LoadBoard.Path);
-        }
-        else
-        {
-            if (SelectedButtons.Contains(button)) return;
-            SelectedButtons.Add(button);
-        }
-    }
-
-    private void RemoveSelectedButton(Button button)
-    {
-        if (SelectedButtons.Contains(button)) SelectedButtons.Remove(button);
-    }
-
-    private void ClearSelected()
-    {
-        SelectedButtons.Clear();
-    }
-
-    #endregion
-
-    #region Sentence Construction Methods
-
-    private void UpdateConstructedSentence()
-    {
-        ConstructedSentence = string.Join(" ", SelectedButtons.Select(p => p.Label));
-        Console.WriteLine($"Constructed sentence: {ConstructedSentence}");
-    }
-
-    private void SpeakConstructedSentence()
-    {
-        var sentence = ConstructedSentence;
-        Task.Run(async () =>
-        {
+            IsLoading = true;
             try
             {
-                await _ttsService.SpeakAsync(sentence).ConfigureAwait(false);
-                Console.WriteLine($"Spoken sentence: {sentence}");
+                var defaultBoardPath = ConfigViewModel.Instance.DefaultBoardPath;
+
+                if (!string.IsNullOrEmpty(defaultBoardPath))
+                {
+                    if (!ConfigViewModel.Instance.BoardPaths.Contains(defaultBoardPath))
+                        ConfigViewModel.Instance.BoardPaths.Add(defaultBoardPath);
+
+                    CurrentBoardIndex = ConfigViewModel.Instance.BoardPaths.IndexOf(defaultBoardPath);
+                    ObzDirectoryName = string.Empty;
+                    await _boardLoaderService.LoadObfOrObzFileAsync(defaultBoardPath);
+                }
+                else
+                {
+                    //No default board - show settings window with message
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        OpenSettings(
+                            Resources.MainViewModel_PleaseSetDefaultBoard);
+                    });
+                }
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error speaking text: {ex.Message}");
+                AppLogger.LogError(string.Format(
+                    Resources.MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___0_,
+                    ex.Message));
             }
-        });
-    }
-
-    #endregion
-
-    #region AI Interaction Methods
-
-    private async Task SendToAiAsync()
-    {
-        if (string.IsNullOrWhiteSpace(ConstructedSentence))
-        {
-            AiResponse = "No buttons selected.";
-            return;
-        }
-
-        try
-        {
-            IsLoading = true;
-            AiResponse = "Generating response...";
-            Console.WriteLine($"Sending query: {ConstructedSentence}");
-
-            var chatRequest = new ChatRequest
+            finally
             {
-                Model = ConfigViewModel.Instance.SelectedModel,
-                Prompt = ConstructedSentence,
-                Form = SelectedForm,
-                Tense = SelectedTense,
-                Quantity = Quantity
-            };
-
-            var response = await _ollamaClient.ChatAsync(chatRequest).ConfigureAwait(false);
-            AiResponse = await CombineAsyncEnumerableAsync(response).ConfigureAwait(false);
-
-            Console.WriteLine($"AI Response: {AiResponse}");
+                IsLoading = false;
+                _isInitialized = true;
+            }
         }
-        catch (Exception ex)
+
+        public string CurrentObfFilePath { get; set; } = string.Empty;
+
+        public string ObzDirectoryName { get; set; } = string.Empty;
+
+        #endregion
+
+        #region Navigation
+
+        private async Task LoadNextBoardAsync()
         {
-            AiResponse = $"Error: {ex.Message}";
-            Console.WriteLine($"Error communicating with AI: {ex.Message}");
+            if (_obfFileHistory.Count == 0)
+            {
+                AppLogger.LogInfo(Resources.MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_);
+                return;
+            }
+
+            if (_currentHistoryIndex + 1 < _obfFileHistory.Count)
+            {
+                _currentHistoryIndex++;
+                var nextFilePath = _obfFileHistory[_currentHistoryIndex];
+                await _boardLoaderService.LoadObfFileAsync(nextFilePath);
+            }
+            else
+            {
+                AppLogger.LogInfo(Resources.MainViewModel_LoadNextBoardAsync_Brak_kolejnych_tablic_w_historii_);
+            }
         }
-        finally
+
+        private async Task LoadPreviousBoardAsync()
         {
+            if (_obfFileHistory.Count == 0)
+            {
+                AppLogger.LogInfo(Resources.MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_);
+                return;
+            }
+
+            if (_currentHistoryIndex > 0)
+            {
+                _currentHistoryIndex--;
+                var previousFilePath = _obfFileHistory[_currentHistoryIndex];
+                await _boardLoaderService.LoadObfFileAsync(previousFilePath);
+            }
+            else
+            {
+                AppLogger.LogInfo(Resources.MainViewModel_LoadPreviousBoardAsync_Brak_poprzednich_tablic_w_historii_);
+            }
+        }
+
+        #endregion
+
+        #region Button Handling
+
+        private async Task OnButtonClickedAsync(Button button)
+        {
+            AppLogger.LogInfo(string.Format(
+                Resources.MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_, button.Label));
+
+            if (button.LoadBoard != null && !string.IsNullOrEmpty(button.LoadBoard.Path))
+            {
+                await _boardLoaderService.LoadObfOrObzFileAsync(button.LoadBoard.Path);
+            }
+            else
+            {
+                if (SelectedButtons.Contains(button)) return;
+                SelectedButtons.Add(button);
+            }
+        }
+
+        private void RemoveSelectedButton(Button button)
+        {
+            if (SelectedButtons.Contains(button)) 
+                SelectedButtons.Remove(button);
+        }
+
+        private void ClearSelected()
+        {
+            SelectedButtons.Clear();
+        }
+
+        #endregion
+
+        #region Sentence Handling
+
+        private void UpdateConstructedSentence()
+        {
+            ConstructedSentence = string.Join(" ", SelectedButtons.Select(p => p.Label));
+            AppLogger.LogInfo(string.Format(
+                Resources.MainViewModel_UpdateConstructedSentence_Constructed_sentence___0_,
+                ConstructedSentence));
+        }
+
+        private void SpeakConstructedSentence()
+        {
+            var sentence = ConstructedSentence;
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await _ttsService.SpeakAsync(sentence).ConfigureAwait(false);
+                    AppLogger.LogInfo(string.Format(Resources.MainViewModel_SpeakConstructedSentence_Spoken_sentence___0_, sentence));
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.LogError(string.Format(Resources.MainViewModel_SpeakConstructedSentence_Error_speaking_text___0_,
+                        ex.Message));
+                }
+            });
+        }
+
+        #endregion
+
+        #region AI Interaction
+
+        private async Task SendToAiAsync()
+        {
+            // Send to AI
+            IsLoading = true;
+            AiResponse = Resources.MainWindowGeneratingResponse;
+            AppLogger.LogInfo(string.Format(Resources.MainViewModel_SendToAiAsync_Sending_query___0_, ConstructedSentence));
+
+            var response = await _aiInteractionService.SendToAiAsync(
+                ConstructedSentence,
+                SelectedForm,
+                SelectedTense,
+                Quantity,
+                AppLogger.LogInfo
+            );
+
+            AiResponse = response;
+            AppLogger.LogInfo(string.Format(Resources.MainViewModel_SendToAiAsync_AI_Response___0_, AiResponse));
             IsLoading = false;
+
             AddAiResponseToHistory(AiResponse);
             CopyAiResponseToClipboard();
             await SpeakAiResponseAsync();
         }
-    }
 
-    private async Task<string> CombineAsyncEnumerableAsync(IAsyncEnumerable<string> asyncStrings)
-    {
-        var stringBuilder = new StringBuilder();
-        await foreach (var str in asyncStrings.ConfigureAwait(false)) stringBuilder.Append(str);
+        private async Task SpeakAiResponseAsync()
+        {
+            if (!string.IsNullOrEmpty(AiResponse))
+            {
+                try
+                {
+                    await _ttsService.SpeakAsync(AiResponse).ConfigureAwait(false);
+                    AppLogger.LogInfo(string.Format(Resources.MainViewModel_SpeakAiResponseAsync_Spoken_AI_response___0_, AiResponse));
+                }
+                catch (Exception ex)
+                {
+                    AppLogger.LogError(string.Format(Resources.MainViewModel_SpeakAiResponseAsync_Error_speaking_AI_response___0_,
+                        ex.Message));
+                }
+            }
+        }
 
-        return stringBuilder.ToString();
-    }
+        #endregion
 
-    private async Task SpeakAiResponseAsync()
-    {
-        if (!string.IsNullOrEmpty(AiResponse))
+        #region Clipboard Handling
+
+        private void CopyAiResponseToClipboard()
+        {
+            if (!string.IsNullOrEmpty(AiResponse))
+            {
+                ClipboardService.CopyToClipboard(AiResponse);
+            }
+        }
+
+        private void CopyConstructedSentenceToClipboard()
+        {
+            if (!string.IsNullOrEmpty(ConstructedSentence))
+            {
+                ClipboardService.CopyToClipboard(ConstructedSentence);
+            }
+        }
+
+        #endregion
+
+        #region History
+
+        private void AddAiResponseToHistory(string response)
+        {
+            if (string.IsNullOrWhiteSpace(response)) return;
+            _historyService.AddToHistory(new AiResponse(response));
+            _historyService.SaveHistory();
+        }
+
+        private void OpenHistoryWindow()
+        {
             try
             {
-                await _ttsService.SpeakAsync(AiResponse).ConfigureAwait(false);
-                Console.WriteLine($"Spoken AI response: {AiResponse}");
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime)
+                    return;
+
+                var historyWindow = new HistoryWindow
+                {
+                    DataContext = new HistoryViewModel(_historyService.HistoryItems, _historyService.HistoryFilePath)
+                };
+                historyWindow.Show();
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error speaking AI response: {ex.Message}");
+                AppLogger.LogError(string.Format(Resources.MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_,
+                    ex.Message));
             }
-    }
+        }
 
-    #endregion
+        #endregion
 
-    #region Clipboard Methods
+        #region Settings
 
-    private void CopyAiResponseToClipboard()
-    {
-        if (!string.IsNullOrEmpty(AiResponse)) CopyToClipboard(AiResponse);
-    }
-
-    private void CopyConstructedSentenceToClipboard()
-    {
-        if (!string.IsNullOrEmpty(ConstructedSentence)) CopyToClipboard(ConstructedSentence);
-    }
-
-    private void CopyToClipboard(string textToClipboard)
-    {
-        Dispatcher.UIThread.Post(() =>
+        private async void OpenSettings(string? message = null)
         {
-            switch (Application.Current?.ApplicationLifetime)
+            try
             {
-                case IClassicDesktopStyleApplicationLifetime { MainWindow: { } window }:
-                    window.Clipboard?.SetTextAsync(textToClipboard);
-                    break;
-                case ISingleViewApplicationLifetime { MainView: { } mainView }:
-                    if (mainView.GetVisualRoot() is TopLevel topLevel)
-                        topLevel.Clipboard?.SetTextAsync(textToClipboard);
-                    break;
-                default:
-                    Console.WriteLine("Clipboard is not available.");
-                    break;
+                if (message != null)
+                    ConfigViewModel.Instance.Message = message;
+
+                var configWindow = new ConfigWindow
+                {
+                    DataContext = ConfigViewModel.Instance
+                };
+
+                var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
+                    ?.MainWindow;
+
+                if (mainWindow == null) return;
+                await configWindow.ShowDialog(mainWindow);
+
+                ConfigViewModel.Instance.Message = null;
+                RefreshUi();
             }
-        });
-    }
-
-    #endregion
-
-    #region History Methods
-
-    private void AddAiResponseToHistory(string response)
-    {
-        if (string.IsNullOrWhiteSpace(response)) return;
-        _historyService.AddToHistory(new AiResponse(response));
-        _historyService.SaveHistory();
-    }
-    
-
-    private void OpenHistoryWindow()
-    {
-        try
-        {
-            // Create the HistoryWindow and bind the history items to it
-            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
-            var historyWindow = new HistoryWindow
+            catch (Exception ex)
             {
-                DataContext = new HistoryViewModel(_historyService.HistoryItems, _historyService.HistoryFilePath)
-            };
-
-            // Show the HistoryWindow
-            historyWindow.Show();
+                AppLogger.LogError(string.Format(
+                    Resources.MainViewModel_OpenSettings_Error_opening_settings_window___0_, ex.Message));
+            }
         }
-        catch (Exception ex)
+
+        private void RefreshUi()
         {
-            Console.WriteLine($"Error opening history window: {ex.Message}");
+            Thread.CurrentThread.CurrentCulture = ConfigViewModel.Instance.SelectedCulture
+                                                  ?? CultureInfo.InvariantCulture;
+            Thread.CurrentThread.CurrentUICulture = ConfigViewModel.Instance.SelectedCulture
+                                                    ?? CultureInfo.InvariantCulture;
+
+            Resources.Culture = ConfigViewModel.Instance.SelectedCulture;
+
+            this.RaisePropertyChanged(string.Empty);
+
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+            var mainWindow = desktop.MainWindow;
+            mainWindow?.InvalidateVisual();
         }
+
+        [GeneratedRegex(@"^[a-zA-Z]:/")]
+        public static partial Regex MyRegex();
+
+        #endregion
     }
-    #endregion
-
-    #region Settings
-
-    private async void OpenSettings(string? message = null)
-    {
-        try
-        {
-            if (message != null) ConfigViewModel.Instance.Message = message;
-
-            var configWindow = new ConfigWindow
-            {
-                DataContext = ConfigViewModel.Instance
-            };
-
-            var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)
-                ?.MainWindow;
-
-            if (mainWindow == null) return;
-            await configWindow.ShowDialog(mainWindow);
-
-    
-            ConfigViewModel.Instance.Message = null;
-            RefreshUi();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error opening settings window: {ex.Message}");
-        }
-    }
-
-    private void RefreshUi()
-    {
-        Thread.CurrentThread.CurrentCulture = ConfigViewModel.Instance.SelectedCulture ?? CultureInfo.InvariantCulture;
-        Thread.CurrentThread.CurrentUICulture =
-            ConfigViewModel.Instance.SelectedCulture ?? CultureInfo.InvariantCulture;
-
-        Lang.Resources.Culture = ConfigViewModel.Instance.SelectedCulture;
-
-
-        // Notify all bindings to refresh
-        this.RaisePropertyChanged(string.Empty);
-
-        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
-        var mainWindow = desktop.MainWindow;
-        mainWindow?.InvalidateVisual();
-    }
-
-   
-
-    [GeneratedRegex(@"^[a-zA-Z]:/")]
-    private static partial Regex MyRegex();
-
-    #endregion
 }

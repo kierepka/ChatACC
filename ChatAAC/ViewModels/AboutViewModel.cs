@@ -1,5 +1,7 @@
 using System;
 using System.Reactive;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 using ReactiveUI;
 
 namespace ChatAAC.ViewModels;
@@ -18,7 +20,8 @@ public class AboutViewModel : ViewModelBase
         // Handle exceptions from the command
         CloseCommand.ThrownExceptions.Subscribe(ex =>
         {
-            Console.WriteLine($"Error in CloseCommand: {ex.Message}");
+            AppLogger.LogError(string.Format(
+                    Resources.AboutViewModel_AboutViewModel_Error_in_CloseCommand___0_, ex.Message));
         });
     }
 

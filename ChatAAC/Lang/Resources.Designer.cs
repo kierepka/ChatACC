@@ -488,5 +488,304 @@ namespace ChatAAC.Lang {
                 return ResourceManager.GetString("FavoriteButton", resourceCulture);
             }
         }
+        
+        public static string BoardLoaderService_LoadObzFileAsync_root_obf_file_not_found_in_the_OBZ_package_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObzFileAsync_root_obf_file_not_found_in_the_OBZ_package_", resourceCulture);
+            }
+        }
+        
+        public static string ClipboardService_CopyToClipboard_Clipboard_is_not_available_ {
+            get {
+                return ResourceManager.GetString("ClipboardService_CopyToClipboard_Clipboard_is_not_available_", resourceCulture);
+            }
+        }
+        
+        public static string LinuxTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_ {
+            get {
+                return ResourceManager.GetString("LinuxTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___" +
+                        "0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_LoadNextBoardAsync_Brak_kolejnych_tablic_w_historii_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_LoadNextBoardAsync_Brak_kolejnych_tablic_w_historii_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_LoadPreviousBoardAsync_Brak_poprzednich_tablic_w_historii_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_LoadPreviousBoardAsync_Brak_poprzednich_tablic_w_historii_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_UpdateConstructedSentence_Constructed_sentence___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_UpdateConstructedSentence_Constructed_sentence___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SpeakConstructedSentence_Spoken_sentence___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SpeakConstructedSentence_Spoken_sentence___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SpeakConstructedSentence_Error_speaking_text___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SpeakConstructedSentence_Error_speaking_text___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SendToAiAsync_Sending_query___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SendToAiAsync_Sending_query___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainWindowGeneratingResponse {
+            get {
+                return ResourceManager.GetString("MainWindowGeneratingResponse", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SendToAiAsync_AI_Response___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SendToAiAsync_AI_Response___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SpeakAiResponseAsync_Spoken_AI_response___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SpeakAiResponseAsync_Spoken_AI_response___0_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_LoadObzFileAsync_manifest_json_file_not_found_in_the_OBZ_package_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObzFileAsync_manifest_json_file_not_found_in_the_OBZ_packa" +
+                        "ge_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_SpeakAiResponseAsync_Error_speaking_AI_response___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_SpeakAiResponseAsync_Error_speaking_AI_response___0_", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_OpenSettings_Error_opening_settings_window___0_ {
+            get {
+                return ResourceManager.GetString("MainViewModel_OpenSettings_Error_opening_settings_window___0_", resourceCulture);
+            }
+        }
+        
+        public static string MacTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_ {
+            get {
+                return ResourceManager.GetString("MacTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_", resourceCulture);
+            }
+        }
+        
+        public static string MacTtsService_SpeakAsync_Tekst_do_odczytania_nie_może_być_pusty_ {
+            get {
+                return ResourceManager.GetString("MacTtsService_SpeakAsync_Tekst_do_odczytania_nie_może_być_pusty_", resourceCulture);
+            }
+        }
+        
+        public static string MacTtsService_SpeakAsync_NotSupported {
+            get {
+                return ResourceManager.GetString("MacTtsService_SpeakAsync_NotSupported", resourceCulture);
+            }
+        }
+        
+        public static string MacTtsService_SpeakAsync_ErrorTts {
+            get {
+                return ResourceManager.GetString("MacTtsService_SpeakAsync_ErrorTts", resourceCulture);
+            }
+        }
+        
+        public static string MainViewModel_PleaseSetDefaultBoard {
+            get {
+                return ResourceManager.GetString("MainViewModel_PleaseSetDefaultBoard", resourceCulture);
+            }
+        }
+        
+        public static string HistoryViewModel_SaveHistory_Error_saving_history___0_ {
+            get {
+                return ResourceManager.GetString("HistoryViewModel_SaveHistory_Error_saving_history___0_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_LoadObfOrObzFileAsync_Nieobsługiwany_typ_pliku__Podaj_plik_z_rozszerzeniem__obf_lub__obz_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObfOrObzFileAsync_Nieobsługiwany_typ_pliku__Podaj_plik_z_r" +
+                        "ozszerzeniem__obf_lub__obz_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_LoadObfFileAsync_Plik_OBF_jest_pusty_lub_nieprawidłowy_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObfFileAsync_Plik_OBF_jest_pusty_lub_nieprawidłowy_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_LoadObfFileAsync_Błąd_podczas_ładowania_pliku_OBF___0___Szczegóły___1_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObfFileAsync_Błąd_podczas_ładowania_pliku_OBF___0___Szczeg" +
+                        "óły___1_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_LoadObzFileAsync_Error_loading_OBZ_file___0_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_LoadObzFileAsync_Error_loading_OBZ_file___0_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_ExtractObzArchiveAsync_Skipped_unsafe_entry___0_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_ExtractObzArchiveAsync_Skipped_unsafe_entry___0_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_ExtractObzArchiveAsync_Access_denied_to_file___0____1_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_ExtractObzArchiveAsync_Access_denied_to_file___0____1_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_ExtractObzArchiveAsync_Unable_to_overwrite_file___0____1_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_ExtractObzArchiveAsync_Unable_to_overwrite_file___0____1_", resourceCulture);
+            }
+        }
+        
+        public static string BoardLoaderService_ExtractObzArchiveAsync_An_error_occurred_while_extracting_file___0____1_ {
+            get {
+                return ResourceManager.GetString("BoardLoaderService_ExtractObzArchiveAsync_An_error_occurred_while_extracting_file" +
+                        "___0____1_", resourceCulture);
+            }
+        }
+        
+        public static string HistoryService_LoadHistory_Error_loading_history___0_ {
+            get {
+                return ResourceManager.GetString("HistoryService_LoadHistory_Error_loading_history___0_", resourceCulture);
+            }
+        }
+        
+        public static string OllamaClient_OllamaClient_Connecting_to__0_____ {
+            get {
+                return ResourceManager.GetString("OllamaClient_OllamaClient_Connecting_to__0_____", resourceCulture);
+            }
+        }
+        
+        public static string OllamaClientPrompt {
+            get {
+                return ResourceManager.GetString("OllamaClientPrompt", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_ {
+            get {
+                return ResourceManager.GetString("PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___" +
+                        "0_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_ {
+            get {
+                return ResourceManager.GetString("PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_c" +
+                        "ache___0_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_ {
+            get {
+                return ResourceManager.GetString("PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API_" +
+                        "__0_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_ {
+            get {
+                return ResourceManager.GetString("PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogra" +
+                        "mu_o_ID__0___Status_Code___1_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_ {
+            get {
+                return ResourceManager.GetString("PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_pikto" +
+                        "gramu__0____1_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_ {
+            get {
+                return ResourceManager.GetString("PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_" +
+                        "cache_", resourceCulture);
+            }
+        }
+        
+        public static string PictogramServiceEmptyArasaac {
+            get {
+                return ResourceManager.GetString("PictogramServiceEmptyArasaac", resourceCulture);
+            }
+        }
+        
+        public static string PictogramServiceErrorArasaac {
+            get {
+                return ResourceManager.GetString("PictogramServiceErrorArasaac", resourceCulture);
+            }
+        }
+        
+        public static string AboutViewModel_AboutViewModel_Error_in_CloseCommand___0_ {
+            get {
+                return ResourceManager.GetString("AboutViewModel_AboutViewModel_Error_in_CloseCommand___0_", resourceCulture);
+            }
+        }
+        
+        public static string ConfigViewModel_InitializeModelsAsync_Error_initializing_models___0_ {
+            get {
+                return ResourceManager.GetString("ConfigViewModel_InitializeModelsAsync_Error_initializing_models___0_", resourceCulture);
+            }
+        }
+        
+        public static string ConfigViewModel_LoadConfiguration_Error_loading_configuration___0_ {
+            get {
+                return ResourceManager.GetString("ConfigViewModel_LoadConfiguration_Error_loading_configuration___0_", resourceCulture);
+            }
+        }
+        
+        public static string ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_ {
+            get {
+                return ResourceManager.GetString("ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_", resourceCulture);
+            }
+        }
     }
 }

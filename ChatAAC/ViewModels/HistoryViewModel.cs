@@ -6,6 +6,8 @@ using ReactiveUI;
 using System.Reactive;
 using System.Text.Json;
 using System.Threading.Tasks;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 using ChatAAC.Models;
 using ChatAAC.Services;
 
@@ -81,7 +83,8 @@ namespace ChatAAC.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error saving history: {ex.Message}");
+                AppLogger.LogError(string.Format(
+                    Resources.HistoryViewModel_SaveHistory_Error_saving_history___0_, ex.Message));
             }
         }
         private async Task OnSelectionChanged(AiResponse item)
@@ -94,7 +97,7 @@ namespace ChatAAC.ViewModels
                 return;
 
             // Implement TTS for the selected history item
-            var ttsService = new TtsService(); // Replace with actual TTS service
+            var ttsService = TtsServiceFactory.CreateTtsService();
             await ttsService.SpeakAsync(SelectedHistoryItem.ResponseText);
         }
     }

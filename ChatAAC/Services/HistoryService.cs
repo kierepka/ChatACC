@@ -2,11 +2,15 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 using ChatAAC.Models;
+
+namespace ChatAAC.Services;
 
 public class HistoryService
 {
-    public ObservableCollection<AiResponse> HistoryItems { get; } = new();
+    public ObservableCollection<AiResponse> HistoryItems { get; } = [];
     public string HistoryFilePath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "ai_response_history.json");
 
     public void LoadHistory()
@@ -17,13 +21,14 @@ public class HistoryService
         {
             var json = File.ReadAllText(HistoryFilePath);
             var history = JsonSerializer.Deserialize<ObservableCollection<AiResponse>>(json);
-            if (history != null)
-                foreach (var item in history)
-                    HistoryItems.Add(item);
+            if (history == null) return;
+            foreach (var item in history)
+                HistoryItems.Add(item);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading history: {ex.Message}");
+            AppLogger.LogError(string.Format(
+                    Resources.HistoryService_LoadHistory_Error_loading_history___0_, ex.Message));
         }
     }
 
@@ -41,7 +46,8 @@ public class HistoryService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error saving history: {ex.Message}");
+            AppLogger.LogError(string.Format(
+                    Resources.HistoryViewModel_SaveHistory_Error_saving_history___0_, ex.Message));
         }
     }
 

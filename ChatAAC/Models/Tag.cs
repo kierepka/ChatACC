@@ -1,4 +1,4 @@
-namespace ChatAAC.Services;
+namespace ChatAAC.Models;
 
 public class Tag
 {

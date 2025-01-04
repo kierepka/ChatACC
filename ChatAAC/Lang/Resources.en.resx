@@ -19,7 +19,7 @@
         <value>Selected pictogram: {0}</value>
     </data>
     <data name="ClearTextButton" xml:space="preserve">
-        <value>Clear Text</value>
+        <value>Clear text</value>
     </data>
     <data name="TenseLabel" xml:space="preserve">
         <value>Tense:</value>
@@ -40,7 +40,7 @@
         <value>Question</value>
     </data>
     <data name="ClearTextButtonAutomation" xml:space="preserve">
-        <value>Clear text button</value>
+        <value>Clear Text button</value>
     </data>
     <data name="PastTenseAutomation" xml:space="preserve">
         <value>Past tense</value>
@@ -233,5 +233,168 @@
     </data>
     <data name="FavoriteButton" xml:space="preserve">
         <value>Favorite</value>
+    </data>
+    <data name="BoardLoaderService_LoadObzFileAsync_root_obf_file_not_found_in_the_OBZ_package_" xml:space="preserve">
+        <value>root.obf file not found in the OBZ package.</value>
+    </data>
+    <data name="ClipboardService_CopyToClipboard_Clipboard_is_not_available_" xml:space="preserve">
+        <value>Clipboard is not available.</value>
+    </data>
+    <data name="LinuxTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_" xml:space="preserve">
+        <value>Error reading text: {0}</value>
+    </data>
+    <data name="MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_" xml:space="preserve">
+        <value>Error opening history window: {0}</value>
+    </data>
+    <data name="MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___0_" xml:space="preserve">
+        <value>Error loading first file: {0}</value>
+    </data>
+    <data name="MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_" xml:space="preserve">
+        <value>History is empty.</value>
+    </data>
+    <data name="MainViewModel_LoadNextBoardAsync_Brak_kolejnych_tablic_w_historii_" xml:space="preserve">
+        <value>No more boards in history.</value>
+    </data>
+    <data name="MainViewModel_LoadPreviousBoardAsync_Brak_poprzednich_tablic_w_historii_" xml:space="preserve">
+        <value>No more previous boards in history.</value>
+    </data>
+    <data name="MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_" xml:space="preserve">
+        <value>Clicked Button: {0}</value>
+    </data>
+    <data name="MainViewModel_UpdateConstructedSentence_Constructed_sentence___0_" xml:space="preserve">
+        <value>Constructed sentence: {0}</value>
+    </data>
+    <data name="MainViewModel_SpeakConstructedSentence_Spoken_sentence___0_" xml:space="preserve">
+        <value>Spoken sentence: {0}</value>
+    </data>
+    <data name="MainViewModel_SpeakConstructedSentence_Error_speaking_text___0_" xml:space="preserve">
+        <value>Error speaking text: {0}</value>
+    </data>
+    <data name="MainViewModel_SendToAiAsync_Sending_query___0_" xml:space="preserve">
+        <value>Sending query: {0}</value>
+    </data>
+    <data name="MainWindowGeneratingResponse" xml:space="preserve">
+        <value>Generating response...</value>
+    </data>
+    <data name="MainViewModel_SendToAiAsync_AI_Response___0_" xml:space="preserve">
+        <value>AI Response: {0}</value>
+    </data>
+    <data name="MainViewModel_SpeakAiResponseAsync_Spoken_AI_response___0_" xml:space="preserve">
+        <value>Spoken AI response: {0}</value>
+    </data>
+    <data name="BoardLoaderService_LoadObzFileAsync_manifest_json_file_not_found_in_the_OBZ_package_" xml:space="preserve">
+        <value>manifest.json file not found in the OBZ package.</value>
+    </data>
+    <data name="MainViewModel_SpeakAiResponseAsync_Error_speaking_AI_response___0_" xml:space="preserve">
+        <value>Error speaking AI response: {0</value>
+    </data>
+    <data name="MainViewModel_OpenSettings_Error_opening_settings_window___0_" xml:space="preserve">
+        <value>Error opening settings window: {0}</value>
+    </data>
+    <data name="MacTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_" xml:space="preserve">
+        <value>Error in reading text: {0}</value>
+    </data>
+    <data name="MacTtsService_SpeakAsync_Tekst_do_odczytania_nie_może_być_pusty_" xml:space="preserve">
+        <value>Text can't be empty.</value>
+    </data>
+    <data name="MacTtsService_SpeakAsync_NotSupported" xml:space="preserve">
+        <value>Command 'say' for TTS can be used only on macOS.</value>
+    </data>
+    <data name="MacTtsService_SpeakAsync_ErrorTts" xml:space="preserve">
+        <value>TTS Error: {error}</value>
+    </data>
+    <data name="MainViewModel_PleaseSetDefaultBoard" xml:space="preserve">
+        <value>Please set default board.</value>
+    </data>
+    <data name="HistoryViewModel_SaveHistory_Error_saving_history___0_" xml:space="preserve">
+        <value>Error saving history: {0}</value>
+    </data>
+    <data name="BoardLoaderService_LoadObfOrObzFileAsync_Nieobsługiwany_typ_pliku__Podaj_plik_z_rozszerzeniem__obf_lub__obz_" xml:space="preserve">
+        <value>Unsupported file type. Specify a file with a .obf or .obz extension.</value>
+    </data>
+    <data name="BoardLoaderService_LoadObfFileAsync_Plik_OBF_jest_pusty_lub_nieprawidłowy_" xml:space="preserve">
+        <value>The OBF file is empty or invalid.</value>
+    </data>
+    <data name="BoardLoaderService_LoadObfFileAsync_Błąd_podczas_ładowania_pliku_OBF___0___Szczegóły___1_" xml:space="preserve">
+        <value>Error loading OBF file: {0}. Details: {1}</value>
+    </data>
+    <data name="BoardLoaderService_LoadObzFileAsync_Error_loading_OBZ_file___0_" xml:space="preserve">
+        <value>Error loading OBZ file: {0}</value>
+    </data>
+    <data name="BoardLoaderService_ExtractObzArchiveAsync_Skipped_unsafe_entry___0_" xml:space="preserve">
+        <value>Skipped unsafe entry: {0}</value>
+    </data>
+    <data name="BoardLoaderService_ExtractObzArchiveAsync_Access_denied_to_file___0____1_" xml:space="preserve">
+        <value>Access denied to file: {0}. {1}</value>
+    </data>
+    <data name="BoardLoaderService_ExtractObzArchiveAsync_Unable_to_overwrite_file___0____1_" xml:space="preserve">
+        <value>Unable to overwrite file: {0}. {1}</value>
+    </data>
+    <data name="BoardLoaderService_ExtractObzArchiveAsync_An_error_occurred_while_extracting_file___0____1_" xml:space="preserve">
+        <value>An error occurred while extracting file: {0}. {1}</value>
+    </data>
+    <data name="HistoryService_LoadHistory_Error_loading_history___0_" xml:space="preserve">
+        <value>Error loading history: {0}</value>
+    </data>
+    <data name="OllamaClient_OllamaClient_Connecting_to__0_____" xml:space="preserve">
+        <value>Connecting to {0} ...</value>
+    </data>
+    <data name="OllamaClientPrompt" xml:space="preserve">
+        <value>You are a communication assistant for a person with a disability who uses an AAC (Augmentative and Alternative Communication) system. Your task is to transform the keywords selected by this person into one complete, grammatically correct sentence.
+
+Context: The person with a disability has chosen the following keywords: [{0}]
+
+Your task:
+	1.	Analyze the provided keywords.
+	2.	Using all of these keywords, create a single coherent sentence addressed to one listener.
+	3.	Ensure that the sentence is grammatically correct and accurately conveys the user’s communicative intention.
+	4.	Add any necessary connecting or contextual words so the sentence sounds natural.
+	5.	Do not change the meaning or introduce information beyond the provided keywords.
+	6.	Formulate the sentence in the {1} mood. If the keywords contain “Ja” (I), use the first-person perspective.
+	7.	Use the {2} tense.
+	8.	Assume that if a number is present, it is: {3}.
+	9.	If the keywords include the word “Ja” (I), construct the sentence in the first-person perspective.
+	10.	Keep the statement simple and clear, without omitting any keywords, but linking them in a logical, grammatical way.
+
+Answer:
+
+Provide only one generated sentence, without any additional comments or explanations.
+Prepare your answer so it can be read aloud to the person the individual with a disability is speaking with, in the language: {4}.</value>
+    </data>
+    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_" xml:space="preserve">
+        <value>Error in deserialization cache file: {0}</value>
+    </data>
+    <data name="PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_" xml:space="preserve">
+        <value>Unexpected error when reading cache file: {0}</value>
+    </data>
+    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_" xml:space="preserve">
+        <value>Error retrieving pictograms from API: {0}</value>
+    </data>
+    <data name="PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_" xml:space="preserve">
+        <value>Failed to download pictogram image with ID {0}. Status Code: {1}</value>
+    </data>
+    <data name="PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_" xml:space="preserve">
+        <value>Error downloading pictogram image {0}: {1}</value>
+    </data>
+    <data name="PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_" xml:space="preserve">
+        <value>The pictogram image {0} already exist in the cache.</value>
+    </data>
+    <data name="PictogramServiceEmptyArasaac" xml:space="preserve">
+        <value>Retrieved empty data from the ARASAAC API.</value>
+    </data>
+    <data name="PictogramServiceErrorArasaac" xml:space="preserve">
+        <value>Failure to retrieve data from the ARASAAC API. Status Code: {0}</value>
+    </data>
+    <data name="AboutViewModel_AboutViewModel_Error_in_CloseCommand___0_" xml:space="preserve">
+        <value>Error in CloseCommand: {0}</value>
+    </data>
+    <data name="ConfigViewModel_InitializeModelsAsync_Error_initializing_models___0_" xml:space="preserve">
+        <value>Error initializing models: {0}</value>
+    </data>
+    <data name="ConfigViewModel_LoadConfiguration_Error_loading_configuration___0_" xml:space="preserve">
+        <value>Error loading configuration: {0}</value>
+    </data>
+    <data name="ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_" xml:space="preserve">
+        <value>Error saving configuration: {0}</value>
     </data>
 </root>

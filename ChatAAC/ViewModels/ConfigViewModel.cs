@@ -13,6 +13,8 @@ using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform.Storage;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 using ChatAAC.Models;
 using ChatAAC.Views;
 using OllamaSharp;
@@ -53,10 +55,10 @@ namespace ChatAAC.ViewModels
 
         #region Singleton Implementation
 
-        private static readonly Lazy<ConfigViewModel> _instance =
+        private static readonly Lazy<ConfigViewModel> LazyInstance =
             new(() => new ConfigViewModel(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-        public static ConfigViewModel Instance => _instance.Value;
+        public static ConfigViewModel Instance => LazyInstance.Value;
 
         private string? _message;
 
@@ -86,7 +88,7 @@ namespace ChatAAC.ViewModels
             "ChatAAC",
             "config.json");
 
-        private readonly object _saveLock = new();
+        private readonly Lock _saveLock = new();
         private bool _isDirty;
 
         #endregion
@@ -143,7 +145,7 @@ namespace ChatAAC.ViewModels
             Thread.CurrentThread.CurrentCulture = SelectedCulture;
             Thread.CurrentThread.CurrentUICulture = SelectedCulture;
 
-            Lang.Resources.Culture = SelectedCulture;
+            Resources.Culture = SelectedCulture;
         }
 
         public string DefaultBoardPath
@@ -167,7 +169,7 @@ namespace ChatAAC.ViewModels
             get => _fontSize;
             set
             {
-                this.SetAndSave(ref _fontSize, value);
+                SetAndSave(ref _fontSize, value);
                 FontSizeSmall = _fontSize - 2;
                 FontSizeBig = _fontSize + 2;
                 FontSizeLarge = _fontSize + 8;
@@ -177,33 +179,33 @@ namespace ChatAAC.ViewModels
         public double FontSizeSmall
         {
             get => _fontSizeSmall;
-            set => this.SetAndSave(ref _fontSizeSmall, value);
+            set => SetAndSave(ref _fontSizeSmall, value);
         }
 
         public double FontSizeBig
         {
             get => _fontSizeSmall;
-            set => this.SetAndSave(ref _fontSizeBig, value);
+            set => SetAndSave(ref _fontSizeBig, value);
         }
 
         public double FontSizeLarge
         {
             get => _fontSizeLarge;
-            set => this.SetAndSave(ref _fontSizeLarge, value);
+            set => SetAndSave(ref _fontSizeLarge, value);
         }
 
 
         public double ButtonSize
         {
             get => _buttonSize;
-            set => this.SetAndSave(ref _buttonSize, value);
+            set => SetAndSave(ref _buttonSize, value);
         }
 
-        [JsonIgnore] public ObservableCollection<string> Models { get; } = new();
+        [JsonIgnore] public ObservableCollection<string> Models { get; } = [];
 
-        [JsonIgnore] public ObservableCollection<string> Languages { get; } = new() { "Polski", "English" };
+        [JsonIgnore] public ObservableCollection<string> Languages { get; } = ["Polski", "English"];
 
-        [JsonIgnore] public ObservableCollection<string> BoardPaths { get; } = new();
+        [JsonIgnore] public ObservableCollection<string> BoardPaths { get; } = [];
 
         #endregion
 
@@ -242,7 +244,7 @@ namespace ChatAAC.ViewModels
 
         private void OpenAboutWindow()
         {
-            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop) return;
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime) return;
             var aboutWindow = new AboutWindow
             {
                 DataContext = new AboutViewModel()
@@ -273,10 +275,10 @@ namespace ChatAAC.ViewModels
                 {
                     Title = "Select AAC Board File",
                     AllowMultiple = false,
-                    FileTypeFilter = new[]
-                    {
-                        new FilePickerFileType("OBZ/OBF Files") { Patterns = new[] { "*.obz", "*.obf" } }
-                    }
+                    FileTypeFilter =
+                    [
+                        new FilePickerFileType("OBZ/OBF Files") { Patterns = ["*.obz", "*.obf"] }
+                    ]
                 });
 
                 var file = files.FirstOrDefault();
@@ -314,7 +316,8 @@ namespace ChatAAC.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error initializing models: {ex.Message}");
+                AppLogger.LogError(string.Format(
+                    Resources.ConfigViewModel_InitializeModelsAsync_Error_initializing_models___0_, ex.Message));
             }
         }
 
@@ -343,7 +346,8 @@ namespace ChatAAC.ViewModels
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading configuration: {ex.Message}");
+                AppLogger.LogError(string.Format(
+                    Resources.ConfigViewModel_LoadConfiguration_Error_loading_configuration___0_, ex.Message));
                 InitializeDefaults();
             }
         }
@@ -405,11 +409,11 @@ namespace ChatAAC.ViewModels
                     File.WriteAllText(_configFilePath, json);
                     _isDirty = false;
 
-                    Console.WriteLine("Configuration saved successfully.");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error saving configuration: {ex.Message}");
+                    AppLogger.LogError(string.Format(
+                        Resources.ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_, ex.Message));
                 }
             }
         }

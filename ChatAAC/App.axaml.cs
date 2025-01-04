@@ -15,13 +15,13 @@ public class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
-        // Konfiguracja ReactiveUI Scheduler
+        // Configure the ReactiveUI Scheduler
         RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
     }
 
     public override void OnFrameworkInitializationCompleted()
     {
-        // Ustawienie kultury na aktualną kulturę systemową
+        // Setting the culture to the current system culture
         Lang.Resources.Culture = CultureInfo.CurrentCulture;
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

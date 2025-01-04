@@ -2,6 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
+using ChatAAC.Helpers;
+using ChatAAC.Lang;
 
 namespace ChatAAC.Services;
 
@@ -27,10 +29,8 @@ public class LinuxTtsService : ITtsService
 
         try
         {
-            using var process = new Process
-            {
-                StartInfo = processStartInfo
-            };
+            using var process = new Process();
+            process.StartInfo = processStartInfo;
 
             process.Start();
 
@@ -39,11 +39,12 @@ public class LinuxTtsService : ITtsService
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0) throw new InvalidOperationException($"Błąd TTS: {error}");
+            if (process.ExitCode != 0) throw new InvalidOperationException($"TTS Error: {error}");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Błąd podczas odczytywania tekstu: {ex.Message}");
+            AppLogger.LogError(string.Format
+                (Resources.LinuxTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_, ex.Message));
             throw;
         }
     }

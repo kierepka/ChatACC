@@ -11,5 +11,5 @@ public class ChatRequest
     public string Model { get; set; } = string.Empty;
 
     public int Quantity { get; set; }
-    // Dodaj inne właściwości zgodnie z wymaganiami OllamaSharp
+
 }
