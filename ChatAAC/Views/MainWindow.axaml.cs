@@ -1,7 +1,5 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using ChatAAC.ViewModels;
 
 namespace ChatAAC.Views;
 
@@ -10,23 +8,20 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-        // Verify DataContext
-        DataContext = new MainViewModel();
-
-        // Optional: Add this for debugging
-        AttachedToVisualTree += (s, e) =>
-        {
-            Console.WriteLine(DataContext is MainViewModel vm
-                ? $"Window loaded with {vm.Buttons.Count} buttons"
-                : "DataContext is not set correctly!");
-        };
-
 
 #if DEBUG
-        this.AttachDevTools();
+            this.AttachDevTools();
+
+        // (Optional) If you want a debug trace:
+        AttachedToVisualTree += (s, e) =>
+        {
+            // This is just to confirm your VM is present
+            System.Diagnostics.Debug.WriteLine(DataContext is null
+                ? "DataContext is not set or is null!"
+                : "MainWindow is attached with a valid DataContext.");
+        };
 #endif
     }
-
 
     private void InitializeComponent()
     {

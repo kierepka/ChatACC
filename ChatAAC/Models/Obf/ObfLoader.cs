@@ -21,13 +21,13 @@ public static partial class ObfLoader
         "ChatAAC", "Cache", "Pictograms");
 
     /// <summary>
-    /// Asynchronously loads an OBF file, processes images, and returns the deserialized object.
-    /// If previous data exists in the cache, it will be overwritten.
+    ///     Asynchronously loads an OBF file, processes images, and returns the deserialized object.
+    ///     If previous data exists in the cache, it will be overwritten.
     /// </summary>
     /// <param name="filePath">The path to the OBF file to be loaded.</param>
     /// <returns>
-    /// An asynchronous task that returns an ObfFile object if successful.
-    /// Returns null if loading or processing fails.
+    ///     An asynchronous task that returns an ObfFile object if successful.
+    ///     Returns null if loading or processing fails.
     /// </returns>
     public static async Task<ObfFile?> LoadObfAsync(string? filePath)
     {
@@ -42,7 +42,7 @@ public static partial class ObfLoader
             // Ensure cache directories exist
             EnsureDirectoryExists(ObfCacheDirectory);
             EnsureDirectoryExists(PictogramsCacheDirectory);
-            
+
             // Deserialize OBF file
             var obfFile = await DeserializeObfFileAsync(filePath);
             if (obfFile == null)
@@ -77,12 +77,12 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Deserializes the OBF file to an ObfFile object.
+    ///     Deserializes the OBF file to an ObfFile object.
     /// </summary>
     /// <param name="obfFilePath">The path to the OBF file to be deserialized.</param>
     /// <returns>
-    /// An asynchronous task that returns an ObfFile object if deserialization is successful.
-    /// Returns null if deserialization fails.
+    ///     An asynchronous task that returns an ObfFile object if deserialization is successful.
+    ///     Returns null if deserialization fails.
     /// </returns>
     private static async Task<ObfFile?> DeserializeObfFileAsync(string? obfFilePath)
     {
@@ -106,7 +106,7 @@ public static partial class ObfLoader
 
 
     /// <summary>
-    /// Processes images in the OBF file, saving them to the cache directory.
+    ///     Processes images in the OBF file, saving them to the cache directory.
     /// </summary>
     /// <param name="obfFile">The OBF file containing the images to be processed.</param>
     /// <param name="obfBaseDirectory">The base directory of the original OBF file.</param>
@@ -136,15 +136,14 @@ public static partial class ObfLoader
         }
     }
 
- 
 
     /// <summary>
-    /// Generates a unique filename for the image based on its ID and file extension.
+    ///     Generates a unique filename for the image based on its ID and file extension.
     /// </summary>
     /// <param name="image">The Image object containing the image information.</param>
     /// <returns>
-    /// A string representing the generated filename for the image.
-    /// The filename consists of a sanitized version of the image ID followed by the appropriate file extension.
+    ///     A string representing the generated filename for the image.
+    ///     The filename consists of a sanitized version of the image ID followed by the appropriate file extension.
     /// </returns>
     private static string GenerateImageFileName(Image image)
     {
@@ -154,17 +153,18 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Attempts to save an image from Base64 data or by downloading it from a URL.
+    ///     Attempts to save an image from Base64 data or by downloading it from a URL.
     /// </summary>
     /// <param name="image">The Image object containing the image data or URL.</param>
     /// <param name="destinationPath">The file path where the image should be saved.</param>
     /// <returns>
-    /// A boolean value indicating whether the image was successfully saved.
-    /// Returns true if the image was saved, false otherwise.
+    ///     A boolean value indicating whether the image was successfully saved.
+    ///     Returns true if the image was saved, false otherwise.
     /// </returns>
     /// <remarks>
-    /// This method first checks if the image has a DataUrl. If so, it attempts to download the data from that URL.
-    /// If not, it uses the existing Data property. The method then converts the Base64 data to bytes and saves it to the specified path.
+    ///     This method first checks if the image has a DataUrl. If so, it attempts to download the data from that URL.
+    ///     If not, it uses the existing Data property. The method then converts the Base64 data to bytes and saves it to the
+    ///     specified path.
     /// </remarks>
     private static async Task<bool> SaveImageFromDataAsync(Image image, string destinationPath)
     {
@@ -198,13 +198,13 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Attempts to save the image by downloading it from a URL.
+    ///     Attempts to save the image by downloading it from a URL.
     /// </summary>
     /// <param name="image">The Image object containing the URL of the image to be downloaded.</param>
     /// <param name="destinationPath">The file path where the downloaded image should be saved.</param>
     /// <returns>
-    /// An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
-    /// Returns true if the image was saved, false otherwise.
+    ///     An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
+    ///     Returns true if the image was saved, false otherwise.
     /// </returns>
     private static async Task<bool> SaveImageFromUrlAsync(Image image, string destinationPath)
     {
@@ -231,16 +231,16 @@ public static partial class ObfLoader
             return false;
         }
     }
-    
+
     /// <summary>
-    /// Attempts to save the image by downloading it from a path, using only the file name.
+    ///     Attempts to save the image by downloading it from a path, using only the file name.
     /// </summary>
     /// <param name="image">The Image object containing the path of the image to be saved.</param>
     /// <param name="destinationPath">The file path where the downloaded image should be saved.</param>
     /// <param name="obfBaseDirectory">The base directory of the original OBF file.</param>
     /// <returns>
-    /// An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
-    /// Returns true if the image was saved, false otherwise.
+    ///     An asynchronous task that returns a boolean value indicating whether the image was successfully saved.
+    ///     Returns true if the image was saved, false otherwise.
     /// </returns>
     private static async Task<bool> SaveImageFromPathAsync(Image image, string destinationPath,
         string obfBaseDirectory)
@@ -304,13 +304,13 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Asynchronously copies a file from the source path to the destination path.
-    /// If the destination directory does not exist, it is created.
+    ///     Asynchronously copies a file from the source path to the destination path.
+    ///     If the destination directory does not exist, it is created.
     /// </summary>
     /// <param name="sourceFilePath">The path of the source file to be copied.</param>
     /// <param name="destinationFilePath">The path where the file should be copied.</param>
     /// <returns>
-    /// An asynchronous task that completes when the file is copied.
+    ///     An asynchronous task that completes when the file is copied.
     /// </returns>
     private static async Task CopyFileAsync(string sourceFilePath, string destinationFilePath)
     {
@@ -329,7 +329,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Sanitizes an image path by replacing backslashes with slashes and removing any potentially unsafe components.
+    ///     Sanitizes an image path by replacing backslashes with slashes and removing any potentially unsafe components.
     /// </summary>
     /// <param name="imagePath">The original image path.</param>
     /// <returns>The sanitized image path.</returns>
@@ -392,7 +392,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Ensures a directory exists.
+    ///     Ensures a directory exists.
     /// </summary>
     private static void EnsureDirectoryExists(string path)
     {
@@ -417,7 +417,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Logs a message to the console.
+    ///     Logs a message to the console.
     /// </summary>
     private static void Log(string message)
     {
@@ -425,7 +425,7 @@ public static partial class ObfLoader
     }
 
     /// <summary>
-    /// Logs an error message to the console.
+    ///     Logs an error message to the console.
     /// </summary>
     private static void LogError(string message)
     {

@@ -6,13 +6,13 @@ using System.Text.Json.Serialization;
 namespace ChatAAC.Converters;
 
 /// <summary>
-/// Custom JSON converter for a 2D array of nullable integers.
-/// This converter is used to serialize and deserialize the 'order' property in a grid.
+///     Custom JSON converter for a 2D array of nullable integers.
+///     This converter is used to serialize and deserialize the 'order' property in a grid.
 /// </summary>
 public class OrderConverter : JsonConverter<int?[][]>
 {
     /// <summary>
-    /// Reads and converts the JSON to a 2D array of nullable integers.
+    ///     Reads and converts the JSON to a 2D array of nullable integers.
     /// </summary>
     /// <param name="reader">The Utf8JsonReader to read from.</param>
     /// <param name="typeToConvert">The type to convert to.</param>
@@ -21,10 +21,7 @@ public class OrderConverter : JsonConverter<int?[][]>
     public override int?[][] Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Ensure the token is a start array
-        if (reader.TokenType != JsonTokenType.StartArray)
-        {
-            throw new JsonException("Expected start of array");
-        }
+        if (reader.TokenType != JsonTokenType.StartArray) throw new JsonException("Expected start of array");
 
         var result = new List<int?[]>();
 
@@ -46,17 +43,11 @@ public class OrderConverter : JsonConverter<int?[][]>
                     break;
 
                 if (reader.TokenType == JsonTokenType.Null)
-                {
                     innerList.Add(null);
-                }
                 else if (reader.TokenType == JsonTokenType.Number)
-                {
                     innerList.Add(reader.GetInt32());
-                }
                 else
-                {
                     throw new JsonException("Expected number or null");
-                }
             }
 
             result.Add(innerList.ToArray());
@@ -66,7 +57,7 @@ public class OrderConverter : JsonConverter<int?[][]>
     }
 
     /// <summary>
-    /// Writes a 2D array of nullable integers as JSON.
+    ///     Writes a 2D array of nullable integers as JSON.
     /// </summary>
     /// <param name="writer">The Utf8JsonWriter to write to.</param>
     /// <param name="value">The value to convert to JSON.</param>
@@ -80,16 +71,10 @@ public class OrderConverter : JsonConverter<int?[][]>
             writer.WriteStartArray();
 
             foreach (var item in innerArray)
-            {
                 if (item.HasValue)
-                {
                     writer.WriteNumberValue(item.Value);
-                }
                 else
-                {
                     writer.WriteNullValue();
-                }
-            }
 
             writer.WriteEndArray();
         }

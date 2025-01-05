@@ -11,7 +11,10 @@ namespace ChatAAC.Services;
 public class HistoryService
 {
     public ObservableCollection<AiResponse> HistoryItems { get; } = [];
-    public string HistoryFilePath { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "ai_response_history.json");
+
+    public string HistoryFilePath { get; } =
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC",
+            "ai_response_history.json");
 
     public void LoadHistory()
     {
@@ -28,7 +31,7 @@ public class HistoryService
         catch (Exception ex)
         {
             AppLogger.LogError(string.Format(
-                    Resources.HistoryService_LoadHistory_Error_loading_history___0_, ex.Message));
+                Resources.HistoryService_LoadHistory_Error_loading_history___0_, ex.Message));
         }
     }
 
@@ -47,7 +50,7 @@ public class HistoryService
         catch (Exception ex)
         {
             AppLogger.LogError(string.Format(
-                    Resources.HistoryViewModel_SaveHistory_Error_saving_history___0_, ex.Message));
+                Resources.HistoryViewModel_SaveHistory_Error_saving_history___0_, ex.Message));
         }
     }
 

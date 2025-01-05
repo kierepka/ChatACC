@@ -8,6 +8,4 @@ public partial class HistoryWindow : Window
     {
         InitializeComponent();
     }
-
-
 }

@@ -43,17 +43,23 @@ public class PictogramService
                     await CheckAndDownloadMissingImages(pictograms);
                     return pictograms;
                 }
+
                 // If the data is empty, delete the cache file and download again
                 File.Delete(cacheFile);
             }
             catch (JsonException ex)
             {
-                Console.WriteLine(Resources.PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_, ex.Message);
+                Console.WriteLine(
+                    Resources.PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_,
+                    ex.Message);
                 File.Delete(cacheFile);
             }
             catch (Exception ex)
             {
-                Console.WriteLine(Resources.PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_, ex.Message);
+                Console.WriteLine(
+                    Resources
+                        .PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_,
+                    ex.Message);
             }
 
         // Take data from ARASAAC API 
@@ -72,15 +78,16 @@ public class PictogramService
             var pictograms = JsonSerializer.Deserialize<List<Pictogram>>(responseData);
 
             if (pictograms is not { Count: > 0 }) throw new Exception(Resources.PictogramServiceEmptyArasaac);
-                    
+
             await CheckAndDownloadMissingImages(pictograms);
 
             return pictograms;
-           
         }
         catch (Exception ex)
         {
-            Console.WriteLine(Resources.PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_, ex.Message);
+            Console.WriteLine(
+                Resources.PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_,
+                ex.Message);
 
             return [];
         }
@@ -113,14 +120,21 @@ public class PictogramService
                 else
                 {
                     AppLogger.LogInfo(string.Format(
-                        Resources.PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_, pictogramId, response.StatusCode));
+                        Resources
+                            .PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_,
+                        pictogramId, response.StatusCode));
                 }
             }
             catch (Exception ex)
             {
-                AppLogger.LogInfo(string.Format(Resources.PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_, pictogramId, ex.Message));
+                AppLogger.LogInfo(string.Format(
+                    Resources
+                        .PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_,
+                    pictogramId, ex.Message));
             }
         else
-            AppLogger.LogInfo(string.Format(Resources.PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_, pictogramId));
+            AppLogger.LogInfo(string.Format(
+                Resources.PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_,
+                pictogramId));
     }
 }

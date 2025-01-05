@@ -2,7 +2,6 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:lang="clr-namespace:ChatAAC.Lang"
         xmlns:vm="clr-namespace:ChatAAC.ViewModels"
         xmlns:converters="clr-namespace:ChatAAC.Converters"
         xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
@@ -10,28 +9,35 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="ChatAAC.Views.HistoryWindow"
         x:DataType="vm:HistoryViewModel"
-        Title="{x:Static lang:Resources.HistoryWindowTitle}">
+        Title="{Binding HistoryWindowTitle}">
+
     <Window.Resources>
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter" />
     </Window.Resources>
+
     <Grid Margin="10" RowDefinitions="Auto,Auto,Auto,*">
         <!-- Title -->
-        <TextBlock Text="{x:Static lang:Resources.HistoryWindowTitle}" FontSize="20" FontWeight="Bold"
+        <TextBlock Text="{Binding HistoryWindowTitle}"
+                   FontSize="20" FontWeight="Bold"
                    Grid.Row="0" Margin="0,0,0,10" />
 
         <!-- Sorting Buttons -->
         <StackPanel Orientation="Horizontal" Spacing="10" Grid.Row="1">
-            <Button Content="{x:Static lang:Resources.SortNewestToOldestButton}"
+            <Button Content="{Binding SortNewestToOldestButton}"
                     Command="{Binding SortNewestToOldestCommand}" Width="200" />
-            <Button Content="{x:Static lang:Resources.SortOldestToNewestButton}"
+
+            <Button Content="{Binding SortOldestToNewestButton}"
                     Command="{Binding SortOldestToNewestCommand}" Width="200" />
-            <Button Content="{x:Static lang:Resources.SortFavoritesButton}"
+
+            <Button Content="{Binding SortFavoritesButton}"
                     Command="{Binding SortFavoritesCommand}" Width="200" />
         </StackPanel>
 
         <!-- Speak Selected Entry -->
-        <Button Content="{x:Static lang:Resources.SpeakSelectedEntryButton}"
-                Command="{Binding SpeakSelectedEntryCommand}" Grid.Row="2" Margin="0,10,0,10" HorizontalAlignment="Left" Width="200" />
+        <Button Content="{Binding SpeakSelectedEntryButton}"
+                Command="{Binding SpeakSelectedEntryCommand}" 
+                Grid.Row="2" Margin="0,10,0,10"
+                HorizontalAlignment="Left" Width="200" />
 
         <!-- History List -->
         <ListBox ItemsSource="{Binding HistoryItems}"
@@ -39,7 +45,7 @@
                  Grid.Row="3">
             <i:Interaction.Behaviors>
                 <ia:EventTriggerBehavior EventName="SelectionChanged">
-                    <ia:InvokeCommandAction Command="{Binding SelectionChangedCommand}" 
+                    <ia:InvokeCommandAction Command="{Binding SelectionChangedCommand}"
                                             CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource AncestorType=ListBox}}" />
                 </ia:EventTriggerBehavior>
             </i:Interaction.Behaviors>
@@ -48,11 +54,14 @@
                     <Grid ColumnDefinitions="Auto,*">
                         <Button x:CompileBindings="False"
                                 Command="{Binding DataContext.ToggleFavoriteCommand, RelativeSource={RelativeSource AncestorType=Window}}"
-                                CommandParameter="{Binding}" Width="40" Height="40"
+                                CommandParameter="{Binding}"
+                                Width="40" Height="40"
                                 Background="{Binding IsFavorite, Converter={StaticResource BooleanToBrushConverter}}">
                             <Image Source="avares://ChatAAC/Assets/favorite-icon.png" Stretch="Uniform" />
                         </Button>
-                        <TextBlock Grid.Column="1" Text="{Binding ResponseText}" TextWrapping="Wrap" Margin="5" />
+                        <TextBlock Grid.Column="1"
+                                   Text="{Binding ResponseText}"
+                                   TextWrapping="Wrap" Margin="5" />
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChatAAC.Helpers;
@@ -16,7 +15,7 @@ public class OllamaClient
     public OllamaClient()
     {
         AppLogger.LogInfo(string.Format(Resources.OllamaClient_OllamaClient_Connecting_to__0_____,
-	        ConfigViewModel.Instance.OllamaAddress));
+            ConfigViewModel.Instance.OllamaAddress));
         var ollama = new OllamaApiClient(ConfigViewModel.Instance.OllamaAddress)
         {
             SelectedModel = ConfigViewModel.Instance.SelectedModel
@@ -26,11 +25,10 @@ public class OllamaClient
 
     public Task<IAsyncEnumerable<string>> ChatAsync(ChatRequest request)
     {
-      
         var prompt =
-	        string.Format(Resources.OllamaClientPrompt, 
+            string.Format(Resources.OllamaClientPrompt,
                 request.Prompt, request.Form, request.Tense, request.Quantity,
-		        ConfigViewModel.Instance.SelectedLanguage);
+                ConfigViewModel.Instance.SelectedLanguage);
 
         return Task.FromResult(_chat.SendAsync(prompt));
     }

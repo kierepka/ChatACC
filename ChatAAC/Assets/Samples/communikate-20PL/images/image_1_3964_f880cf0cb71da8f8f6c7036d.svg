@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="iso-8859-1"?>
 <!-- Generator: Adobe Illustrator 12.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 51448)  -->
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [
-	<!ENTITY ns_svg "http://www.w3.org/2000/svg">
-	<!ENTITY ns_xlink "http://www.w3.org/1999/xlink">
-]>
+        <!ENTITY ns_svg "http://www.w3.org/2000/svg">
+        <!ENTITY ns_xlink "http://www.w3.org/1999/xlink">
+        ]>
 <svg version="1.1" id="Layer_1" xmlns="&ns_svg;" width="848.557" height="848.557"
      viewBox="0 0 848.557 848.557" style="overflow:visible;enable-background:new 0 0 848.557 848.557;"
      xml:space="preserve">
@@ -17,5 +17,5 @@
 		c0-68.67-15.104-119.897-45.293-153.691c-30.198-33.794-70.298-50.691-120.297-50.691c-50.009,0-90.313,17.102-120.911,51.305
 		C273.491,290.066,258.192,341.634,258.192,410.577z"/>
 </g>
-<rect style="fill:none;" width="848.557" height="848.557"/>
+    <rect style="fill:none;" width="848.557" height="848.557"/>
 </svg>

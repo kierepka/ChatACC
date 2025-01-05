@@ -12,7 +12,8 @@ public class MacTtsService : ITtsService
     public async Task SpeakAsync(string text)
     {
         if (string.IsNullOrWhiteSpace(text))
-            throw new ArgumentException(Resources.MacTtsService_SpeakAsync_Tekst_do_odczytania_nie_może_być_pusty_, nameof(text));
+            throw new ArgumentException(Resources.MacTtsService_SpeakAsync_Tekst_do_odczytania_nie_może_być_pusty_,
+                nameof(text));
 
         if (!IsMacOs())
             throw new PlatformNotSupportedException(Resources.MacTtsService_SpeakAsync_NotSupported);
@@ -38,15 +39,15 @@ public class MacTtsService : ITtsService
 
             await process.WaitForExitAsync().ConfigureAwait(false);
 
-            if (process.ExitCode != 0) throw new InvalidOperationException( Resources.MacTtsService_SpeakAsync_ErrorTts);
+            if (process.ExitCode != 0) throw new InvalidOperationException(Resources.MacTtsService_SpeakAsync_ErrorTts);
         }
         catch (Exception ex)
         {
             AppLogger.LogError(
                 string.Format(Resources.MacTtsService_SpeakAsync_Błąd_podczas_odczytywania_tekstu___0_, ex.Message
-                    )
-                );
-            
+                )
+            );
+
             throw;
         }
     }

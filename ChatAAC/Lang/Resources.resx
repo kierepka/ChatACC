@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+                xmlns="">
         <xsd:element name="root" msdata:IsDataSet="true">
-            
+
         </xsd:element>
     </xsd:schema>
     <resheader name="resmimetype">
@@ -13,10 +14,14 @@
         <value>1.3</value>
     </resheader>
     <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
     </resheader>
     <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral,
+            PublicKeyToken=b77a5c561934e089
+        </value>
     </resheader>
     <data name="MainWindowTitle" xml:space="preserve">
         <value>ChatAAC</value>
@@ -223,7 +228,7 @@
         <value>Sortuj od najnowszych</value>
     </data>
     <data name="SpeakSelectedEntryButton" xml:space="preserve">
-        <value>Read Selected Entry</value>
+        <value>Odczytaj wybrany wpis</value>
     </data>
     <data name="CloseButton" xml:space="preserve">
         <value>Zamknij</value>
@@ -252,7 +257,8 @@
     <data name="MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_" xml:space="preserve">
         <value>Błąd uruchamiania okna historii komend: {0}</value>
     </data>
-    <data name="MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___0_" xml:space="preserve">
+    <data name="MainViewModel_LoadInitialFileAsync_Błąd_podczas_wczytywania_pliku_początkowego___0_"
+          xml:space="preserve">
         <value>Błąd podczas wczytywania pliku początkowego: {0}</value>
     </data>
     <data name="MainViewModel_LoadNextBoardAsync_Historia_jest_pusta_" xml:space="preserve">
@@ -288,7 +294,8 @@
     <data name="MainViewModel_SpeakAiResponseAsync_Spoken_AI_response___0_" xml:space="preserve">
         <value>Wypowiedz - odpowiedź z AI: {0}</value>
     </data>
-    <data name="BoardLoaderService_LoadObzFileAsync_manifest_json_file_not_found_in_the_OBZ_package_" xml:space="preserve">
+    <data name="BoardLoaderService_LoadObzFileAsync_manifest_json_file_not_found_in_the_OBZ_package_"
+          xml:space="preserve">
         <value>Plik manifest.json nie został znaleziony w pakiecie OBZ.</value>
     </data>
     <data name="MainViewModel_SpeakAiResponseAsync_Error_speaking_AI_response___0_" xml:space="preserve">
@@ -315,13 +322,15 @@
     <data name="HistoryViewModel_SaveHistory_Error_saving_history___0_" xml:space="preserve">
         <value>Błąd zapisu historii: {0}</value>
     </data>
-    <data name="BoardLoaderService_LoadObfOrObzFileAsync_Nieobsługiwany_typ_pliku__Podaj_plik_z_rozszerzeniem__obf_lub__obz_" xml:space="preserve">
+    <data name="BoardLoaderService_LoadObfOrObzFileAsync_Nieobsługiwany_typ_pliku__Podaj_plik_z_rozszerzeniem__obf_lub__obz_"
+          xml:space="preserve">
         <value>Nieobsługiwany typ pliku. Podaj plik z rozszerzeniem .obf lub .obz.</value>
     </data>
     <data name="BoardLoaderService_LoadObfFileAsync_Plik_OBF_jest_pusty_lub_nieprawidłowy_" xml:space="preserve">
         <value>Plik OBF jest pusty lub nieprawidłowy.</value>
     </data>
-    <data name="BoardLoaderService_LoadObfFileAsync_Błąd_podczas_ładowania_pliku_OBF___0___Szczegóły___1_" xml:space="preserve">
+    <data name="BoardLoaderService_LoadObfFileAsync_Błąd_podczas_ładowania_pliku_OBF___0___Szczegóły___1_"
+          xml:space="preserve">
         <value>Błąd podczas ładowania pliku OBF: {0}. Szczegóły: {1}</value>
     </data>
     <data name="BoardLoaderService_LoadObzFileAsync_Error_loading_OBZ_file___0_" xml:space="preserve">
@@ -336,7 +345,8 @@
     <data name="BoardLoaderService_ExtractObzArchiveAsync_Unable_to_overwrite_file___0____1_" xml:space="preserve">
         <value>Brak możliwości zapisu pliku: {0}. {1}</value>
     </data>
-    <data name="BoardLoaderService_ExtractObzArchiveAsync_An_error_occurred_while_extracting_file___0____1_" xml:space="preserve">
+    <data name="BoardLoaderService_ExtractObzArchiveAsync_An_error_occurred_while_extracting_file___0____1_"
+          xml:space="preserve">
         <value>Błąd przy rozpakowywaniu pakietu pliku: {0}. {1}</value>
     </data>
     <data name="HistoryService_LoadHistory_Error_loading_history___0_" xml:space="preserve">
@@ -368,22 +378,28 @@
 	                      			Podaj tylko jedno wygenerowane zdanie, bez żadnych dodatkowych komentarzy czy wyjaśnień.
 	                      			Przygotuj odpowiedź do odczytania dla osoby z którą rozmawia osoba niepełnosprawna w języku: {4}.</value>
     </data>
-    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_" xml:space="preserve">
+    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_deserializacji_pliku_cache___0_"
+          xml:space="preserve">
         <value>Błąd podczas deserializacji pliku cache: {0}</value>
     </data>
-    <data name="PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_" xml:space="preserve">
+    <data name="PictogramService_GetAllPictogramsAsync_Nieoczekiwany_błąd_podczas_odczytu_pliku_cache___0_"
+          xml:space="preserve">
         <value>Nieoczekiwany błąd podczas odczytu pliku cache: {0}</value>
     </data>
-    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_" xml:space="preserve">
+    <data name="PictogramService_GetAllPictogramsAsync_Błąd_podczas_pobierania_piktogramów_z_API___0_"
+          xml:space="preserve">
         <value>Błąd podczas pobierania piktogramów z API: {0}</value>
     </data>
-    <data name="PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_" xml:space="preserve">
+    <data name="PictogramService_DownloadPictogramImageAsync_Nie_udało_się_pobrać_obrazu_piktogramu_o_ID__0___Status_Code___1_"
+          xml:space="preserve">
         <value>Nie udało się pobrać obrazu piktogramu o ID {0}. Status Code: {1}</value>
     </data>
-    <data name="PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_" xml:space="preserve">
+    <data name="PictogramService_DownloadPictogramImageAsync_Błąd_podczas_pobierania_obrazu_piktogramu__0____1_"
+          xml:space="preserve">
         <value>Błąd podczas pobierania obrazu piktogramu {0}: {1}</value>
     </data>
-    <data name="PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_" xml:space="preserve">
+    <data name="PictogramService_DownloadPictogramImageAsync_Obraz_piktogramu__0__już_istnieje_w_cache_"
+          xml:space="preserve">
         <value>Obraz piktogramu {0} już istnieje w cache.</value>
     </data>
     <data name="PictogramServiceEmptyArasaac" xml:space="preserve">

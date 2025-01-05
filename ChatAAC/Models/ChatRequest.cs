@@ -11,5 +11,4 @@ public class ChatRequest
     public string Model { get; set; } = string.Empty;
 
     public int Quantity { get; set; }
-
 }
