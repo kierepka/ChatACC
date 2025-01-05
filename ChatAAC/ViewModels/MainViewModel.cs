@@ -515,8 +515,7 @@ public partial class MainViewModel : ViewModelBase
     public static partial Regex MyRegex();
 
     #endregion
-
-
+    
     #region Text
     public string MainWindowTitle => Resources.MainWindowTitle;
     public string ClearTextButton => Resources.ClearTextButton;

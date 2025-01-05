@@ -28,7 +28,26 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="10" />
         </Style>
-        <!-- ... other styles ... -->
+        <Style Selector="Button.action">
+            <Setter Property="BorderBrush" Value="Gold" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Background">
+                <ImageBrush Source="avares://ChatAAC/Assets/folder-arrow.png" Stretch="Uniform" />
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.symbol:pointerover">
+            <Setter Property="RenderTransform">
+                <ScaleTransform ScaleX="1.05" ScaleY="1.05" />
+            </Setter>
+        </Style>
+
+        <Style Selector="Button.control">
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="10,5" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
     </Window.Styles>
 
     <Grid RowDefinitions="Auto,Auto,*" Margin="20">
