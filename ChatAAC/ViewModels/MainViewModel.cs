@@ -40,7 +40,7 @@ public partial class MainViewModel : ViewModelBase
 
         // Initialize commands
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
-        LoadMainBoardCommand = ReactiveCommand.CreateFromTask(LoadMainBoard);
+        SelectBoardAndLoadCommand = ReactiveCommand.CreateFromTask(SelectBoardAndLoadAsync);
         ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
         ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
         RemoveButtonCommand = ReactiveCommand.Create<Button>(RemoveSelectedButton);
@@ -190,7 +190,7 @@ public partial class MainViewModel : ViewModelBase
 
     public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadMainBoardCommand { get; }
+    public ReactiveCommand<Unit, Unit> SelectBoardAndLoadCommand { get; }
     public ReactiveCommand<Unit, Unit> ClearSelectedCommand { get; }
     public ReactiveCommand<Button, Unit> ButtonClickedCommand { get; }
     public ReactiveCommand<Button, Unit> RemoveButtonCommand { get; }
@@ -209,12 +209,35 @@ public partial class MainViewModel : ViewModelBase
 
     #region File Loading / Initialization
 
-    private async Task LoadMainBoard()
+    private async Task SelectBoardAndLoadAsync()
     {
-        if (_obfFileHistory.Count != 0)
+        try
         {
-            var nextFilePath = _obfFileHistory[0];
-            await _boardLoaderService.LoadObfFileAsync(nextFilePath);
+            // 1. Ensure we have a desktop environment
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            // 2. Create the popup window + its VM
+            var popupVm = new BoardPathsViewModel(ConfigViewModel.Instance.BoardPaths);
+
+            var popupWindow = new BoardPathsWindow
+            {
+                DataContext = popupVm
+            };
+
+            // 3. Show as dialog and wait for user confirmation
+            //    BoardPathsViewModel will store the SelectedBoardPath upon OK
+            if (desktop.MainWindow != null) await popupWindow.ShowDialog(desktop.MainWindow);
+
+            // 4. If user confirmed a valid path, load it
+            if (!string.IsNullOrEmpty(popupVm.SelectedBoardPath))
+            {
+                await _boardLoaderService.LoadObfOrObzFileAsync(popupVm.SelectedBoardPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            AppLogger.LogError($"Error selecting and loading board. Details: {ex.Message}");
         }
     }
 
@@ -515,8 +538,9 @@ public partial class MainViewModel : ViewModelBase
     public static partial Regex MyRegex();
 
     #endregion
-    
+
     #region Text
+
     public string MainWindowTitle => Resources.MainWindowTitle;
     public string ClearTextButton => Resources.ClearTextButton;
     public string ClearTextButtonAutomation => Resources.ClearTextButtonAutomation;
@@ -563,6 +587,4 @@ public partial class MainViewModel : ViewModelBase
     }
 
     #endregion
-
-  
 }

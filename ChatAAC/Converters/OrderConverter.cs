@@ -42,12 +42,29 @@ public class OrderConverter : JsonConverter<int?[][]>
                 if (reader.TokenType == JsonTokenType.EndArray)
                     break;
 
-                if (reader.TokenType == JsonTokenType.Null)
-                    innerList.Add(null);
-                else if (reader.TokenType == JsonTokenType.Number)
-                    innerList.Add(reader.GetInt32());
-                else
-                    throw new JsonException("Expected number or null");
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.Null:
+                        innerList.Add(null);
+                        break;
+                    case JsonTokenType.Number:
+                        innerList.Add(reader.GetInt32());
+                        break;
+                    case JsonTokenType.String:
+                        innerList.Add( int.Parse(reader.GetString() ?? "0"));
+                        break;
+                    case JsonTokenType.None:
+                    case JsonTokenType.StartObject:
+                    case JsonTokenType.EndObject:
+                    case JsonTokenType.StartArray:
+                    case JsonTokenType.EndArray:
+                    case JsonTokenType.PropertyName:
+                    case JsonTokenType.Comment:
+                    case JsonTokenType.True:
+                    case JsonTokenType.False:
+                    default:
+                        throw new JsonException("Expected number or null");
+                }
             }
 
             result.Add(innerList.ToArray());

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ChatAAC.Helpers"
         x:Class="ChatAAC.Views.MainWindow"
         x:DataType="vm:MainViewModel"
-        Title="{Binding MainWindowTitle}" 
+        Title="{Binding MainWindowTitle}"
         Width="1280" Height="960">
 
     <Window.Resources>
@@ -73,9 +73,10 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Margin="5" Width="80">
-                                        <Image Source="{Binding Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
-                                               Width="80" Height="80"
-                                               AutomationProperties.HelpText="{Binding Label}" />
+                                        <Image
+                                            Source="{Binding Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
+                                            Width="80" Height="80"
+                                            AutomationProperties.HelpText="{Binding Label}" />
                                         <TextBlock Text="{Binding Label}"
                                                    HorizontalAlignment="Center"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSizeBig}"
@@ -98,7 +99,7 @@
                         AutomationProperties.Name="{Binding ClearTextButtonAutomation}">
                     <StackPanel>
                         <Image Source="avares://ChatAAC/Assets/clear-icon.png" Width="60" Height="60" />
-                        <TextBlock Text="{Binding ClearTextButton}" 
+                        <TextBlock Text="{Binding ClearTextButton}"
                                    HorizontalAlignment="Center"
                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSize}"
                                    TextAlignment="Center" TextWrapping="Wrap" />
@@ -126,7 +127,7 @@
                                         <TextBlock Text="{Binding PastTense}"
                                                    HorizontalAlignment="Center"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSize}"
-                                                   TextAlignment="Center" 
+                                                   TextAlignment="Center"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Button>
@@ -140,7 +141,7 @@
                                         <TextBlock Text="{Binding PresentTense}"
                                                    HorizontalAlignment="Center"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSize}"
-                                                   TextAlignment="Center" 
+                                                   TextAlignment="Center"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Button>
@@ -154,7 +155,7 @@
                                         <TextBlock Text="{Binding FutureTense}"
                                                    HorizontalAlignment="Center"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSize}"
-                                                   TextAlignment="Center" 
+                                                   TextAlignment="Center"
                                                    TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Button>
@@ -173,7 +174,8 @@
                                         Background="{Binding SelectedForm, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Oznajmująca}"
                                         AutomationProperties.Name="{Binding DeclarativeFormAutomation}">
                                     <StackPanel>
-                                        <Image Source="avares://ChatAAC/Assets/declarative-icon.png" Width="30" Height="30" />
+                                        <Image Source="avares://ChatAAC/Assets/declarative-icon.png" Width="30"
+                                               Height="30" />
                                         <TextBlock Text="{Binding DeclarativeForm}"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSizeSmall}"
                                                    HorizontalAlignment="Center" />
@@ -185,7 +187,8 @@
                                         Background="{Binding SelectedForm, Converter={StaticResource EqualityToBrushConverter}, ConverterParameter=Pytająca}"
                                         AutomationProperties.Name="{Binding QuestionFormAutomation}">
                                     <StackPanel>
-                                        <Image Source="avares://ChatAAC/Assets/question-icon.png" Width="30" Height="30" />
+                                        <Image Source="avares://ChatAAC/Assets/question-icon.png" Width="30"
+                                               Height="30" />
                                         <TextBlock Text="{Binding QuestionForm}"
                                                    FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSizeSmall}"
                                                    HorizontalAlignment="Center" />
@@ -197,7 +200,7 @@
                         <!-- Control Buttons -->
                         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10">
                             <Button Classes="control" Background="#2196F3"
-                                    Command="{Binding LoadMainBoardCommand}"
+                                    Command="{Binding SelectBoardAndLoadCommand}"
                                     Width="120" Height="60"
                                     AutomationProperties.Name="{Binding BackButtonAutomation}">
                                 <StackPanel>
@@ -259,8 +262,9 @@
                                     HorizontalAlignment="Stretch"
                                     CommandParameter="{Binding Button}">
                                 <StackPanel>
-                                    <Image Source="{Binding Button.Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
-                                           AutomationProperties.HelpText="{Binding Button.Label}" />
+                                    <Image
+                                        Source="{Binding Button.Image.ImagePath, Converter={StaticResource StringToBitmapConverter}}"
+                                        AutomationProperties.HelpText="{Binding Button.Label}" />
                                     <TextBlock Text="{Binding Button.Label}"
                                                HorizontalAlignment="Center"
                                                FontSize="{Binding Source={x:Static vm:ConfigViewModel.Instance}, Path=FontSizeLarge}"

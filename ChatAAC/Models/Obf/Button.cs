@@ -7,13 +7,15 @@ namespace ChatAAC.Models.Obf;
 public class Button
 {
     [JsonPropertyName("id")]
-    [JsonConverter(typeof(IdConverter))]
-    public int Id { get; set; }
+    [JsonConverter(typeof(IntOrStringConverter))]
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("label")]
-    public string Label { get; set; } = string.Empty; // Upewniamy się, że label jest stringiem
+    public string Label { get; set; } = string.Empty; 
 
-    [JsonPropertyName("image_id")] public string ImageId { get; set; } = string.Empty;
+    [JsonPropertyName("image_id")]
+    [JsonConverter(typeof(IntOrStringConverter))]
+    public string ImageId { get; set; } = string.Empty;
 
     [JsonPropertyName("border_color")] public string BorderColor { get; set; } = string.Empty;
 

@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
 // Class for LoadBoard (button linked to another board)
 public class LoadBoard
 {
-    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")] 
+    [JsonConverter(typeof(IntOrStringConverter))]
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("name")] public string Name { get; set; } = string.Empty;
 

@@ -14,10 +14,19 @@ public class ColorConverter : IValueConverter
 
         if (string.IsNullOrEmpty(colorString)) return Colors.Transparent;
 
-        var rgb = colorString.Split(['(', ',', ')'], StringSplitOptions.RemoveEmptyEntries)
-            .Skip(1) // Skip "rgb"
-            .Select(int.Parse).ToList();
-        return Color.FromArgb(255, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
+        try
+        {
+            var rgb = colorString.Split(['(', ',', ')'], StringSplitOptions.RemoveEmptyEntries)
+                .Skip(1) // Skip "rgb"
+                .Select(int.Parse).ToList();
+            return Color.FromArgb(255, (byte)rgb[0], (byte)rgb[1], (byte)rgb[2]);
+        }
+        catch
+        {
+            return Colors.Transparent;
+        }
+
+        
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

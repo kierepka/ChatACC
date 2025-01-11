@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
@@ -10,7 +11,9 @@ public class ObfFile
 
     [JsonPropertyName("license")] public License License { get; set; } = new();
 
-    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")] 
+    [JsonConverter(typeof(IntOrStringConverter))]
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("locale")] public string Locale { get; set; } = string.Empty;
 

@@ -1,0 +1,33 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ChatAAC.Views.BoardPathsWindow"
+        Title="Select Board Path"
+        Width="400" Height="300"
+        xmlns:vm="clr-namespace:ChatAAC.ViewModels"
+        x:DataType="vm:BoardPathsViewModel"
+        x:Name="AboutWindowHandle">
+
+    <StackPanel Margin="10">
+        <TextBlock Text="Available Board Paths:" 
+                   FontWeight="Bold" 
+                   Margin="0,0,0,10" />
+        
+        <!-- Show the list of board paths -->
+        <ListBox ItemsSource="{Binding BoardPaths}"
+                 SelectedItem="{Binding SelectedBoardPath, Mode=TwoWay}"
+                 HorizontalAlignment="Stretch"
+                 Margin="0,0,0,10"
+                 Height="150" />
+
+        <!-- OK / Cancel buttons -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" 
+                    Margin="5,0,0,0"
+                    Command="{Binding OkCommand}" />
+
+            <Button Content="Cancel" 
+                    Margin="5,0,0,0"
+                    Command="{Binding CancelCommand}" />
+        </StackPanel>
+    </StackPanel>
+</Window>

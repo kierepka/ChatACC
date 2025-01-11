@@ -108,7 +108,7 @@ public class BoardLoaderService(MainViewModel viewModel)
                 var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
 
                 // Construct the path to the root OBF file
-                var rootObfPath = Path.Combine(destinationDirectory, manifest?.Root ?? "root.obf");
+                var rootObfPath = Path.Combine(destinationDirectory, Path.GetFileName( manifest?.Root ?? "root.obf"));
                 if (File.Exists(rootObfPath))
                     // Load the root OBF file
                     await LoadObfFileAsync(rootObfPath);
@@ -207,7 +207,7 @@ public class BoardLoaderService(MainViewModel viewModel)
     private void LoadButtonsFromObfData(ObfFile obfFile)
     {
         viewModel.Buttons.Clear();
-        Dictionary<int, Button> buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
+        var buttonDictionary = obfFile.Buttons.ToDictionary(b => b.Id, b => b);
 
         if (obfFile.Grid != null)
         {
@@ -217,7 +217,7 @@ public class BoardLoaderService(MainViewModel viewModel)
                 var columnIndex = 0;
                 foreach (var buttonId in row)
                 {
-                    if (buttonId != null && buttonDictionary.TryGetValue(buttonId.Value, out var button))
+                    if (buttonId != null && buttonDictionary.TryGetValue(buttonId, out var button))
                     {
                         var buttonViewModel = new ButtonViewModel(button, rowIndex, columnIndex);
                         viewModel.Buttons.Add(buttonViewModel);

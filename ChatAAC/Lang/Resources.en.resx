@@ -412,4 +412,10 @@ Prepare your answer so it can be read aloud to the person the individual with a 
     <data name="SpeakSelectedEntryButton" xml:space="preserve">
         <value>Read Selected Entry</value>
     </data>
+    <data name="ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_" xml:space="preserve">
+        <value>No image found for button with ID: {0}</value>
+    </data>
+    <data name="ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_" xml:space="preserve">
+        <value>Missing label for button with ID: {0}</value>
+    </data>
 </root>

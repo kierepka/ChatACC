@@ -7,7 +7,7 @@
         x:Class="ChatAAC.Views.ConfigWindow"
         x:DataType="viewModels:ConfigViewModel"
         x:Name="ConfigWindowHandle"
-        Title="{Binding SettingsWindowTitle}" 
+        Title="{Binding SettingsWindowTitle}"
         Width="700" Height="700">
 
     <!-- We no longer need x:Static references for Window.Resources. -->
@@ -47,7 +47,7 @@
                 <StackPanel Margin="10" Spacing="10">
                     <TextBlock Text="{Binding ShowSymbolsLabel}"
                                FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
-                    <CheckBox Content="{Binding IncludeSexSymbols}" 
+                    <CheckBox Content="{Binding IncludeSexSymbols}"
                               IsChecked="{Binding ShowSex}"
                               FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
                     <CheckBox Content="{Binding IncludeViolenceSymbols}"
@@ -56,7 +56,7 @@
 
                     <TextBlock Text="{Binding DefaultBoardLabel}"
                                FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSize}" />
-                    <ComboBox ItemsSource="{Binding BoardPaths}" 
+                    <ComboBox ItemsSource="{Binding BoardPaths}"
                               SelectedItem="{Binding DefaultBoardPath}"
                               FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
 
@@ -68,16 +68,16 @@
                                 FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
                     </Grid>
 
-                    <ListBox ItemsSource="{Binding BoardPaths}" 
+                    <ListBox ItemsSource="{Binding BoardPaths}"
                              MaxHeight="150" Margin="0,10,0,10">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid ColumnDefinitions="*, Auto">
-                                    <TextBlock Text="{Binding}" 
+                                    <TextBlock Text="{Binding}"
                                                ToolTip.Tip="{Binding}"
                                                AutomationProperties.Name="Ścieżka do pliku tablicy AAC" />
                                     <Button x:CompileBindings="False"
-                                            Grid.Column="1" 
+                                            Grid.Column="1"
                                             Content="Usuń"
                                             Command="{Binding DataContext.RemoveBoardCommand, 
                                                 RelativeSource={RelativeSource AncestorType=Window}}"
@@ -141,7 +141,7 @@
                     Command="{Binding SaveCommand}"
                     Width="120" Height="30"
                     FontSize="{Binding Source={x:Static viewModels:ConfigViewModel.Instance}, Path=FontSizeSmall}" />
-            
+
             <!-- Close Button -->
             <Button Content="{Binding AboutCloseButton}" Width="120" Height="30"
                     HorizontalAlignment="Center" Command="{Binding CloseWindowCommand}"

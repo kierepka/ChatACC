@@ -787,5 +787,17 @@ namespace ChatAAC.Lang {
                 return ResourceManager.GetString("ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_", resourceCulture);
             }
         }
+        
+        public static string ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_ {
+            get {
+                return ResourceManager.GetString("ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_", resourceCulture);
+            }
+        }
+        
+        public static string ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_ {
+            get {
+                return ResourceManager.GetString("ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_", resourceCulture);
+            }
+        }
     }
 }

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <root>
-    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" id="root"
+    <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                id="root"
                 xmlns="">
         <xsd:element name="root" msdata:IsDataSet="true">
 
@@ -419,5 +420,11 @@
     </data>
     <data name="ConfigViewModel_SaveConfiguration_Error_saving_configuration___0_" xml:space="preserve">
         <value>Bład zapisywania konfiguracji: {0}</value>
+    </data>
+    <data name="ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_" xml:space="preserve">
+        <value>Nie znaleziono obrazu dla przycisku o ID: {0}s</value>
+    </data>
+    <data name="ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_" xml:space="preserve">
+        <value>Brak etykiety dla przycisku o identyfikatorze: {0}</value>
     </data>
 </root>

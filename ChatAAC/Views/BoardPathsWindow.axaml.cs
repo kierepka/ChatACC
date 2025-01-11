@@ -3,17 +3,15 @@ using Avalonia.Markup.Xaml;
 
 namespace ChatAAC.Views;
 
-public partial class AboutWindow : Window
+public partial class BoardPathsWindow : Window
 {
-    public AboutWindow()
+    public BoardPathsWindow()
     {
         InitializeComponent();
-
 #if DEBUG
             this.AttachDevTools();
 #endif
     }
-
 
     private void InitializeComponent()
     {

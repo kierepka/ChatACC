@@ -11,6 +11,6 @@ public class Grid
     [JsonPropertyName("columns")] public int Columns { get; set; }
 
     [JsonPropertyName("order")]
-    [JsonConverter(typeof(OrderConverter))]
-    public int?[][] Order { get; set; } = [];
+    [JsonConverter(typeof(IntOrStringArrayConverter))]
+    public string?[][] Order { get; set; } = [];
 }

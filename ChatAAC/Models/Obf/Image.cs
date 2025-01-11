@@ -1,11 +1,14 @@
 using System.Text.Json.Serialization;
+using ChatAAC.Converters;
 
 namespace ChatAAC.Models.Obf;
 
 // Class for Image
 public class Image
 {
-    [JsonPropertyName("id")] public string Id { get; set; } = string.Empty;
+    [JsonPropertyName("id")]
+    [JsonConverter(typeof(IntOrStringConverter))]
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("url")] public string Url { get; set; } = string.Empty;
 

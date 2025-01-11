@@ -7,6 +7,7 @@
         <entry key="ChatAAC/Lang/Resources.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/ViewModels/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
+        <entry key="ChatAAC/Views/BoardPathsWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/ConfigWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/HistoryWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/LoadingWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
