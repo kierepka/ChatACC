@@ -1,0 +1,40 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ChatAAC.ViewModels"
+        x:Class="ChatAAC.Views.AddImageWindow"
+        x:DataType="vm:AddImageViewModel"
+        Title="Add New Image" Width="400" Height="450">
+
+    <StackPanel Margin="20" Spacing="10">
+        <TextBlock Text="Image ID:" FontWeight="Bold"/>
+        <TextBox Text="{Binding Id}"/>
+
+        <TextBlock Text="URL (optional):" FontWeight="Bold"/>
+        <TextBox Text="{Binding Url}"/>
+
+        <TextBlock Text="DataUrl (optional):" FontWeight="Bold"/>
+        <TextBox Text="{Binding DataUrl}"/>
+
+        <TextBlock Text="Local Path (optional):" FontWeight="Bold"/>
+        <TextBox Text="{Binding Path}"/>
+
+        <TextBlock Text="ContentType:" FontWeight="Bold"/>
+        <TextBox Text="{Binding ContentType}" />
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel>
+                <TextBlock Text="Width:" FontWeight="Bold"/>
+                <NumericUpDown Value="{Binding Width}" Minimum="0" Maximum="9999"/>
+            </StackPanel>
+            <StackPanel>
+                <TextBlock Text="Height:" FontWeight="Bold"/>
+                <NumericUpDown Value="{Binding Height}" Minimum="0" Maximum="9999"/>
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10">
+            <Button Content="OK" Command="{Binding ConfirmCommand}" Width="80"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

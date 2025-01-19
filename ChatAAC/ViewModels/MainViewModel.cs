@@ -41,8 +41,8 @@ public partial class MainViewModel : ViewModelBase
         // Initialize commands
         // Initialize ToggleEditModeCommand
         ToggleEditModeCommand = ReactiveCommand.Create(ToggleEditMode);
-        
-  
+
+
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
         SelectBoardAndLoadCommand = ReactiveCommand.CreateFromTask(SelectBoardAndLoadAsync);
         ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
@@ -91,19 +91,23 @@ public partial class MainViewModel : ViewModelBase
     private int _gridRows;
     private int _gridColumns;
     private bool _isInitialized;
+
     private bool _isEditMode;
+
     // Field to store history of loaded files
     private List<string?> _obfFileHistory = [];
     private int _currentHistoryIndex = -1; // Index current file in history 
-  
+
     #endregion
 
     #region Properties
+
     public bool IsEditMode
     {
         get => _isEditMode;
         set => this.RaiseAndSetIfChanged(ref _isEditMode, value);
     }
+
     public ObservableCollection<ButtonViewModel> Buttons { get; } = new();
     public ObservableCollection<Button> SelectedButtons { get; } = new();
     public ObservableCollection<AiResponse> AiResponseHistory { get; } = new();
@@ -195,7 +199,10 @@ public partial class MainViewModel : ViewModelBase
     #endregion
 
     #region Commands
+
     public ReactiveCommand<Unit, Unit> ToggleEditModeCommand { get; }
+    public ReactiveCommand<Unit, Unit> EditGridCommand { get; }
+    public ReactiveCommand<Button, Unit> EditButtonCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectBoardAndLoadCommand { get; }
@@ -288,6 +295,17 @@ public partial class MainViewModel : ViewModelBase
             _isInitialized = true;
         }
     }
+    
+    public async Task SaveBoardAsync()
+    {
+        if (string.IsNullOrEmpty(CurrentObfFilePath) || ObfData == null)
+        {
+            AppLogger.LogInfo("No board file or ObfData is null - cannot save.");
+            return;
+        }
+        await _boardLoaderService.SaveObfFileAsync(CurrentObfFilePath, ObfData);
+        AppLogger.LogInfo("Board saved successfully.");
+    }
 
     public string CurrentObfFilePath { get; set; } = string.Empty;
 
@@ -339,28 +357,104 @@ public partial class MainViewModel : ViewModelBase
 
     #endregion
 
-    #region Button Handling
+
+    #region Methods - Edit Mode
 
     private void ToggleEditMode()
     {
         IsEditMode = !IsEditMode;
         AppLogger.LogInfo($"Edit mode is now {(IsEditMode ? "ON" : "OFF")}");
     }
-    
+
+    private async Task EditGridAsync()
+    {
+        // Only valid if ObfData?.Grid != null
+        if (ObfData?.Grid == null)
+        {
+            AppLogger.LogInfo("No grid found in the loaded board.");
+            return;
+        }
+
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var vm = new EditGridViewModel(ObfData.Grid);
+        var win = new EditGridWindow
+        {
+            DataContext = vm
+        };
+
+        await win.ShowDialog(desktop.MainWindow);
+
+        if (!vm.IsConfirmed)
+            return;
+
+        // If user confirmed, changes are in memory
+        // We'll re-load or just re-bind buttons, then save
+        await SaveBoardAsync();
+    }
+
+    private async Task EditButtonAsync(Button button)
+    {
+        try
+        {
+            if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+                return;
+
+            // If your ObfFile has a list of images, pass them to the VM
+            var availableImages = ObfData?.Images ?? new List<Image>();
+            var editVm = new EditButtonViewModel(button, availableImages);
+
+            var editWindow = new EditButtonWindow
+            {
+                DataContext = editVm
+            };
+
+            await editWindow.ShowDialog(desktop.MainWindow);
+
+            if (!editVm.IsConfirmed)
+                return;
+
+            // The button is updated in memory. Save
+            await SaveBoardAsync();
+        }
+        catch (Exception ex)
+        {
+            AppLogger.LogError($"Error editing button: {ex.Message}");
+        }
+    }
+
+    #endregion
+
+    #region Button Handling
+
     private async Task OnButtonClickedAsync(Button button)
     {
         AppLogger.LogInfo(string.Format(
             Resources.MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_, button.Label));
 
-        if (button.LoadBoard != null && !string.IsNullOrEmpty(button.LoadBoard.Path))
+        
+        if (!IsEditMode)
         {
-            await _boardLoaderService.LoadObfOrObzFileAsync(button.LoadBoard.Path);
+            // Normal mode
+            if (button.LoadBoard != null && !string.IsNullOrEmpty(button.LoadBoard.Path))
+            {
+                // load sub-board
+                await _boardLoaderService.LoadObfOrObzFileAsync(button.LoadBoard.Path);
+            }
+            else
+            {
+                // add to selected
+                if (!SelectedButtons.Contains(button))
+                    SelectedButtons.Add(button);
+            }
         }
         else
         {
-            if (SelectedButtons.Contains(button)) return;
-            SelectedButtons.Add(button);
+            // Edit mode: open edit window
+            await EditButtonAsync(button);
         }
+        
     }
 
     private void RemoveSelectedButton(Button button)

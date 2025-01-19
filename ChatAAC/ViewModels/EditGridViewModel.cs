@@ -1,127 +1,93 @@
 using ReactiveUI;
 using System;
 using System.Reactive;
+using Avalonia;
 using ChatAAC.Models.Obf;
 
-namespace ChatAAC.ViewModels
+namespace ChatAAC.ViewModels;
+
+public class EditGridViewModel : ReactiveObject
 {
-    public class EditGridViewModel : ReactiveObject
+    private readonly Grid _gridData;
+    private int _rows;
+    private int _columns;
+    public bool IsConfirmed { get; private set; }
+
+    public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+
+    public EditGridViewModel(Grid gridData)
     {
-        private readonly Grid _gridData;
-        private int _rows;
-        private int _columns;
-        private bool _sizeReduced;
+        _gridData = gridData ?? throw new ArgumentNullException(nameof(gridData));
+        _rows = gridData.Rows;
+        _columns = gridData.Columns;
 
-        public bool IsConfirmed { get; private set; }
+        ConfirmCommand = ReactiveCommand.Create(Confirm);
+        CancelCommand = ReactiveCommand.Create(Cancel);
+    }
 
-        public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
-        public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+    public int Rows
+    {
+        get => _rows;
+        set => this.RaiseAndSetIfChanged(ref _rows, value);
+    }
 
-        public EditGridViewModel(Grid gridData)
+    public int Columns
+    {
+        get => _columns;
+        set => this.RaiseAndSetIfChanged(ref _columns, value);
+    }
+
+    private void Confirm()
+    {
+        // Possibly check if rows/cols decreased, prompt user
+        if (_rows < _gridData.Rows || _columns < _gridData.Columns)
         {
-            _gridData = gridData ?? throw new ArgumentNullException(nameof(gridData));
-            _rows = gridData.Rows;
-            _columns = gridData.Columns;
-
-            ConfirmCommand = ReactiveCommand.Create(Confirm);
-            CancelCommand = ReactiveCommand.Create(Cancel);
+            // Show a user prompt or automatically remove references
+            // For brevity, let's just do it automatically
+            TrimOrder();
         }
 
-        public int Rows
-        {
-            get => _rows;
-            set
-            {
-                // If user picks a value < current .Rows,
-                // we might set a flag for removing extra cells
-                if (value < _rows) 
-                    _sizeReduced = true;
-                this.RaiseAndSetIfChanged(ref _rows, value);
-            }
-        }
+        _gridData.Rows = _rows;
+        _gridData.Columns = _columns;
 
-        public int Columns
-        {
-            get => _columns;
-            set
-            {
-                if (value < _columns)
-                    _sizeReduced = true;
-                this.RaiseAndSetIfChanged(ref _columns, value);
-            }
-        }
+        IsConfirmed = true;
+        CloseWindow();
+    }
 
-        private void Confirm()
+    private void TrimOrder()
+    {
+        var newOrder = new string?[_rows][];
+        for (var r = 0; r < _rows; r++)
         {
-            if (_sizeReduced)
+            newOrder[r] = new string?[_columns];
+            for (var c = 0; c < _columns; c++)
             {
-                var confirmed = AskUserForSizeReduction();
-                if (!confirmed)
+                if (r < _gridData.Order.Length && c < _gridData.Order[r].Length)
                 {
-                    IsConfirmed = false;
-                    CloseWindow();
-                    return;
+                    newOrder[r][c] = _gridData.Order[r][c];
+                }
+                else
+                {
+                    newOrder[r][c] = null;
                 }
             }
-
-            // Actually apply the changes
-            _gridData.Rows = _rows;
-            _gridData.Columns = _columns;
-
-            // Possibly remove references in .Order if they're outside new bounds
-            TrimOrderIfNeeded();
-
-            IsConfirmed = true;
-            CloseWindow();
         }
 
-        private bool AskUserForSizeReduction()
-        {
-            // Minimal approach: we don't have a built-in message box in Avalonia out-of-the-box
-            // You might build your own small dialog. 
-            // For now, let's assume user is always sure:
-            return true;
-        }
+        _gridData.Order = newOrder;
+    }
 
-        private void TrimOrderIfNeeded()
-        {
-            // If user shrank row/column, remove references in .Order that are out of range
+    private void Cancel()
+    {
+        IsConfirmed = false;
+        CloseWindow();
+    }
 
-            // Suppose it's string?[][]. We'll do a simple approach:
-            var newOrder = new string?[_rows][];
-            for (var r = 0; r < _rows; r++)
-            {
-                newOrder[r] = new string?[_columns];
-                for (var c = 0; c < _columns; c++)
-                {
-                    if (r < _gridData.Order.Length && c < _gridData.Order[r].Length)
-                    {
-                        newOrder[r][c] = _gridData.Order[r][c];
-                    }
-                    else
-                    {
-                        // If out of range, discard
-                        newOrder[r][c] = null;
-                    }
-                }
-            }
-            _gridData.Order = newOrder;
-        }
-
-        private void Cancel()
+    private void CloseWindow()
+    {
+        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
         {
-            IsConfirmed = false;
-            CloseWindow();
-        }
-
-        private void CloseWindow()
-        {
-            var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
-            if (lifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            {
-                var topWindow = desktop.Windows[^1];
-                topWindow.Close();
-            }
+            desktop.Windows[^1].Close();
         }
     }
 }

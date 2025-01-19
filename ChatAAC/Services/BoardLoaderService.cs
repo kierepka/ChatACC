@@ -269,4 +269,14 @@ public class BoardLoaderService(MainViewModel viewModel)
 
         return Path.Combine(sanitizedSegments);
     }
+    
+    public async Task SaveObfFileAsync(string filePath, ObfFile obfFile)
+    {
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true
+        };
+        var json = JsonSerializer.Serialize(obfFile, options);
+        await File.WriteAllTextAsync(filePath, json);
+    }
 }

@@ -4,34 +4,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using ChatAAC.Models.Obf;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using ChatAAC.Views;
 
 namespace ChatAAC.ViewModels;
 
 public class EditButtonViewModel : ReactiveObject
 {
     private readonly Button _originalButton;
+    private readonly IList<Image> _obfImages; // direct reference to the underlying ObfFile.Images
 
     private string _id;
     private string _label;
-    private Image? _selectedImage;      // Replaces the old "string _imageId"
     private string _borderColor;
     private string _backgroundColor;
     private string _vocalization;
     private string _action;
     private string? _loadBoardPath;
 
-    public bool IsConfirmed { get; private set; }
+    private Image? _selectedImage;
 
-    public IReadOnlyList<Image> AvailableImages { get; }
+    public bool IsConfirmed { get; private set; }
 
     public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddImageCommand { get; }
 
-    public EditButtonViewModel(Button button, IEnumerable<Image> availableImages)
+    public EditButtonViewModel(Button button, IList<Image> obfImages)
     {
         _originalButton = button ?? throw new ArgumentNullException(nameof(button));
+        _obfImages = obfImages;
 
-        // Initialize local fields
+        // Copy existing fields
         _id = button.Id;
         _label = button.Label;
         _borderColor = button.BorderColor;
@@ -40,12 +45,13 @@ public class EditButtonViewModel : ReactiveObject
         _action = button.Action;
         _loadBoardPath = button.LoadBoard?.Path;
 
-        // If the original button has an ImageId, find the matching Image object in the list
-        var imagesList = availableImages.ToList();
-        AvailableImages = imagesList;
+        // Try to find the currently selected image from the button’s ImageId
+        var found = obfImages.FirstOrDefault(img => img.Id == button.ImageId);
+        _selectedImage = found;
 
-        var foundImage = imagesList.FirstOrDefault(img => img.Id == button.ImageId);
-        _selectedImage = foundImage; // If found, this will pre-select it in the ComboBox
+        ConfirmCommand = ReactiveCommand.Create(Confirm);
+        CancelCommand = ReactiveCommand.Create(Cancel);
+        AddImageCommand = ReactiveCommand.Create(AddImage); 
     }
 
     #region Properties
@@ -60,12 +66,6 @@ public class EditButtonViewModel : ReactiveObject
     {
         get => _label;
         set => this.RaiseAndSetIfChanged(ref _label, value);
-    }
-
-    public Image? SelectedImage
-    {
-        get => _selectedImage;
-        set => this.RaiseAndSetIfChanged(ref _selectedImage, value);
     }
 
     public string BorderColor
@@ -98,13 +98,27 @@ public class EditButtonViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _loadBoardPath, value);
     }
 
+    /// <summary>
+    /// Currently selected image from the available list
+    /// </summary>
+    public Image? SelectedImage
+    {
+        get => _selectedImage;
+        set => this.RaiseAndSetIfChanged(ref _selectedImage, value);
+    }
+
+    /// <summary>
+    /// The list of images in the OBF. Bound in the dialog for preview/selection.
+    /// </summary>
+    public IList<Image> AvailableImages => _obfImages;
+
     #endregion
 
     #region Methods
 
     private void Confirm()
     {
-        // Write fields back to the original button
+        // Save changes back to the original button
         _originalButton.Id = _id;
         _originalButton.Label = _label;
         _originalButton.BorderColor = _borderColor;
@@ -112,7 +126,7 @@ public class EditButtonViewModel : ReactiveObject
         _originalButton.Vocalization = _vocalization;
         _originalButton.Action = _action;
 
-        // If user picked an image from the combo, store its ID
+        // If an image is selected, store its ID
         _originalButton.ImageId = _selectedImage?.Id ?? string.Empty;
 
         if (!string.IsNullOrEmpty(_loadBoardPath))
@@ -135,13 +149,41 @@ public class EditButtonViewModel : ReactiveObject
         CloseWindow();
     }
 
+    /// <summary>
+    /// Creates a new image by opening a separate "AddImageWindow".
+    /// Once added, we pick that image as selected.
+    /// </summary>
+    private void AddImage()
+    {
+        if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+            return;
+
+        var vm = new AddImageViewModel();
+        var addWindow = new AddImageWindow
+        {
+            DataContext = vm
+        };
+        if (desktop.MainWindow != null) addWindow.ShowDialog(desktop.MainWindow);
+
+        if (!vm.IsConfirmed)
+            return;
+
+        // user created a new image
+        var newImage = vm.CreateImage();
+        // Add to the underlying list
+        _obfImages.Add(newImage);
+
+        // Now set the newly created image as selected
+        SelectedImage = newImage;
+    }
+
     private void CloseWindow()
     {
-        var lifetime = Avalonia.Application.Current?.ApplicationLifetime;
-        if (lifetime is not Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
-            return;
-        var topWindow = desktop.Windows[^1];
-        topWindow.Close();
+        var lifetime = Application.Current?.ApplicationLifetime;
+        if (lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            desktop.Windows[^1].Close();
+        }
     }
 
     #endregion

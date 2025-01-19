@@ -8,6 +8,7 @@
         <entry key="ChatAAC/ViewModels/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/ViewModels/EditGridWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/AboutWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
+        <entry key="ChatAAC/Views/AddImageWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/BoardPathsWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/ConfigWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
         <entry key="ChatAAC/Views/EditButtonWindow.axaml" value="ChatAAC/ChatAAC.csproj" />
