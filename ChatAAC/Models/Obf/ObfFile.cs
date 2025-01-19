@@ -11,7 +11,7 @@ public class ObfFile
 
     [JsonPropertyName("license")] public License License { get; set; } = new();
 
-    [JsonPropertyName("id")] 
+    [JsonPropertyName("id")]
     [JsonConverter(typeof(IntOrStringConverter))]
     public string Id { get; set; } = string.Empty;
 

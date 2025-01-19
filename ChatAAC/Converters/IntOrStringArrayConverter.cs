@@ -9,8 +9,8 @@ namespace ChatAAC.Converters;
 public class IntOrStringArrayConverter : JsonConverter<string?[][]>
 {
     public override string?[][] Read(ref Utf8JsonReader reader,
-                                     Type typeToConvert,
-                                     JsonSerializerOptions options)
+        Type typeToConvert,
+        JsonSerializerOptions options)
     {
         if (reader.TokenType != JsonTokenType.StartArray)
             throw new JsonException("Expected start of array.");
@@ -70,6 +70,7 @@ public class IntOrStringArrayConverter : JsonConverter<string?[][]>
                         throw new JsonException($"Unsupported token {reader.TokenType} in inner array");
                 }
             }
+
             result.Add(innerList);
         }
 
@@ -77,8 +78,8 @@ public class IntOrStringArrayConverter : JsonConverter<string?[][]>
     }
 
     public override void Write(Utf8JsonWriter writer,
-                               string?[][]? value,
-                               JsonSerializerOptions options)
+        string?[][]? value,
+        JsonSerializerOptions options)
     {
         if (value == null)
         {
@@ -91,16 +92,15 @@ public class IntOrStringArrayConverter : JsonConverter<string?[][]>
         {
             writer.WriteStartArray();
             foreach (var item in inner)
-            {
                 if (int.TryParse(item, out var number))
                     writer.WriteNumberValue(number);
                 else if (item == null)
                     writer.WriteNullValue();
                 else
                     writer.WriteStringValue(item);
-            }
             writer.WriteEndArray();
         }
+
         writer.WriteEndArray();
     }
 }

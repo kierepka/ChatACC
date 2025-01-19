@@ -39,12 +39,8 @@ public class IntOrStringConverter : JsonConverter<string>
     {
         // If value can be parsed as int, write as number; otherwise, write as string
         if (int.TryParse(value, out var number))
-        {
             writer.WriteNumberValue(number);
-        }
         else
-        {
             writer.WriteStringValue(value);
-        }
     }
 }

@@ -6,7 +6,7 @@ namespace ChatAAC.Models.Obf;
 // Class for LoadBoard (button linked to another board)
 public class LoadBoard
 {
-    [JsonPropertyName("id")] 
+    [JsonPropertyName("id")]
     [JsonConverter(typeof(IntOrStringConverter))]
     public string Id { get; set; } = string.Empty;
 

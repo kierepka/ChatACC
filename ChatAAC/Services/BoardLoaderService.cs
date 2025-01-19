@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -108,7 +107,7 @@ public class BoardLoaderService(MainViewModel viewModel)
                 var manifest = JsonSerializer.Deserialize<Manifest>(manifestJson);
 
                 // Construct the path to the root OBF file
-                var rootObfPath = Path.Combine(destinationDirectory, Path.GetFileName( manifest?.Root ?? "root.obf"));
+                var rootObfPath = Path.Combine(destinationDirectory, Path.GetFileName(manifest?.Root ?? "root.obf"));
                 if (File.Exists(rootObfPath))
                     // Load the root OBF file
                     await LoadObfFileAsync(rootObfPath);

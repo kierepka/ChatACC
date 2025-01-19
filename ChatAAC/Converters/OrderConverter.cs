@@ -51,7 +51,7 @@ public class OrderConverter : JsonConverter<int?[][]>
                         innerList.Add(reader.GetInt32());
                         break;
                     case JsonTokenType.String:
-                        innerList.Add( int.Parse(reader.GetString() ?? "0"));
+                        innerList.Add(int.Parse(reader.GetString() ?? "0"));
                         break;
                     case JsonTokenType.None:
                     case JsonTokenType.StartObject:

@@ -6,7 +6,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using ChatAAC.Lang;
-using ChatAAC.Lang;
 
 namespace ChatAAC.Models.Obf;
 
@@ -64,9 +63,11 @@ public static partial class ObfLoader
                 // Match the corresponding image
                 button.Image = obfFile.Images.Find(image => image.Id == button.ImageId);
                 if (button.Image == null)
-                    Console.WriteLine(Resources.ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_, button.Id);
+                    Console.WriteLine(Resources.ObfLoader_LoadObfAsync_No_image_found_for_button_with_ID___0_,
+                        button.Id);
                 if (string.IsNullOrEmpty(button.Label))
-                    Console.WriteLine(Resources.ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_, button.Id);
+                    Console.WriteLine(Resources.ObfLoader_LoadObfAsync_Missing_label_for_button_with_ID___0_,
+                        button.Id);
             }
 
             return obfFile;

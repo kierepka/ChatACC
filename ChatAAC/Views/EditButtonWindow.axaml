@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:ChatAAC.ViewModels"
+        x:Class="ChatAAC.Views.EditButtonWindow"
+        x:DataType="vm:EditButtonViewModel"
+        Title="Edit Button" Width="400" Height="600">
+
+    <StackPanel Margin="20" Spacing="10">
+        <!-- ID -->
+        <TextBlock Text="Button ID:" FontWeight="Bold"/>
+        <TextBox Text="{Binding Id}" />
+
+        <!-- Label -->
+        <TextBlock Text="Label:" FontWeight="Bold"/>
+        <TextBox Text="{Binding Label}" />
+
+        <!-- ImageID -->
+        <TextBlock Text="Image ID:" FontWeight="Bold"/>
+        <!-- user can either type a custom ID or select from the combo -->
+        <ComboBox ItemsSource="{Binding AvailableImages}"
+                  SelectedItem="{Binding SelectedImage, Mode=TwoWay}"
+                  Width="200">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <!-- Show the image Id in the list -->
+                    <TextBlock Text="{Binding Id}" />
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- BorderColor -->
+        <TextBlock Text="Border Color:" FontWeight="Bold"/>
+        <TextBox Text="{Binding BorderColor}" />
+
+        <!-- BackgroundColor -->
+        <TextBlock Text="Background Color:" FontWeight="Bold"/>
+        <TextBox Text="{Binding BackgroundColor}" />
+
+        <!-- Vocalization -->
+        <TextBlock Text="Vocalization:" FontWeight="Bold"/>
+        <TextBox Text="{Binding Vocalization}" />
+
+        <!-- Action -->
+        <TextBlock Text="Action:" FontWeight="Bold"/>
+        <TextBox Text="{Binding Action}" />
+
+        <!-- LoadBoard -->
+        <TextBlock Text="LoadBoard Path (optional):" FontWeight="Bold"/>
+        <TextBox Text="{Binding LoadBoardPath}" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
+            <Button Content="OK" Command="{Binding ConfirmCommand}" Width="80"/>
+            <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

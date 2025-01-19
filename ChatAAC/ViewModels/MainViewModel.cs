@@ -39,6 +39,10 @@ public partial class MainViewModel : ViewModelBase
         _historyService = new HistoryService();
 
         // Initialize commands
+        // Initialize ToggleEditModeCommand
+        ToggleEditModeCommand = ReactiveCommand.Create(ToggleEditMode);
+        
+  
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
         SelectBoardAndLoadCommand = ReactiveCommand.CreateFromTask(SelectBoardAndLoadAsync);
         ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
@@ -87,15 +91,19 @@ public partial class MainViewModel : ViewModelBase
     private int _gridRows;
     private int _gridColumns;
     private bool _isInitialized;
-
+    private bool _isEditMode;
     // Field to store history of loaded files
     private List<string?> _obfFileHistory = [];
     private int _currentHistoryIndex = -1; // Index current file in history 
-
+  
     #endregion
 
     #region Properties
-
+    public bool IsEditMode
+    {
+        get => _isEditMode;
+        set => this.RaiseAndSetIfChanged(ref _isEditMode, value);
+    }
     public ObservableCollection<ButtonViewModel> Buttons { get; } = new();
     public ObservableCollection<Button> SelectedButtons { get; } = new();
     public ObservableCollection<AiResponse> AiResponseHistory { get; } = new();
@@ -187,7 +195,7 @@ public partial class MainViewModel : ViewModelBase
     #endregion
 
     #region Commands
-
+    public ReactiveCommand<Unit, Unit> ToggleEditModeCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectBoardAndLoadCommand { get; }
@@ -231,9 +239,7 @@ public partial class MainViewModel : ViewModelBase
 
             // 4. If user confirmed a valid path, load it
             if (!string.IsNullOrEmpty(popupVm.SelectedBoardPath))
-            {
                 await _boardLoaderService.LoadObfOrObzFileAsync(popupVm.SelectedBoardPath);
-            }
         }
         catch (Exception ex)
         {
@@ -335,6 +341,12 @@ public partial class MainViewModel : ViewModelBase
 
     #region Button Handling
 
+    private void ToggleEditMode()
+    {
+        IsEditMode = !IsEditMode;
+        AppLogger.LogInfo($"Edit mode is now {(IsEditMode ? "ON" : "OFF")}");
+    }
+    
     private async Task OnButtonClickedAsync(Button button)
     {
         AppLogger.LogInfo(string.Format(

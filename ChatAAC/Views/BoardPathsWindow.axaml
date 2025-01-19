@@ -8,10 +8,10 @@
         x:Name="AboutWindowHandle">
 
     <StackPanel Margin="10">
-        <TextBlock Text="Available Board Paths:" 
-                   FontWeight="Bold" 
+        <TextBlock Text="Available Board Paths:"
+                   FontWeight="Bold"
                    Margin="0,0,0,10" />
-        
+
         <!-- Show the list of board paths -->
         <ListBox ItemsSource="{Binding BoardPaths}"
                  SelectedItem="{Binding SelectedBoardPath, Mode=TwoWay}"
@@ -21,11 +21,11 @@
 
         <!-- OK / Cancel buttons -->
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="OK" 
+            <Button Content="OK"
                     Margin="5,0,0,0"
                     Command="{Binding OkCommand}" />
 
-            <Button Content="Cancel" 
+            <Button Content="Cancel"
                     Margin="5,0,0,0"
                     Command="{Binding CancelCommand}" />
         </StackPanel>

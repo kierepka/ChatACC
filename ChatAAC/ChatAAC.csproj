@@ -12,6 +12,19 @@
         <LangVersion>default</LangVersion>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <CFBundleName>ChatAAC</CFBundleName> <!-- Also defines .app file name -->
+        <CFBundleDisplayName>Chat AI for AAC (Augmentative and alternative communication)</CFBundleDisplayName>
+        <CFBundleIdentifier>com.kierepka.chataac</CFBundleIdentifier>
+        <CFBundleVersion>1.0.0</CFBundleVersion>
+        <CFBundleShortVersionString>1</CFBundleShortVersionString>
+        <CFBundlePackageType>APPL</CFBundlePackageType>
+        <CFBundleExecutable>ChatAAC</CFBundleExecutable>
+        <CFBundleIconFile>ChatAAC.icns</CFBundleIconFile> <!-- Will be copied from output directory -->
+        <NSPrincipalClass>NSApplication</NSPrincipalClass>
+        <NSHighResolutionCapable>true</NSHighResolutionCapable>
+    </PropertyGroup>
+    
     <ItemGroup>
         <AvaloniaResource Include="Assets\**"/>
     </ItemGroup>
@@ -31,6 +44,7 @@
         <PackageReference Include="Avalonia.Xaml.Interactivity" Version="11.2.0.6"/>
         <PackageReference Include="BinToss.GroupBox.Avalonia" Version="1.0.0"/>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+        <PackageReference Include="DotNet.Bundle" Version="0.9.13" />
         <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="9.0.0"/>
         <PackageReference Include="Microsoft.SemanticKernel" Version="1.32.0"/>
         <PackageReference Include="OllamaSharp" Version="4.0.17"/>
@@ -54,6 +68,10 @@
             <DesignTime>True</DesignTime>
             <AutoGen>True</AutoGen>
             <DependentUpon>Resources.resx</DependentUpon>
+        </Compile>
+        <Compile Update="Views\EditGridWindow.axaml.cs">
+          <DependentUpon>EditGridWindow.axaml</DependentUpon>
+          <SubType>Code</SubType>
         </Compile>
     </ItemGroup>
 </Project>

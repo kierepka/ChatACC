@@ -50,7 +50,7 @@ public class BoardPathsViewModel : ReactiveObject
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // We look for the active window, or a specialized approach
-            var topMost = desktop.Windows[^1]; 
+            var topMost = desktop.Windows[^1];
             topMost.Close();
         }
     }
