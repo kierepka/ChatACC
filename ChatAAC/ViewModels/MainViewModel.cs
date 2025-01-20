@@ -42,7 +42,9 @@ public partial class MainViewModel : ViewModelBase
         // Initialize ToggleEditModeCommand
         ToggleEditModeCommand = ReactiveCommand.Create(ToggleEditMode);
 
-
+        EditGridCommand = ReactiveCommand.CreateFromTask(EditGridAsync);
+        SaveBoardCommand = ReactiveCommand.CreateFromTask(SaveBoardAsync);
+        
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
         SelectBoardAndLoadCommand = ReactiveCommand.CreateFromTask(SelectBoardAndLoadAsync);
         ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
@@ -199,10 +201,9 @@ public partial class MainViewModel : ViewModelBase
     #endregion
 
     #region Commands
-
-    public ReactiveCommand<Unit, Unit> ToggleEditModeCommand { get; }
     public ReactiveCommand<Unit, Unit> EditGridCommand { get; }
-    public ReactiveCommand<Button, Unit> EditButtonCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveBoardCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleEditModeCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenHistoryCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
     public ReactiveCommand<Unit, Unit> SelectBoardAndLoadCommand { get; }
@@ -384,7 +385,7 @@ public partial class MainViewModel : ViewModelBase
             DataContext = vm
         };
 
-        await win.ShowDialog(desktop.MainWindow);
+        if (desktop.MainWindow != null) await win.ShowDialog(desktop.MainWindow);
 
         if (!vm.IsConfirmed)
             return;
@@ -410,7 +411,7 @@ public partial class MainViewModel : ViewModelBase
                 DataContext = editVm
             };
 
-            await editWindow.ShowDialog(desktop.MainWindow);
+            if (desktop.MainWindow != null) await editWindow.ShowDialog(desktop.MainWindow);
 
             if (!editVm.IsConfirmed)
                 return;

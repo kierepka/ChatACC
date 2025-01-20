@@ -5,12 +5,16 @@
              RequestedThemeVariant="Default"
              Name="Chat AAC"
              x:DataType="local:App">
-
+    
+    
+    
     <Application.Styles>
         <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
     </Application.Styles>
 
-
+   
+    
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon Icon="/Assets/avalonia-logo.ico"

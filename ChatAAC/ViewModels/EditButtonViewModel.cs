@@ -6,6 +6,7 @@ using System.Reactive;
 using ChatAAC.Models.Obf;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Media;
 using ChatAAC.Views;
 
 namespace ChatAAC.ViewModels;
@@ -19,6 +20,8 @@ public class EditButtonViewModel : ReactiveObject
     private string _label;
     private string _borderColor;
     private string _backgroundColor;
+    private Color _borderColorAvalonia = Colors.Black;
+    private Color _backgroundColorAvalonia = Colors.White;
     private string _vocalization;
     private string _action;
     private string? _loadBoardPath;
@@ -41,6 +44,14 @@ public class EditButtonViewModel : ReactiveObject
         _label = button.Label;
         _borderColor = button.BorderColor;
         _backgroundColor = button.BackgroundColor;
+        
+        // Convert any existing string to an Avalonia color
+        if (Color.TryParse(button.BorderColor, out var bc))
+            _borderColorAvalonia = bc;
+        if (Color.TryParse(button.BackgroundColor, out var bg))
+            _backgroundColorAvalonia = bg;
+
+        
         _vocalization = button.Vocalization;
         _action = button.Action;
         _loadBoardPath = button.LoadBoard?.Path;
@@ -68,16 +79,43 @@ public class EditButtonViewModel : ReactiveObject
         set => this.RaiseAndSetIfChanged(ref _label, value);
     }
 
+
     public string BorderColor
     {
-        get => _borderColor;
-        set => this.RaiseAndSetIfChanged(ref _borderColor, value);
+        get => _originalButton.BorderColor;
+        set
+        {
+            _originalButton.BorderColor = value;
+            // Optionally parse it to keep your color pickers in sync
+            if (Color.TryParse(value, out var c))
+                BorderColorAvalonia = c;
+            this.RaisePropertyChanged();
+        }
     }
 
     public string BackgroundColor
     {
-        get => _backgroundColor;
-        set => this.RaiseAndSetIfChanged(ref _backgroundColor, value);
+        get => _originalButton.BackgroundColor;
+        set
+        {
+            _originalButton.BackgroundColor = value;
+            // Optionally parse it to keep your color pickers in sync
+            if (Color.TryParse(value, out var c))
+                BackgroundColorAvalonia = c;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    public Color BorderColorAvalonia
+    {
+        get => _borderColorAvalonia;
+        set => this.RaiseAndSetIfChanged(ref _borderColorAvalonia, value);
+    }
+
+    public Color BackgroundColorAvalonia
+    {
+        get => _backgroundColorAvalonia;
+        set => this.RaiseAndSetIfChanged(ref _backgroundColorAvalonia, value);
     }
 
     public string Vocalization
@@ -121,8 +159,8 @@ public class EditButtonViewModel : ReactiveObject
         // Save changes back to the original button
         _originalButton.Id = _id;
         _originalButton.Label = _label;
-        _originalButton.BorderColor = _borderColor;
-        _originalButton.BackgroundColor = _backgroundColor;
+        _originalButton.BorderColor = _borderColorAvalonia.ToString();
+        _originalButton.BackgroundColor = _backgroundColorAvalonia.ToString();
         _originalButton.Vocalization = _vocalization;
         _originalButton.Action = _action;
 

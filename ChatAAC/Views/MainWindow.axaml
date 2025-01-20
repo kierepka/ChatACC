@@ -15,6 +15,7 @@
         <converters:EqualityToBrushConverter x:Key="EqualityToBrushConverter" />
         <converters:NotNullToBoolConverter x:Key="NotNullToBoolConverter" />
         <converters:ContrastForegroundBrushConverter x:Key="ContrastForegroundBrushConverter" />
+        <converters:InvertBoolConverter x:Key="InvertBoolConverter" />
     </Window.Resources>
 
     <Window.Styles>
@@ -110,7 +111,9 @@
             </Grid>
 
             <!-- Grammar Controls -->
-            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="10" Padding="10">
+            <Border Grid.Row="1" BorderBrush="Gray" BorderThickness="1" CornerRadius="10" Padding="10"
+                    IsVisible="{Binding IsEditMode, Converter={StaticResource InvertBoolConverter}}">
+                    
                 <Viewbox Stretch="Uniform" UseLayoutRounding="True">
                     <Grid ColumnDefinitions="*,Auto,Auto">
                         <!-- Tense Controls -->
@@ -252,10 +255,48 @@
                     </Grid>
                 </Viewbox>
             </Border>
+            <!-- EDIT MODE panel: visible if IsEditMode == true -->
+            <StackPanel Grid.Row="1"
+                        Orientation="Horizontal"
+                        Spacing="10"
+                        Margin="0,10,0,0"
+                        IsVisible="{Binding IsEditMode}">
+                <TextBlock Text="EDIT MODE ACTIVE"
+                           Foreground="Red"
+                           FontWeight="Bold"
+                           FontSize="16"
+                           VerticalAlignment="Center"
+                           Margin="0,0,10,0" />
+
+                <Button Classes="control"
+                        Background="#AA33AA"
+                        Command="{Binding EditGridCommand}"
+                        Width="120" Height="40">
+                    <TextBlock Text="Edit Grid" />
+                </Button>
+
+                <Button Classes="control"
+                        Background="#4CAF50"
+                        Command="{Binding SaveBoardCommand}"
+                        Width="120" Height="40">
+                    <TextBlock Text="Save Board" />
+                </Button>
+
+                <Button Classes="control"
+                        Background="Orange"
+                        Command="{Binding ToggleEditModeCommand}"
+                        Width="120" Height="40">
+                    <TextBlock Text="Exit Edit" />
+                </Button>
+            </StackPanel>
         </Grid>
 
         <!-- Main Symbols Grid -->
         <Grid Grid.Row="2">
+            <Border BorderBrush="Red"
+                    BorderThickness="2"
+                    IsVisible="{Binding IsEditMode}" />
+
             <Viewbox Stretch="Uniform" UseLayoutRounding="True">
                 <ItemsControl ItemsSource="{Binding Buttons}">
                     <ItemsControl.ItemsPanel>
