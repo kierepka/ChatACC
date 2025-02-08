@@ -8,6 +8,8 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Media;
 using ChatAAC.Views;
+using MsBox.Avalonia;
+
 
 namespace ChatAAC.ViewModels;
 
@@ -15,6 +17,7 @@ public class EditButtonViewModel : ReactiveObject
 {
     private readonly Button _originalButton;
     private readonly IList<Image> _obfImages; // direct reference to the underlying ObfFile.Images
+    private ObfFile _obfData;
 
     private string _id;
     private string _label;
@@ -29,40 +32,42 @@ public class EditButtonViewModel : ReactiveObject
     private Image? _selectedImage;
 
     public bool IsConfirmed { get; private set; }
+    public bool IsExistingButton => _originalButton != null;
 
     public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelCommand { get; }
     public ReactiveCommand<Unit, Unit> AddImageCommand { get; }
 
-    public EditButtonViewModel(Button button, IList<Image> obfImages)
+    public EditButtonViewModel(Button button, ObfFile? obfData)
     {
         _originalButton = button ?? throw new ArgumentNullException(nameof(button));
-        _obfImages = obfImages;
+        _obfImages = obfData?.Images ?? [];
+        _obfData = obfData ?? new ObfFile();
 
         // Copy existing fields
         _id = button.Id;
         _label = button.Label;
         _borderColor = button.BorderColor;
         _backgroundColor = button.BackgroundColor;
-        
+
         // Convert any existing string to an Avalonia color
         if (Color.TryParse(button.BorderColor, out var bc))
             _borderColorAvalonia = bc;
         if (Color.TryParse(button.BackgroundColor, out var bg))
             _backgroundColorAvalonia = bg;
 
-        
+
         _vocalization = button.Vocalization;
         _action = button.Action;
         _loadBoardPath = button.LoadBoard?.Path;
 
         // Try to find the currently selected image from the button’s ImageId
-        var found = obfImages.FirstOrDefault(img => img.Id == button.ImageId);
+        var found = obfData?.Images.FirstOrDefault(img => img.Id == button.ImageId);
         _selectedImage = found;
 
         ConfirmCommand = ReactiveCommand.Create(Confirm);
         CancelCommand = ReactiveCommand.Create(Cancel);
-        AddImageCommand = ReactiveCommand.Create(AddImage); 
+        AddImageCommand = ReactiveCommand.Create(AddImage);
     }
 
     #region Properties
@@ -156,29 +161,73 @@ public class EditButtonViewModel : ReactiveObject
 
     private void Confirm()
     {
-        // Save changes back to the original button
-        _originalButton.Id = _id;
-        _originalButton.Label = _label;
-        _originalButton.BorderColor = _borderColorAvalonia.ToString();
-        _originalButton.BackgroundColor = _backgroundColorAvalonia.ToString();
-        _originalButton.Vocalization = _vocalization;
-        _originalButton.Action = _action;
-
-        // If an image is selected, store its ID
-        _originalButton.ImageId = _selectedImage?.Id ?? string.Empty;
-
-        if (!string.IsNullOrEmpty(_loadBoardPath))
+        // Check for duplicate ID before applying changes
+        if (IsDuplicateId(_id))
         {
-            _originalButton.LoadBoard ??= new LoadBoard();
-            _originalButton.LoadBoard.Path = _loadBoardPath;
+            // Show error message using AvaloniaUI MessageBox
+            var messageBoxStandardWindow = MessageBoxManager.GetMessageBoxStandard(
+                "Error", "Duplicate ID. Please enter a unique ID.");
+            messageBoxStandardWindow.ShowWindowAsync();
+
+            return; // Stop execution if ID is duplicate
+        }
+
+        if (IsExistingButton)
+        {
+            // Save changes back to the original button
+            _originalButton.Id = _id;
+            _originalButton.Label = _label;
+            _originalButton.BorderColor = _borderColorAvalonia.ToString();
+            _originalButton.BackgroundColor = _backgroundColorAvalonia.ToString();
+            _originalButton.Vocalization = _vocalization;
+            _originalButton.Action = _action;
+
+            // If an image is selected, store its ID
+            _originalButton.ImageId = _selectedImage?.Id ?? string.Empty;
+
+            if (!string.IsNullOrEmpty(_loadBoardPath))
+            {
+                _originalButton.LoadBoard ??= new LoadBoard();
+                _originalButton.LoadBoard.Path = _loadBoardPath;
+            }
+            else
+            {
+                _originalButton.LoadBoard = null;
+            }
         }
         else
         {
-            _originalButton.LoadBoard = null;
+            var newButton = new Button()
+            {
+                Id = _id,
+                Label = _label,
+                BorderColor = BorderColorAvalonia.ToString(),
+                BackgroundColor = _backgroundColorAvalonia.ToString(),
+                Vocalization = _vocalization,
+                Action = _action,
+                ImageId = _selectedImage?.Id ?? string.Empty
+            };
+            if (!string.IsNullOrEmpty(_loadBoardPath))
+            {
+                newButton.LoadBoard ??= new LoadBoard();
+                newButton.LoadBoard.Path = _loadBoardPath;
+            }
+            else
+            {
+                newButton.LoadBoard = null;
+            }
+
+
+            _obfData.Buttons.Add(newButton);
         }
 
         IsConfirmed = true;
         CloseWindow();
+    }
+
+    private bool IsDuplicateId(string newId)
+    {
+        return _obfData.Buttons.Any(b => b.Id == newId && b != _originalButton);
     }
 
     private void Cancel()
@@ -208,11 +257,24 @@ public class EditButtonViewModel : ReactiveObject
 
         // user created a new image
         var newImage = vm.CreateImage();
+        newImage.Id = GenerateUniqueId(); // Call the GenerateUniqueId function
+
         // Add to the underlying list
         _obfImages.Add(newImage);
 
         // Now set the newly created image as selected
         SelectedImage = newImage;
+    }
+
+    private string GenerateUniqueId()
+    {
+        string newId;
+        do
+        {
+            newId = Guid.NewGuid().ToString();
+        } while (_obfData.Images.Any(img => img.Id == newId) || _obfData.Buttons.Any(b => b.Id == newId));
+
+        return newId;
     }
 
     private void CloseWindow()

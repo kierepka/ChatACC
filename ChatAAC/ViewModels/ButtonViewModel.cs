@@ -5,7 +5,8 @@ namespace ChatAAC.ViewModels;
 
 public class ButtonViewModel(Button button, int row, int column) : ReactiveObject
 {
-    public Button Button { get; set; } = button;
+    public Button Button => button;
+
     public int Row { get; set; } = row;
     public int Column { get; set; } = column;
 }

@@ -10,28 +10,27 @@
     </Window.Resources>
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
         <StackPanel Margin="20" Spacing="10">
+            <TextBlock Text="Button ID:" FontWeight="Bold" />
+            <TextBox Text="{Binding Id}" 
+                     IsReadOnly="{Binding IsExistingButton}"
+                     ToolTip.Tip="ID must be unique within the board" />
+            
+            <TextBlock Text="Label:" FontWeight="Bold" />
+            <TextBox Text="{Binding Label}" />
 
-            <!-- ID, Label, etc. omitted for brevity -->
-
-            <!-- Border Color Fields -->
-            <TextBlock Text="Border Color (hex string):" FontWeight="Bold" />
+            <!-- Border Color -->
+            <TextBlock Text="Border Color (hex):" FontWeight="Bold" />
             <TextBox Text="{Binding BorderColor, Mode=TwoWay}" />
-
             <TextBlock Text="Pick a Border Color:" FontWeight="Bold" />
-            <!-- ColorPicker for border -->
-            <ColorPicker Color="{Binding BorderColorAvalonia, Mode=TwoWay}"
-                         IsAlphaEnabled="True"
-                         Width="250" />
+            <ColorPicker Color="{Binding BorderColorAvalonia, Mode=TwoWay}" 
+                         IsAlphaEnabled="True" Width="250" />
 
-            <!-- Background Color Fields -->
-            <TextBlock Text="Background Color (hex string):" FontWeight="Bold" />
+            <!-- Background Color -->
+            <TextBlock Text="Background Color (hex):" FontWeight="Bold" />
             <TextBox Text="{Binding BackgroundColor, Mode=TwoWay}" />
-
             <TextBlock Text="Pick a Background Color:" FontWeight="Bold" />
-            <!-- ColorPicker for background -->
-            <ColorPicker Color="{Binding BackgroundColorAvalonia, Mode=TwoWay}"
-                         IsAlphaEnabled="True"
-                         Width="250" />
+            <ColorPicker Color="{Binding BackgroundColorAvalonia, Mode=TwoWay}" 
+                         IsAlphaEnabled="True" Width="250" />
 
             <TextBlock Text="Vocalization:" FontWeight="Bold" />
             <TextBox Text="{Binding Vocalization}" />
@@ -39,14 +38,13 @@
             <TextBlock Text="Action:" FontWeight="Bold" />
             <TextBox Text="{Binding Action}" />
 
-            <!-- Image ComboBox -->
+            <!-- Image ComboBox with preview -->
             <TextBlock Text="Select Image:" FontWeight="Bold" />
             <ComboBox ItemsSource="{Binding AvailableImages}"
                       SelectedItem="{Binding SelectedImage, Mode=TwoWay}">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <StackPanel Orientation="Horizontal">
-                            <!-- Limit the displayed image size -->
                             <Image MaxWidth="60" MaxHeight="60"
                                    Source="{Binding ImagePath, Converter={StaticResource StringToBitmapConverter}}"
                                    AutomationProperties.HelpText="{Binding Id}" />
@@ -59,10 +57,11 @@
             <TextBlock Text="LoadBoard Path (optional):" FontWeight="Bold" />
             <TextBox Text="{Binding LoadBoardPath}" />
 
-            <!-- Buttons on the right -->
+            <!-- Buttons -->
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0,20,0,0">
                 <Button Content="OK" Command="{Binding ConfirmCommand}" Width="80" />
                 <Button Content="Cancel" Command="{Binding CancelCommand}" Width="80" />
+                <Button Content="Add Image" Command="{Binding AddImageCommand}" Width="80" />
             </StackPanel>
         </StackPanel>
     </ScrollViewer>

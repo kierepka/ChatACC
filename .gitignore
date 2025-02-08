@@ -116,3 +116,5 @@
 /ChatAAC/bin/Debug/net8.0/System.Speech.dll
 /ChatAAC/bin/Debug/net8.0/Tmds.DBus.Protocol.dll
 /.idea/.idea.ChatAAC/.idea/vcs.xml
+
+.fake
