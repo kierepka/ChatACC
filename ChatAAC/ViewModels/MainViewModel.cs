@@ -43,28 +43,29 @@ namespace ChatAAC.ViewModels
         private bool _isInitialized;
         private bool _isEditMode;
 
-        // Kolekcja przycisków (używana przez ItemsControl)
-        public ObservableCollection<ButtonViewModel> Buttons { get; } = new();
-        public ObservableCollection<Button> SelectedButtons { get; } = new();
+        // Kolekcja komórek gridu – reprezentacja przycisków na planszy
+        public ObservableCollection<GridCellViewModel> GridCells { get; } = new();
 
-        // Lista ścieżek plików, historia itp.
-        private List<string?> _obfFileHistory = [];
-        
+        // Historia plików (ścieżki do OBF/OBZ)
+        private List<string?> _obfFileHistory = new();
         private int _currentHistoryIndex = -1;
 
         #endregion
 
         #region Properties
+
         public int CurrentHistoryIndex
         {
             get => _currentHistoryIndex;
             set => this.RaiseAndSetIfChanged(ref _currentHistoryIndex, value);
         }
+
         public List<string?> ObfFileHistory
         {
             get => _obfFileHistory;
             set => this.RaiseAndSetIfChanged(ref _obfFileHistory, value);
         }
+
         public bool IsEditMode
         {
             get => _isEditMode;
@@ -88,17 +89,19 @@ namespace ChatAAC.ViewModels
             get => _gridColumns;
             set => this.RaiseAndSetIfChanged(ref _gridColumns, value);
         }
+
         private string ConstructedSentence
         {
             get => _constructedSentence;
             set => this.RaiseAndSetIfChanged(ref _constructedSentence, value);
         }
+
         public int CurrentBoardIndex
         {
             get => _currentBoardIndex;
             set => this.RaiseAndSetIfChanged(ref _currentBoardIndex, value);
         }
-        
+
         private string AiResponse
         {
             get => _aiResponse;
@@ -111,23 +114,24 @@ namespace ChatAAC.ViewModels
             set => this.RaiseAndSetIfChanged(ref _isLoading, value);
         }
 
-
-
         public string SelectedTense
         {
             get => _selectedTense;
             set => this.RaiseAndSetIfChanged(ref _selectedTense, value);
         }
+
         public string SelectedForm
         {
             get => _selectedForm;
             set => this.RaiseAndSetIfChanged(ref _selectedForm, value);
         }
+
         public int Quantity
         {
             get => _quantity;
             set => this.RaiseAndSetIfChanged(ref _quantity, value);
         }
+
         #endregion
 
         #region Commands
@@ -139,8 +143,7 @@ namespace ChatAAC.ViewModels
         public ReactiveCommand<Unit, Unit> OpenSettingsCommand { get; }
         public ReactiveCommand<Unit, Unit> SelectBoardAndLoadCommand { get; }
         public ReactiveCommand<Unit, Unit> ClearSelectedCommand { get; }
-        public ReactiveCommand<Button, Unit> ButtonClickedCommand { get; }
-        public ReactiveCommand<Button, Unit> RemoveButtonCommand { get; }
+        public ReactiveCommand<GridCellViewModel, Unit> CellClickedCommand { get; }
         public ReactiveCommand<Unit, Unit> SpeakCommand { get; }
         public ReactiveCommand<Unit, Unit> SendToAiCommand { get; }
         public ReactiveCommand<Unit, Unit> SpeakAiResponseCommand { get; }
@@ -171,12 +174,10 @@ namespace ChatAAC.ViewModels
             ToggleEditModeCommand = ReactiveCommand.Create(ToggleEditMode);
             EditGridCommand = ReactiveCommand.CreateFromTask(EditGridAsync);
             SaveBoardCommand = ReactiveCommand.CreateFromTask(SaveBoardAsync);
-
             OpenSettingsCommand = ReactiveCommand.Create(() => OpenSettings());
             SelectBoardAndLoadCommand = ReactiveCommand.CreateFromTask(SelectBoardAndLoadAsync);
             ClearSelectedCommand = ReactiveCommand.Create(ClearSelected);
-            ButtonClickedCommand = ReactiveCommand.CreateFromTask<Button>(OnButtonClickedAsync);
-            RemoveButtonCommand = ReactiveCommand.Create<Button>(RemoveSelectedButton);
+            CellClickedCommand = ReactiveCommand.CreateFromTask<GridCellViewModel>(OnCellClickedAsync);
             SpeakCommand = ReactiveCommand.Create(SpeakConstructedSentence);
             SendToAiCommand = ReactiveCommand.CreateFromTask(SendToAiAsync);
             SpeakAiResponseCommand = ReactiveCommand.CreateFromTask(SpeakAiResponseAsync);
@@ -189,9 +190,9 @@ namespace ChatAAC.ViewModels
             SelectTenseCommand = ReactiveCommand.Create<string>(tense => SelectedTense = tense);
             SelectFormCommand = ReactiveCommand.Create<string>(form => SelectedForm = form);
 
-            SelectedButtons.CollectionChanged += (_, _) => UpdateConstructedSentence();
+            // Update constructed sentence whenever grid cells change
+            GridCells.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
-            // Load AI response history and initial file
             _historyService.LoadHistory();
             _ = LoadInitialFileAsync();
         }
@@ -208,10 +209,7 @@ namespace ChatAAC.ViewModels
                     return;
 
                 var popupVm = new BoardPathsViewModel(ConfigViewModel.Instance.BoardPaths);
-                var popupWindow = new BoardPathsWindow
-                {
-                    DataContext = popupVm
-                };
+                var popupWindow = new BoardPathsWindow { DataContext = popupVm };
 
                 if (desktop.MainWindow != null)
                     await popupWindow.ShowDialog(desktop.MainWindow);
@@ -270,19 +268,76 @@ namespace ChatAAC.ViewModels
             AppLogger.LogInfo("Board saved successfully.");
         }
 
+        // Metoda wywoływana przez GridCellViewModel przy edycji komórki
+        public void UpdateGridOrderForCell(int row, int col, string newButtonId)
+        {
+            if (ObfData?.Grid?.Order != null)
+            {
+                if (row < ObfData.Grid.Order.Length && col < ObfData.Grid.Order[row].Length)
+                    ObfData.Grid.Order[row][col] = newButtonId;
+            }
+        }
+
+        // Ładuje przyciski (tworzy GridCells) z pliku OBF
         public void LoadButtonsFromObfData(ObfFile obfFile)
         {
-            Buttons.Clear();
-            // Przykładowo: tworzymy ButtonViewModel dla każdego przycisku
-            foreach (var btn in obfFile.Buttons)
+            GridCells.Clear();
+            if (obfFile.Grid != null && obfFile.Grid.Order != null)
             {
-                // Jeśli posiadasz logikę pozycjonowania (np. z gridu), ustaw odpowiednio wiersz/kolumnę
-                Buttons.Add(new ButtonViewModel(btn, 0, 0));
-            }
-            if (obfFile.Grid != null)
-            {
+                int rowIndex = 0;
+                foreach (var row in obfFile.Grid.Order)
+                {
+                    int columnIndex = 0;
+                    foreach (var buttonId in row)
+                    {
+                        Button? btn = string.IsNullOrEmpty(buttonId) ? null : obfFile.Buttons.FirstOrDefault(b => b.Id == buttonId);
+                        GridCells.Add(new GridCellViewModel(rowIndex, columnIndex, btn, this));
+                        columnIndex++;
+                    }
+                    rowIndex++;
+                }
                 GridRows = obfFile.Grid.Rows;
                 GridColumns = obfFile.Grid.Columns;
+            }
+            else
+            {
+                int col = 0;
+                foreach (var btn in obfFile.Buttons)
+                {
+                    GridCells.Add(new GridCellViewModel(0, col, btn, this));
+                    col++;
+                }
+                GridRows = 1;
+                GridColumns = obfFile.Buttons.Count;
+            }
+        }
+
+        public void UpdateGridCells()
+        {
+            if (ObfData?.Grid != null && ObfData.Grid.Order != null)
+            {
+                GridCells.Clear();
+                for (int r = 0; r < ObfData.Grid.Rows; r++)
+                {
+                    for (int c = 0; c < ObfData.Grid.Columns; c++)
+                    {
+                        string? btnId = ObfData.Grid.Order[r][c];
+                        Button? btn = string.IsNullOrEmpty(btnId) ? null : ObfData.Buttons.FirstOrDefault(b => b.Id == btnId);
+                        GridCells.Add(new GridCellViewModel(r, c, btn, this));
+                    }
+                }
+            }
+            else if (ObfData != null)
+            {
+                GridCells.Clear();
+                int col = 0;
+                foreach (var btn in ObfData.Buttons)
+                {
+                    GridCells.Add(new GridCellViewModel(0, col, btn, this));
+                    col++;
+                }
+                GridRows = 1;
+                GridColumns = ObfData.Buttons.Count;
             }
         }
 
@@ -356,31 +411,26 @@ namespace ChatAAC.ViewModels
                 await win.ShowDialog(desktop.MainWindow);
             if (vm.IsConfirmed)
             {
-                // Po edycji siatki zaktualizuj właściwości w MainViewModel
                 GridRows = ObfData.Grid.Rows;
                 GridColumns = ObfData.Grid.Columns;
-                // Odśwież kolekcję przycisków, jeżeli grid wpływa na pozycjonowanie
-                LoadButtonsFromObfData(ObfData);
+                UpdateGridCells();
                 await SaveBoardAsync();
             }
         }
 
-        private async Task EditButtonAsync(Button button)
+        public async Task EditButtonAsync(Button button)
         {
             try
             {
                 if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
                     return;
-                // Przekazujemy cały model ObfData (który zawiera listę obrazków)
                 var editVm = new EditButtonViewModel(button, ObfData);
                 var editWindow = new EditButtonWindow { DataContext = editVm };
                 if (desktop.MainWindow != null)
                     await editWindow.ShowDialog(desktop.MainWindow);
                 if (editVm.IsConfirmed)
                 {
-                    // Odśwież przyciski – możesz albo wywołać RaisePropertyChanged, albo przeładować całą kolekcję
-                    if (ObfData != null)
-                        LoadButtonsFromObfData(ObfData);
+                    UpdateGridCells();
                     await SaveBoardAsync();
                 }
             }
@@ -392,40 +442,78 @@ namespace ChatAAC.ViewModels
 
         #endregion
 
-        #region Button Handling
+        #region Cell Handling
 
-        private async Task OnButtonClickedAsync(Button button)
+        private async Task OnCellClickedAsync(GridCellViewModel cellVm)
         {
-            AppLogger.LogInfo(string.Format(Resources.MainViewModel_OnButtonClickedAsync_Kliknięto_przycisk___0_, button.Label));
-            if (!IsEditMode)
+            if (IsEditMode)
             {
-                // Tryb normalny
-                if (button.LoadBoard != null && !string.IsNullOrEmpty(button.LoadBoard.Path))
+                if (cellVm.Button != null)
                 {
-                    await _boardLoaderService.LoadObfOrObzFileAsync(button.LoadBoard.Path);
+                    await EditButtonAsync(cellVm.Button);
                 }
                 else
                 {
-                    if (!SelectedButtons.Contains(button))
-                        SelectedButtons.Add(button);
+                    var newButton = new Button
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        Label = "New Button",
+                        BorderColor = "#000000",
+                        BackgroundColor = "#FFFFFF",
+                        Vocalization = "",
+                        Action = ""
+                    };
+
+                    if (ObfData != null)
+                    {
+                        ObfData.Buttons.Add(newButton);
+                        cellVm.Button = newButton;
+                        if (ObfData.Grid != null && ObfData.Grid.Order != null)
+                        {
+                            if (cellVm.Row < ObfData.Grid.Order.Length && cellVm.Column < ObfData.Grid.Order[cellVm.Row].Length)
+                            {
+                                ObfData.Grid.Order[cellVm.Row][cellVm.Column] = newButton.Id;
+                            }
+                        }
+                    }
+                    UpdateGridCells();
+                    await SaveBoardAsync();
                 }
             }
             else
             {
-                // Tryb edycji – otwieramy okno edycji przycisku
-                await EditButtonAsync(button);
+                // Tryb normalny – np. dodanie do SelectedButtons
             }
         }
 
-        private void RemoveSelectedButton(Button button)
+        #endregion
+
+        #region History
+
+        private void AddAiResponseToHistory(string response)
         {
-            if (SelectedButtons.Contains(button))
-                SelectedButtons.Remove(button);
+            if (string.IsNullOrWhiteSpace(response))
+                return;
+            _historyService.AddToHistory(new AiResponse(response));
+            _historyService.SaveHistory();
         }
 
-        private void ClearSelected()
+        private void OpenHistoryWindow()
         {
-            SelectedButtons.Clear();
+            try
+            {
+                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime)
+                    return;
+                var historyWindow = new HistoryWindow
+                {
+                    DataContext = new HistoryViewModel(_historyService.HistoryItems, _historyService.HistoryFilePath)
+                };
+                historyWindow.Show();
+            }
+            catch (Exception ex)
+            {
+                AppLogger.LogError(string.Format(Resources.MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_, ex.Message));
+            }
         }
 
         #endregion
@@ -434,7 +522,9 @@ namespace ChatAAC.ViewModels
 
         private void UpdateConstructedSentence()
         {
-            ConstructedSentence = string.Join(" ", SelectedButtons.Select(p => p.Label));
+            // Zbieramy etykiety przycisków z GridCells, które nie są puste
+            ConstructedSentence = string.Join(" ", GridCells.Where(cell => cell.Button != null)
+                                                             .Select(cell => cell.Button?.Label));
             AppLogger.LogInfo(string.Format(Resources.MainViewModel_UpdateConstructedSentence_Constructed_sentence___0_, ConstructedSentence));
         }
 
@@ -512,35 +602,6 @@ namespace ChatAAC.ViewModels
 
         #endregion
 
-        #region History
-
-        private void AddAiResponseToHistory(string response)
-        {
-            if (string.IsNullOrWhiteSpace(response)) return;
-            _historyService.AddToHistory(new AiResponse(response));
-            _historyService.SaveHistory();
-        }
-
-        private void OpenHistoryWindow()
-        {
-            try
-            {
-                if (Application.Current?.ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime)
-                    return;
-                var historyWindow = new HistoryWindow
-                {
-                    DataContext = new HistoryViewModel(_historyService.HistoryItems, _historyService.HistoryFilePath)
-                };
-                historyWindow.Show();
-            }
-            catch (Exception ex)
-            {
-                AppLogger.LogError(string.Format(Resources.MainViewModel_OpenHistoryWindow_Error_opening_history_window___0_, ex.Message));
-            }
-        }
-
-        #endregion
-
         #region Settings
 
         private async void OpenSettings(string? message = null)
@@ -549,14 +610,10 @@ namespace ChatAAC.ViewModels
             {
                 if (message != null)
                     ConfigViewModel.Instance.Message = message;
-
-                var configWindow = new ConfigWindow
-                {
-                    DataContext = ConfigViewModel.Instance
-                };
-
+                var configWindow = new ConfigWindow { DataContext = ConfigViewModel.Instance };
                 var mainWindow = (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
-                if (mainWindow == null) return;
+                if (mainWindow == null)
+                    return;
                 await configWindow.ShowDialog(mainWindow);
                 ConfigViewModel.Instance.Message = null;
                 RefreshUi();
@@ -618,6 +675,15 @@ namespace ChatAAC.ViewModels
         public void RefreshLocalizedTexts()
         {
             this.RaisePropertyChanged(string.Empty);
+        }
+
+        #endregion
+
+        #region Dodatkowe metody
+
+        private void ClearSelected()
+        {
+            AppLogger.LogInfo("ClearSelected executed.");
         }
 
         #endregion

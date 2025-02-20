@@ -1,93 +1,83 @@
 using ReactiveUI;
 using System;
 using System.Reactive;
-using Avalonia;
 using ChatAAC.Models.Obf;
+using Avalonia;
 
-namespace ChatAAC.ViewModels;
-
-public class EditGridViewModel : ReactiveObject
+namespace ChatAAC.ViewModels
 {
-    private readonly Grid _gridData;
-    private int _rows;
-    private int _columns;
-    public bool IsConfirmed { get; private set; }
-
-    public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
-    public ReactiveCommand<Unit, Unit> CancelCommand { get; }
-
-    public EditGridViewModel(Grid gridData)
+    public class EditGridViewModel : ReactiveObject
     {
-        _gridData = gridData ?? throw new ArgumentNullException(nameof(gridData));
-        _rows = gridData.Rows;
-        _columns = gridData.Columns;
+        private readonly Grid _gridData;
+        private int _rows;
+        private int _columns;
+        public bool IsConfirmed { get; private set; }
 
-        ConfirmCommand = ReactiveCommand.Create(Confirm);
-        CancelCommand = ReactiveCommand.Create(Cancel);
-    }
+        public ReactiveCommand<Unit, Unit> ConfirmCommand { get; }
+        public ReactiveCommand<Unit, Unit> CancelCommand { get; }
 
-    public int Rows
-    {
-        get => _rows;
-        set => this.RaiseAndSetIfChanged(ref _rows, value);
-    }
-
-    public int Columns
-    {
-        get => _columns;
-        set => this.RaiseAndSetIfChanged(ref _columns, value);
-    }
-
-    private void Confirm()
-    {
-        // Possibly check if rows/cols decreased, prompt user
-        if (_rows < _gridData.Rows || _columns < _gridData.Columns)
+        public EditGridViewModel(Grid gridData)
         {
-            // Show a user prompt or automatically remove references
-            // For brevity, let's just do it automatically
-            TrimOrder();
+            _gridData = gridData ?? throw new ArgumentNullException(nameof(gridData));
+            _rows = gridData.Rows;
+            _columns = gridData.Columns;
+            ConfirmCommand = ReactiveCommand.Create(Confirm);
+            CancelCommand = ReactiveCommand.Create(Cancel);
         }
 
-        _gridData.Rows = _rows;
-        _gridData.Columns = _columns;
-
-        IsConfirmed = true;
-        CloseWindow();
-    }
-
-    private void TrimOrder()
-    {
-        var newOrder = new string?[_rows][];
-        for (var r = 0; r < _rows; r++)
+        public int Rows
         {
-            newOrder[r] = new string?[_columns];
-            for (var c = 0; c < _columns; c++)
+            get => _rows;
+            set => this.RaiseAndSetIfChanged(ref _rows, value);
+        }
+
+        public int Columns
+        {
+            get => _columns;
+            set => this.RaiseAndSetIfChanged(ref _columns, value);
+        }
+
+        private void Confirm()
+        {
+            if (_rows < _gridData.Rows || _columns < _gridData.Columns)
             {
-                if (r < _gridData.Order.Length && c < _gridData.Order[r].Length)
+                TrimOrder();
+            }
+            _gridData.Rows = _rows;
+            _gridData.Columns = _columns;
+            IsConfirmed = true;
+            CloseWindow();
+        }
+
+        private void TrimOrder()
+        {
+            var newOrder = new string?[_rows][];
+            for (int r = 0; r < _rows; r++)
+            {
+                newOrder[r] = new string?[_columns];
+                for (int c = 0; c < _columns; c++)
                 {
-                    newOrder[r][c] = _gridData.Order[r][c];
-                }
-                else
-                {
-                    newOrder[r][c] = null;
+                    if (r < _gridData.Order.Length && c < _gridData.Order[r].Length)
+                        newOrder[r][c] = _gridData.Order[r][c];
+                    else
+                        newOrder[r][c] = null;
                 }
             }
+            _gridData.Order = newOrder;
         }
 
-        _gridData.Order = newOrder;
-    }
-
-    private void Cancel()
-    {
-        IsConfirmed = false;
-        CloseWindow();
-    }
-
-    private void CloseWindow()
-    {
-        if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+        private void Cancel()
         {
-            desktop.Windows[^1].Close();
+            IsConfirmed = false;
+            CloseWindow();
+        }
+
+        private void CloseWindow()
+        {
+            if (Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                desktop.Windows[^1].Close();
+            }
         }
     }
 }

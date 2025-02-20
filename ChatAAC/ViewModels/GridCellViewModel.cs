@@ -1,5 +1,6 @@
 using System;
 using System.Reactive;
+using System.Threading.Tasks;
 using ReactiveUI;
 using ChatAAC.Models.Obf;
 
@@ -9,6 +10,7 @@ namespace ChatAAC.ViewModels
     {
         public int Row { get; }
         public int Column { get; }
+        
         private Button? _button;
         public Button? Button
         {
@@ -16,17 +18,15 @@ namespace ChatAAC.ViewModels
             set => this.RaiseAndSetIfChanged(ref _button, value);
         }
 
-        // Komenda edycji komórki – jeżeli w komórce nie ma przycisku, tworzy nowy, w przeciwnym razie edytuje istniejący
-        public ReactiveCommand<Unit, Unit> EditCellCommand { get; }
-
-        private readonly MainViewModel _parent;
+        // Zmieniono typ na ReactiveCommand<Unit, Task>
+        public ReactiveCommand<Unit, Task> EditCellCommand { get; }
 
         public GridCellViewModel(int row, int column, Button? button, MainViewModel parent)
         {
             Row = row;
             Column = column;
             Button = button;
-            _parent = parent;
+            var parent1 = parent;
 
             EditCellCommand = ReactiveCommand.Create(async () =>
             {
@@ -44,12 +44,11 @@ namespace ChatAAC.ViewModels
                     };
                     Button = newButton;
                     // Dodaj nowy przycisk do modelu
-                    _parent.ObfData?.Buttons.Add(newButton);
+                    parent1.ObfData?.Buttons.Add(newButton);
                     // Zaktualizuj siatkę – przypisz do komórki nowy identyfikator
-                    _parent.UpdateGridOrderForCell(Row, Column, newButton.Id);
+                    parent1.UpdateGridOrderForCell(Row, Column, newButton.Id);
                 }
-                // Otwórz okno edycji przycisku
-                await _parent.EditButtonAsync(Button);
+                await parent1.EditButtonAsync(Button);
             });
         }
     }
