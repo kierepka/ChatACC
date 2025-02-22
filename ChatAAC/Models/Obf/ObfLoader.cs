@@ -4,12 +4,13 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using ChatAAC.Lang;
 
 namespace ChatAAC.Models.Obf;
 
-public static partial class ObfLoader
+public partial class ObfLoader
 {
     private static readonly HttpClient HttpClient = new();
 
@@ -30,9 +31,9 @@ public static partial class ObfLoader
     ///     An asynchronous task that returns an ObfFile object if successful.
     ///     Returns null if loading or processing fails.
     /// </returns>
-    public static async Task<ObfFile?> LoadObfAsync(string? filePath)
+    public static async Task<ObfFile?> LoadObfAsync(string? filePath, CancellationToken cancellationToken = default)
     {
-        if (string.IsNullOrWhiteSpace(filePath))
+        if (string.IsNullOrWhiteSpace(filePath) || !File.Exists(filePath))
         {
             LogError("The OBF file path is empty.");
             return null;

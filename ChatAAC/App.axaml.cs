@@ -5,8 +5,12 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Avalonia.ReactiveUI;
+using ChatAAC.Models.Obf;
+using ChatAAC.Services;
 using ChatAAC.ViewModels;
 using ChatAAC.Views;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 
 namespace ChatAAC;
@@ -27,14 +31,56 @@ public class App : Application
         // Set the current culture to the system's culture
         Lang.Resources.Culture = CultureInfo.CurrentCulture;
 
+        // Możesz użyć ServiceProvider do utworzenia MainViewModel
+        var services = new ServiceCollection();
+        ConfigureServices(services);
+        var serviceProvider = services.BuildServiceProvider();
+
         // Check if the application is running in Classic Desktop mode
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             desktop.MainWindow = new MainWindow
             {
-                DataContext = new MainViewModel()
+                DataContext = serviceProvider.GetRequiredService<MainViewModel>()
             };
 
         base.OnFrameworkInitializationCompleted();
+
+    }
+    private void ConfigureServices(IServiceCollection services)
+    {
+        // Konfiguracja usług
+        services.AddLogging(configure => 
+        {
+            configure.AddConsole();
+            configure.AddDebug();
+            configure.SetMinimumLevel(LogLevel.Information);
+        });
+
+        // Dodaj Logger Factory
+        services.AddSingleton(LoggerFactory.Create(builder => 
+        {
+            builder
+                .AddConsole()
+                .AddDebug()
+                .SetMinimumLevel(LogLevel.Information);
+        }));
+
+        // Dodaj logger dla MainViewModel
+        services.AddSingleton(typeof(ILogger<MainViewModel>), 
+            sp => sp.GetRequiredService<ILoggerFactory>().CreateLogger<MainViewModel>());
+
+        // Dodaj MainViewModel jako usługę
+        services.AddTransient<MainViewModel>();
+        services.AddTransient<BoardLoaderService>();
+        services.AddSingleton<HistoryService>();
+        services.AddSingleton<ObfLoader>();
+       
+
+
+
+
+        // Dodaj pozostałe wymagane usługi
+        // np. services.AddSingleton<IDialogService, DialogService>();
     }
 
     /// <summary>
@@ -104,7 +150,7 @@ public class App : Application
     ///     (e.g., from Polish to English) to reload or rebind localizable
     ///     text resources in the MainWindow.
     /// </remarks>
-    public static void RefreshMainWindow()
+    private static void RefreshMainWindow()
     {
         if (Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: not null } desktop)
             // Option A: Force the window to redraw itself

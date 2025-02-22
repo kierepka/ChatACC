@@ -16,6 +16,7 @@ using ChatAAC.Models;
 using ChatAAC.Models.Obf;
 using ChatAAC.Services;
 using ChatAAC.Views;
+using Microsoft.Extensions.Logging;
 using ReactiveUI;
 using Button = ChatAAC.Models.Obf.Button;
 
@@ -159,7 +160,8 @@ namespace ChatAAC.ViewModels
 
         #region Constructor
 
-        public MainViewModel()
+        public MainViewModel(ILogger<MainViewModel> logger
+        )
         {
             // Load settings
             ConfigViewModel.Instance.ReloadSettings();
@@ -167,7 +169,12 @@ namespace ChatAAC.ViewModels
             // Initialize services
             _ttsService = TtsServiceFactory.CreateTtsService();
             _aiInteractionService = new AiInteractionService();
-            _boardLoaderService = new BoardLoaderService(this);
+            _boardLoaderService = new BoardLoaderService(
+                this,
+                logger,
+                new FileTypeValidator(), 
+                new CachePathProvider()
+            );
             _historyService = new HistoryService();
 
             // Initialize commands
@@ -193,7 +200,7 @@ namespace ChatAAC.ViewModels
             // Update constructed sentence whenever grid cells change
             GridCells.CollectionChanged += (_, _) => UpdateConstructedSentence();
 
-            _historyService.LoadHistory();
+            _ = _historyService.LoadHistoryAsync();
             _ = LoadInitialFileAsync();
         }
 
@@ -257,7 +264,7 @@ namespace ChatAAC.ViewModels
             }
         }
 
-        public async Task SaveBoardAsync()
+        private async Task SaveBoardAsync()
         {
             if (string.IsNullOrEmpty(CurrentObfFilePath) || ObfData == null)
             {
@@ -282,15 +289,15 @@ namespace ChatAAC.ViewModels
         public void LoadButtonsFromObfData(ObfFile obfFile)
         {
             GridCells.Clear();
-            if (obfFile.Grid != null && obfFile.Grid.Order != null)
+            if (obfFile.Grid != null)
             {
-                int rowIndex = 0;
+                var rowIndex = 0;
                 foreach (var row in obfFile.Grid.Order)
                 {
-                    int columnIndex = 0;
+                    var columnIndex = 0;
                     foreach (var buttonId in row)
                     {
-                        Button? btn = string.IsNullOrEmpty(buttonId) ? null : obfFile.Buttons.FirstOrDefault(b => b.Id == buttonId);
+                        var btn = string.IsNullOrEmpty(buttonId) ? null : obfFile.Buttons.FirstOrDefault(b => b.Id == buttonId);
                         GridCells.Add(new GridCellViewModel(rowIndex, columnIndex, btn, this));
                         columnIndex++;
                     }
@@ -301,7 +308,7 @@ namespace ChatAAC.ViewModels
             }
             else
             {
-                int col = 0;
+                var col = 0;
                 foreach (var btn in obfFile.Buttons)
                 {
                     GridCells.Add(new GridCellViewModel(0, col, btn, this));
@@ -314,15 +321,15 @@ namespace ChatAAC.ViewModels
 
         public void UpdateGridCells()
         {
-            if (ObfData?.Grid != null && ObfData.Grid.Order != null)
+            if (ObfData?.Grid != null)
             {
                 GridCells.Clear();
-                for (int r = 0; r < ObfData.Grid.Rows; r++)
+                for (var r = 0; r < ObfData.Grid.Rows; r++)
                 {
-                    for (int c = 0; c < ObfData.Grid.Columns; c++)
+                    for (var c = 0; c < ObfData.Grid.Columns; c++)
                     {
-                        string? btnId = ObfData.Grid.Order[r][c];
-                        Button? btn = string.IsNullOrEmpty(btnId) ? null : ObfData.Buttons.FirstOrDefault(b => b.Id == btnId);
+                        var btnId = ObfData.Grid.Order[r][c];
+                        var btn = string.IsNullOrEmpty(btnId) ? null : ObfData.Buttons.FirstOrDefault(b => b.Id == btnId);
                         GridCells.Add(new GridCellViewModel(r, c, btn, this));
                     }
                 }
@@ -330,7 +337,7 @@ namespace ChatAAC.ViewModels
             else if (ObfData != null)
             {
                 GridCells.Clear();
-                int col = 0;
+                var col = 0;
                 foreach (var btn in ObfData.Buttons)
                 {
                     GridCells.Add(new GridCellViewModel(0, col, btn, this));
@@ -468,7 +475,7 @@ namespace ChatAAC.ViewModels
                     {
                         ObfData.Buttons.Add(newButton);
                         cellVm.Button = newButton;
-                        if (ObfData.Grid != null && ObfData.Grid.Order != null)
+                        if (ObfData.Grid != null)
                         {
                             if (cellVm.Row < ObfData.Grid.Order.Length && cellVm.Column < ObfData.Grid.Order[cellVm.Row].Length)
                             {
@@ -490,12 +497,12 @@ namespace ChatAAC.ViewModels
 
         #region History
 
-        private void AddAiResponseToHistory(string response)
+        private async Task AddAiResponseToHistory(string response)
         {
             if (string.IsNullOrWhiteSpace(response))
                 return;
-            _historyService.AddToHistory(new AiResponse(response));
-            _historyService.SaveHistory();
+            await _historyService.AddToHistoryAsync(new AiResponse(response));
+            await _historyService.SaveHistoryAsync();
         }
 
         private void OpenHistoryWindow()
@@ -563,7 +570,7 @@ namespace ChatAAC.ViewModels
             AiResponse = response;
             AppLogger.LogInfo(string.Format(Resources.MainViewModel_SendToAiAsync_AI_Response___0_, AiResponse));
             IsLoading = false;
-            AddAiResponseToHistory(AiResponse);
+            await AddAiResponseToHistory(AiResponse);
             CopyAiResponseToClipboard();
             await SpeakAiResponseAsync();
         }

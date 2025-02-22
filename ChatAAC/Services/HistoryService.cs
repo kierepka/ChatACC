@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using ChatAAC.Helpers;
 using ChatAAC.Lang;
 using ChatAAC.Models;
@@ -10,23 +11,27 @@ namespace ChatAAC.Services;
 
 public class HistoryService
 {
+    private static readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions { WriteIndented = true };
+
     public ObservableCollection<AiResponse> HistoryItems { get; } = [];
 
     public string HistoryFilePath { get; } =
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC",
-            "ai_response_history.json");
+        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatAAC", "ai_response_history.json");
 
-    public void LoadHistory()
+
+    public async Task LoadHistoryAsync()
     {
         if (!File.Exists(HistoryFilePath)) return;
 
         try
         {
-            var json = File.ReadAllText(HistoryFilePath);
-            var history = JsonSerializer.Deserialize<ObservableCollection<AiResponse>>(json);
-            if (history == null) return;
+            var json = await File.ReadAllTextAsync(HistoryFilePath);
+            var history = JsonSerializer.Deserialize<ObservableCollection<AiResponse>>(json, _jsonOptions);
+            if (history is null) return;
+
             foreach (var item in history)
                 HistoryItems.Add(item);
+
         }
         catch (Exception ex)
         {
@@ -35,7 +40,7 @@ public class HistoryService
         }
     }
 
-    public void SaveHistory()
+    public async Task SaveHistoryAsync()
     {
         try
         {
@@ -43,9 +48,9 @@ public class HistoryService
             if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
                 Directory.CreateDirectory(directory);
 
-            var options = new JsonSerializerOptions { WriteIndented = true };
-            var json = JsonSerializer.Serialize(HistoryItems, options);
-            File.WriteAllText(HistoryFilePath, json);
+            var json = JsonSerializer.Serialize(HistoryItems, _jsonOptions);
+            await File.WriteAllTextAsync(HistoryFilePath, json);
+
         }
         catch (Exception ex)
         {
@@ -54,9 +59,9 @@ public class HistoryService
         }
     }
 
-    public void AddToHistory(AiResponse response)
+    public async Task AddToHistoryAsync(AiResponse response)
     {
         HistoryItems.Add(response);
-        SaveHistory();
+        await SaveHistoryAsync();
     }
 }

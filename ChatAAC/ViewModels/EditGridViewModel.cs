@@ -52,10 +52,10 @@ namespace ChatAAC.ViewModels
         private void TrimOrder()
         {
             var newOrder = new string?[_rows][];
-            for (int r = 0; r < _rows; r++)
+            for (var r = 0; r < _rows; r++)
             {
                 newOrder[r] = new string?[_columns];
-                for (int c = 0; c < _columns; c++)
+                for (var c = 0; c < _columns; c++)
                 {
                     if (r < _gridData.Order.Length && c < _gridData.Order[r].Length)
                         newOrder[r][c] = _gridData.Order[r][c];
